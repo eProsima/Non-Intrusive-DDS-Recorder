@@ -51,8 +51,10 @@ struct udphdr
 #else
 #include <netinet/in.h>
 #include <netinet/if_ether.h>
+#include <netinet/ip.h>
+#include <netinet/udp.h>
 
-#define IP_HEADER_LEN(ip) ip->ip_hl
+#define IP_HEADER_LEN(ip) ip->ip_hl * 4
 
 #endif //RTI_WIN32
 
