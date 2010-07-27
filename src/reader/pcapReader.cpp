@@ -171,7 +171,7 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
                     m_npackets++;
 
                     if(m_callback != NULL)
-                        m_callback(m_user, (char*)rtpsPayload);
+                        m_callback(m_user, (char*)rtpsPayload, ntohs(udpc->len) - sizeof(struct udphdr));
                 }
             }
         }

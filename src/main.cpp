@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
             {
                 if(reader->isOpen())
                 {
-                    analyzer = new RTPSPacketAnalyzer();
+                    analyzer = new RTPSPacketAnalyzer(*log);
 
                     if(analyzer != NULL)
                     {

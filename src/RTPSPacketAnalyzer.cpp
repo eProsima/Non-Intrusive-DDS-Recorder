@@ -3,11 +3,51 @@
 
 #include <stdio.h>
 
+#ifdef RTI_WIN32
+#include <winsock.h>
+#else
+#include <netinet/in.h>
+#endif
+
+#define JUMP(buffer, length) buffer = &buffer[length]
+#define GET_USHORT_ENDIAN(endian, buffer) \
+    endian ? ((unsigned short*)(buffer))[0] : \
+(((unsigned short)(buffer)[0] << 8) & 0xFF00) + ((unsigned short)(buffer)[1] & 0X00FF);
+#define GET_UINT_ENDIAN(endian, buffer) \
+    endian ? ((unsigned int*)(buffer))[0] : \
+(((unsigned int)(buffer)[0] << 24) & 0xFF000000) + (((unsigned int)(buffer)[1] << 16) & 0x00FF0000) + \
+(((unsigned int)(buffer)[2] << 8) & 0x0000FF00) + ((unsigned int)(buffer)[3] & 0x000000FF);
+#define GET_ENTITYID(buffer) (((unsigned int)(buffer)[0] << 24) & 0xFF000000) + (((unsigned int)(buffer)[1] << 16) & 0x00FF0000) + \
+    (((unsigned int)(buffer)[2] << 8) & 0x0000FF00) + ((unsigned int)(buffer)[3] & 0x000000FF);
+#define GET_UINT(buffer) ntohl(((unsigned int*)buffer)[0])
+
+#define RTPS_HEADER_PROTOCOL_SIZE 4
+#define RTPS_HEADER_PROTOCOL_VERSION_SIZE 2
+#define RTPS_HEADER_VENDORID_SIZE 2
+#define RTPS_HEADER_GUIDPREFIX_SIZE 12
+#define SUBMESSAGE_HEADER_ID_SIZE 1
+#define SUBMESSAGE_HEADER_FLAGS_SIZE 1
+#define SUBMESSAGE_HEADER_OCTECTSTONEXTHEADER_SIZE 2
+#define SUBMESSAGE_BODY_EXTRAFLAGS_SIZE 2
+#define SUBMESSAGE_BODY_OCTETSTOINLINEQOS_SIZE 2
+#define SUBMESSAGE_BODY_ENTITIESID_SIZE 8
+#define SUBMESSAGE_BODY_SEQUENCENUMBER_SIZE 8
+
+enum RtpsSubmessageId
+{
+    RTPS_DATA_ID = 0x15
+};
+
 using namespace eProsima;
 
 static const char* const CLASS_NAME = "RTPSPacketAnalyzer";
 
-void RTPSPacketAnalyzer::processRTPSPacketCallback(void *user, const char *rtpsPayload)
+RTPSPacketAnalyzer::RTPSPacketAnalyzer(eProsimaLog &log) : m_log(log)
+{
+}
+
+void RTPSPacketAnalyzer::processRTPSPacketCallback(void *user, const char *rtpsPayload,
+        const unsigned short rtpsPayloadLen)
 {
     const char* const METHOD_NAME = "processRTPSPacketCallback";
     RTPSPacketAnalyzer *analyzer = NULL;
@@ -15,7 +55,7 @@ void RTPSPacketAnalyzer::processRTPSPacketCallback(void *user, const char *rtpsP
     if(user != NULL && rtpsPayload != NULL)
     {
         analyzer = (RTPSPacketAnalyzer*)user;
-        analyzer->processRTPSPacket(rtpsPayload);
+        analyzer->processRTPSPacket(rtpsPayload, rtpsPayloadLen);
     }
     else
     {
@@ -23,6 +63,124 @@ void RTPSPacketAnalyzer::processRTPSPacketCallback(void *user, const char *rtpsP
     }
 }
 
-void RTPSPacketAnalyzer::processRTPSPacket(const char *rtpsPayload)
+void RTPSPacketAnalyzer::initialize()
 {
+    m_protocolVersion[0] = 0;
+    m_protocolVersion[1] = 0;
+    m_vendorId[0] = 0;
+    m_vendorId[1] = 0;
+    m_guidPrefix[0] = 0;
+    m_guidPrefix[1] = 0;
+    m_guidPrefix[2] = 0;
+}
+
+void RTPSPacketAnalyzer::processRTPSPacket(const char *rtpsPayload,
+        const unsigned short rtpsPayloadLen)
+{
+    const char* const METHOD_NAME = "processRTPSPacket";
+    const char *auxPointer = rtpsPayload;
+    unsigned short auxPointerLen = rtpsPayloadLen;
+    unsigned short submessageLen = 0;
+
+    if(rtpsPayload != NULL)
+    {
+        initialize();
+
+        // Jump 'RTPS' bytes.
+        JUMP(auxPointer, RTPS_HEADER_PROTOCOL_SIZE);
+        auxPointerLen -= RTPS_HEADER_PROTOCOL_SIZE;
+
+        // Save and jump protocol version.
+        m_protocolVersion[0] = auxPointer[0];
+        m_protocolVersion[1] = auxPointer[1];
+        JUMP(auxPointer, RTPS_HEADER_PROTOCOL_VERSION_SIZE);
+        auxPointerLen -= RTPS_HEADER_PROTOCOL_VERSION_SIZE;
+        
+        // Save and jump vendor identifier.
+        m_vendorId[0] = auxPointer[0];
+        m_vendorId[1] = auxPointer[1];
+        JUMP(auxPointer, RTPS_HEADER_VENDORID_SIZE);
+        auxPointerLen -= RTPS_HEADER_VENDORID_SIZE;
+
+        // Get and jump guid prefix.
+        m_guidPrefix[0] = GET_UINT(auxPointer);
+        m_guidPrefix[1] = GET_UINT(&((unsigned int*)auxPointer)[1]);
+        m_guidPrefix[2] = GET_UINT(&((unsigned int*)auxPointer)[2]);
+        JUMP(auxPointer, RTPS_HEADER_GUIDPREFIX_SIZE);
+        auxPointerLen -= RTPS_HEADER_GUIDPREFIX_SIZE;
+
+        while(auxPointerLen > 0)
+        {
+            submessageLen = processRTPSSubmessage(auxPointer);
+            JUMP(auxPointer, submessageLen);
+            auxPointerLen -= submessageLen;
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameter");
+    }
+}
+
+unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const char *submessage)
+{
+    const char* const METHOD_NAME = "processRTPSSubmessage";
+    char submessageId = 0;
+    bool endianess = false;
+    bool dataInside = false;
+    const char *auxPointer = submessage;
+    unsigned short submessageSize = 0;
+
+    if(submessage != NULL)
+    {
+        // Submessage identifier.
+        submessageId = auxPointer[0];
+        endianess = 0x1 & auxPointer[1];
+        dataInside = 0x4 & auxPointer[1];
+
+        // Jump submessage identifier and flags
+        JUMP(auxPointer, SUBMESSAGE_HEADER_ID_SIZE + SUBMESSAGE_HEADER_FLAGS_SIZE);
+
+        // Get submessage size and jump size of the submessage.
+        submessageSize = GET_USHORT_ENDIAN(endianess, auxPointer);
+        JUMP(auxPointer, SUBMESSAGE_HEADER_OCTECTSTONEXTHEADER_SIZE);
+
+        if(submessageId == RTPS_DATA_ID)
+        {
+            processDATASubmessage(auxPointer, submessageSize, endianess, dataInside);
+        }
+
+        // Add submessage identifier, flags and submessage size
+        submessageSize += SUBMESSAGE_HEADER_ID_SIZE + SUBMESSAGE_HEADER_FLAGS_SIZE +
+            SUBMESSAGE_HEADER_OCTECTSTONEXTHEADER_SIZE;
+    }
+    else
+    {
+        logError(m_log, "Bad parameter (submessage)");
+    }
+
+    return submessageSize;
+}
+
+void RTPSPacketAnalyzer::processDATASubmessage(const char *dataSubmessage,
+        unsigned short dataSubmessageLen, bool endianess, bool dataInside)
+{
+    const char* const METHOD_NAME = "processDATASubmessage";
+    const char *auxPointer = dataSubmessage;
+    unsigned short auxPointerLen = dataSubmessageLen;
+    unsigned int readerId = 0, writerId = 0;
+
+    if(dataSubmessage != NULL)
+    {
+        JUMP(auxPointer, SUBMESSAGE_BODY_EXTRAFLAGS_SIZE + SUBMESSAGE_BODY_OCTETSTOINLINEQOS_SIZE);
+        auxPointerLen -= SUBMESSAGE_BODY_EXTRAFLAGS_SIZE + SUBMESSAGE_BODY_OCTETSTOINLINEQOS_SIZE;
+
+        // Get readerId and writerId.
+        readerId = GET_ENTITYID(auxPointer);
+        writerId = GET_ENTITYID((char*)&((unsigned int*)auxPointer)[1]);
+    }
+    else
+    {
+        logError(m_log, "Bad parameter (dataSubmessage)");
+    }
 }
