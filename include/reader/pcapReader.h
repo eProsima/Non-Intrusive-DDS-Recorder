@@ -11,7 +11,7 @@ namespace eProsima
 {
     class eProsimaLog;
 
-    typedef void (*processRTPSPacketCallback)(void *user, u_char *rtpsPayload);
+    typedef void (*processRTPSPacketCallback)(void *user, const char *rtpsPayload);
 
     class pcapReader
     {
@@ -44,17 +44,33 @@ namespace eProsima
             /**
              * \brief This function processes each RTPS packet in the pcap file.
              *
+             * \param user User pointer that will be returned in callback.
+             * \param callback For each RTPS packet this callback will be called. Cannot be NULL.
              * \return the number of RTPS packets that was processed.
              */
-            unsigned int processRTPSPackets(processRTPSPacketCallback callback);
+            unsigned int processRTPSPackets(void *user, processRTPSPacketCallback callback);
 
         private:
 
             /**
              * \brief This callback is called by pcap library in each net packet that it processed.
+             *
+             * \param user User pointer that is returned again by pcap library. In this case
+             * it is the pcapReader object pointer.
+             * \param hdr Header structure returned by pcap library.
+             * \param data The datagram (packet) that will be parsed.
              */
             static void processPacketCallback(u_char *user, const struct pcap_pkthdr *hdr, const u_char *data);
 
+            /**
+             * \brief This funcion is called by processPacketCallback static function.
+             *
+             * For each RTPS packet that is found, this function will call the callback
+             * that user set.
+             *
+             * \param hdr Header structure returned by pcap library.
+             * \param data The datagram (packet) that will be parsed.
+             */
             void processPacket(const struct pcap_pkthdr *hdr, const u_char *data);
 
             /// Name of the file that was opened.
@@ -71,6 +87,9 @@ namespace eProsima
 
             /// Stores the callback that it must be called.
             processRTPSPacketCallback m_callback;
+            
+            /// Stores the user pointer that it will be returned.
+            void *m_user;
 
             /// Pcap error buffer.
             char m_pcapErrorBuf[PCAP_ERRBUF_SIZE];

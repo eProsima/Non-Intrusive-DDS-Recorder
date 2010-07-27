@@ -89,7 +89,7 @@ bool pcapReader::isOpen()
     return (m_pcap != NULL);
 }
 
-unsigned int pcapReader::processRTPSPackets(processRTPSPacketCallback callback)
+unsigned int pcapReader::processRTPSPackets(void *user, processRTPSPacketCallback callback)
 {
     const char* const METHOD_NAME = "processRTPSPackets";
     unsigned int returnedValue = 0;
@@ -99,12 +99,14 @@ unsigned int pcapReader::processRTPSPackets(processRTPSPacketCallback callback)
         if(m_pcap != NULL)
         {
             m_callback = callback;
+            m_user = user;
 
             if(pcap_dispatch(m_pcap, 0, pcapReader::processPacketCallback, (u_char*)this) >= 0)
             {
                 returnedValue = m_npackets;
                 m_npackets = 0;
                 m_callback = NULL;
+                m_user = NULL;
             }
             else
             {
@@ -169,7 +171,7 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
                     m_npackets++;
 
                     if(m_callback != NULL)
-                        m_callback(NULL, rtpsPayload);
+                        m_callback(m_user, (char*)rtpsPayload);
                 }
             }
         }

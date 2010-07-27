@@ -1,4 +1,5 @@
 #include "reader/pcapReader.h"
+#include "RTPSPacketAnalyzer.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
 #include <stdio.h>
@@ -12,17 +13,13 @@ void printHelp()
     printf("RTPSdump usage: RTPSdump.exe [pcap file]\n");
 }
 
-
-void prueba(void *user, u_char *rtpsPayload)
-{
-}
-
 int main(int argc, char *argv[])
 {
     int returnedValue = -1;
     string filename;
     eProsimaLog *log = NULL;
     pcapReader *reader = NULL;
+    RTPSPacketAnalyzer *analyzer = NULL;
 
     if(argc > 1)
     {
@@ -38,7 +35,14 @@ int main(int argc, char *argv[])
             {
                 if(reader->isOpen())
                 {
-                    reader->processRTPSPackets(prueba);
+                    analyzer = new RTPSPacketAnalyzer();
+
+                    if(analyzer != NULL)
+                    {
+                        reader->processRTPSPackets((void*)analyzer, RTPSPacketAnalyzer::processRTPSPacketCallback);
+
+                        delete analyzer;
+                    }
                 }
 
                 delete reader;
