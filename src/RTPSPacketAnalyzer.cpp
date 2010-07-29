@@ -10,15 +10,27 @@
 #endif
 
 #define JUMP(buffer, length) buffer = &buffer[length]
+
 #define GET_USHORT_ENDIAN(endian, buffer) \
     endian ? ((unsigned short*)(buffer))[0] : \
-(((unsigned short)(buffer)[0] << 8) & 0xFF00) + ((unsigned short)(buffer)[1] & 0X00FF);
+ntohs(((unsigned short*)(buffer))[0])
+//(((unsigned short)(buffer)[0] << 8) & 0xFF00) + ((unsigned short)(buffer)[1] & 0X00FF);
+
 #define GET_UINT_ENDIAN(endian, buffer) \
     endian ? ((unsigned int*)(buffer))[0] : \
-(((unsigned int)(buffer)[0] << 24) & 0xFF000000) + (((unsigned int)(buffer)[1] << 16) & 0x00FF0000) + \
-(((unsigned int)(buffer)[2] << 8) & 0x0000FF00) + ((unsigned int)(buffer)[3] & 0x000000FF);
+ntohl(((unsigned int*)(buffer))[0])
+//(((unsigned int)(buffer)[0] << 24) & 0xFF000000) + (((unsigned int)(buffer)[1] << 16) & 0x00FF0000) + \
+//(((unsigned int)(buffer)[2] << 8) & 0x0000FF00) + ((unsigned int)(buffer)[3] & 0x000000FF);
+
+#define GET_ULONGLONG_ENDIAN(endian, buffer) \
+    endian ? ((((unsigned long long)(((unsigned int*)(buffer))[0])) << 32) & 0xFFFFFFFF00000000ll) + \
+(((unsigned long long)(((unsigned int*)(buffer))[1])) & 0x00000000FFFFFFFFll) : \
+((((unsigned long long)ntohl(((unsigned int*)buffer)[0])) << 32) & 0xFFFFFFFF00000000ll) + \
+(((unsigned long long)ntohl(((unsigned int*)buffer)[1])) & 0x00000000FFFFFFFFll)
+
 #define GET_ENTITYID(buffer) (((unsigned int)(buffer)[0] << 24) & 0xFF000000) + (((unsigned int)(buffer)[1] << 16) & 0x00FF0000) + \
     (((unsigned int)(buffer)[2] << 8) & 0x0000FF00) + ((unsigned int)(buffer)[3] & 0x000000FF);
+
 #define GET_UINT(buffer) ntohl(((unsigned int*)buffer)[0])
 
 #define RTPS_HEADER_PROTOCOL_SIZE 4
@@ -42,8 +54,15 @@ using namespace eProsima;
 
 static const char* const CLASS_NAME = "RTPSPacketAnalyzer";
 
-RTPSPacketAnalyzer::RTPSPacketAnalyzer(eProsimaLog &log) : m_log(log)
+RTPSPacketAnalyzer::RTPSPacketAnalyzer(eProsimaLog &log) : m_log(log), m_getDataUser(NULL),
+    m_getDataCallback(NULL)
 {
+}
+
+void RTPSPacketAnalyzer::setGetDataCallback(void *user, getDataCallback callback)
+{
+    m_getDataUser = user;
+    m_getDataCallback = callback;
 }
 
 void RTPSPacketAnalyzer::processRTPSPacketCallback(void *user, const char *rtpsPayload,
@@ -102,18 +121,23 @@ void RTPSPacketAnalyzer::processRTPSPacket(const char *rtpsPayload,
         JUMP(auxPointer, RTPS_HEADER_VENDORID_SIZE);
         auxPointerLen -= RTPS_HEADER_VENDORID_SIZE;
 
-        // Get and jump guid prefix.
-        m_guidPrefix[0] = GET_UINT(auxPointer);
-        m_guidPrefix[1] = GET_UINT(&((unsigned int*)auxPointer)[1]);
-        m_guidPrefix[2] = GET_UINT(&((unsigned int*)auxPointer)[2]);
-        JUMP(auxPointer, RTPS_HEADER_GUIDPREFIX_SIZE);
-        auxPointerLen -= RTPS_HEADER_GUIDPREFIX_SIZE;
+        // Detect RTPS PING
 
-        while(auxPointerLen > 0)
+        if(auxPointerLen >  RTPS_HEADER_GUIDPREFIX_SIZE)
         {
-            submessageLen = processRTPSSubmessage(auxPointer);
-            JUMP(auxPointer, submessageLen);
-            auxPointerLen -= submessageLen;
+            // Get and jump guid prefix.
+            m_guidPrefix[0] = GET_UINT(auxPointer);
+            m_guidPrefix[1] = GET_UINT(&((unsigned int*)auxPointer)[1]);
+            m_guidPrefix[2] = GET_UINT(&((unsigned int*)auxPointer)[2]);
+            JUMP(auxPointer, RTPS_HEADER_GUIDPREFIX_SIZE);
+            auxPointerLen -= RTPS_HEADER_GUIDPREFIX_SIZE;
+
+            while(auxPointerLen > 0)
+            {
+                submessageLen = processRTPSSubmessage(auxPointer);
+                JUMP(auxPointer, submessageLen);
+                auxPointerLen -= submessageLen;
+            }
         }
     }
     else
@@ -145,7 +169,7 @@ unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const char *submessage)
         submessageSize = GET_USHORT_ENDIAN(endianess, auxPointer);
         JUMP(auxPointer, SUBMESSAGE_HEADER_OCTECTSTONEXTHEADER_SIZE);
 
-        if(submessageId == RTPS_DATA_ID)
+        if(submessageId == RTPS_DATA_ID && m_getDataCallback != NULL)
         {
             processDATASubmessage(auxPointer, submessageSize, endianess, dataInside);
         }
@@ -169,6 +193,9 @@ void RTPSPacketAnalyzer::processDATASubmessage(const char *dataSubmessage,
     const char *auxPointer = dataSubmessage;
     unsigned short auxPointerLen = dataSubmessageLen;
     unsigned int readerId = 0, writerId = 0;
+    unsigned long long sequencenum = 0;
+    const char *serializedData = NULL;
+    unsigned int serializedDataLen = 0;
 
     if(dataSubmessage != NULL)
     {
@@ -178,6 +205,23 @@ void RTPSPacketAnalyzer::processDATASubmessage(const char *dataSubmessage,
         // Get readerId and writerId.
         readerId = GET_ENTITYID(auxPointer);
         writerId = GET_ENTITYID((char*)&((unsigned int*)auxPointer)[1]);
+        JUMP(auxPointer, SUBMESSAGE_BODY_ENTITIESID_SIZE);
+        auxPointerLen -= SUBMESSAGE_BODY_ENTITIESID_SIZE;
+
+        // Get sequence number.
+        sequencenum = GET_ULONGLONG_ENDIAN(endianess, auxPointer);
+        JUMP(auxPointer, SUBMESSAGE_BODY_SEQUENCENUMBER_SIZE);
+        auxPointerLen -= SUBMESSAGE_BODY_SEQUENCENUMBER_SIZE;
+        
+        // TODO: Detect inlineQos
+
+        // Get serialized data.
+        serializedData = auxPointer;
+        serializedDataLen = auxPointerLen;
+
+        if(m_getDataCallback != NULL)
+            m_getDataCallback(m_getDataUser, readerId, writerId, serializedData,
+                    serializedDataLen);
     }
     else
     {

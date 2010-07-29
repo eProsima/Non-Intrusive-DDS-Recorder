@@ -1,5 +1,6 @@
 #include "reader/pcapReader.h"
 #include "RTPSPacketAnalyzer.h"
+#include "RTPSdump.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
 #include <stdio.h>
@@ -20,6 +21,8 @@ int main(int argc, char *argv[])
     eProsimaLog *log = NULL;
     pcapReader *reader = NULL;
     RTPSPacketAnalyzer *analyzer = NULL;
+    RTPSdump *rtpsdumper = NULL;
+    unsigned int numRTPSPackets = 0;
 
     if(argc > 1)
     {
@@ -39,7 +42,17 @@ int main(int argc, char *argv[])
 
                     if(analyzer != NULL)
                     {
-                        reader->processRTPSPackets((void*)analyzer, RTPSPacketAnalyzer::processRTPSPacketCallback);
+                        rtpsdumper = new RTPSdump(*log);
+
+                        if(rtpsdumper != NULL)
+                        {
+                            analyzer->setGetDataCallback((void*)rtpsdumper, RTPSdump::processDataCallback);
+                            numRTPSPackets = reader->processRTPSPackets((void*)analyzer, RTPSPacketAnalyzer::processRTPSPacketCallback);
+
+                            printf("Number of processed RTPS packets: %u\n", numRTPSPackets);
+
+                            delete rtpsdumper;
+                        }
 
                         delete analyzer;
                     }

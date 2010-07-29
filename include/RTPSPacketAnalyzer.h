@@ -7,6 +7,9 @@ namespace eProsima
 {
     class eProsimaLog;
 
+    typedef void (*getDataCallback)(void *user, unsigned int readerId, unsigned int writerId,
+            const char *serializedData, unsigned int serializedDataLen);
+
     class RTPSPacketAnalyzer
     {
         public:
@@ -22,8 +25,6 @@ namespace eProsima
              */
             static void processRTPSPacketCallback(void *user, const char *rtpsPayload, const unsigned short rtpsPayloadLen);
 
-        private:
-
             /**
              * \brief This function process a RTPS packet.
              *
@@ -31,6 +32,13 @@ namespace eProsima
              * \param rtpsPayloadLen The length of th RTPS packet.
              */
             void processRTPSPacket(const char *rtpsPayload, const unsigned short rtpsPayloadLen);
+
+            /**
+             * \brief This function sets the getData callback.
+             */
+            void setGetDataCallback(void *user, getDataCallback callback);
+
+        private:
 
             /**
              * \brief This function is called when a new RTPS packet will be processed.
@@ -68,6 +76,10 @@ namespace eProsima
             unsigned char m_vendorId[2];
 
             unsigned int m_guidPrefix[3];
+
+            /// Stores callback that is called when DATA submessage was found.
+            void *m_getDataUser;
+            getDataCallback m_getDataCallback;
     };
 }
 
