@@ -29,8 +29,34 @@ using namespace std;
 
 static const char* const CLASS_NAME = "RTPSdump";
 
-RTPSdump::RTPSdump(eProsimaLog &log, string &database) : m_log(log), m_typecodeDB(m_log, database)
+RTPSdump::RTPSdump(eProsimaLog &log, string &database) : m_log(log), m_databaseH(NULL),
+    m_typecodeDB(NULL)
 {
+    const char* const METHOD_NAME = "RTPSdump";
+
+    if(sqlite3_open(database.c_str(), &m_databaseH) == SQLITE_OK)
+    {
+        m_typecodeDB = new TypeCodeDB(m_log, m_databaseH);
+
+        if(m_typecodeDB == NULL)
+        {
+            logError(m_log, "Cannot create object TypeCodeDB");
+        }
+    }
+    else
+    {
+        logError(m_log, "Cannot open the database file %s", database.c_str());
+        sqlite3_close(m_databaseH);
+        m_databaseH = NULL;
+    }
+}
+
+RTPSdump::~RTPSdump()
+{
+    if(m_typecodeDB != NULL)
+        delete m_typecodeDB;
+    if(m_databaseH != NULL)
+        sqlite3_close(m_databaseH);
 }
 
 void RTPSdump::processDataCallback(void *user, unsigned int readerId,
@@ -124,7 +150,8 @@ void RTPSdump::processDataW(const char *serializedData,
                                 if(RTICdrTypeCode_copy_stream(typeCode, topic.parameter->typeCode) == RTI_TRUE)
                                 {
                                     // Add typecode.
-                                    if(m_typecodeDB.addTypecode(topic.parameter->topic, topic.parameter->typeName,
+                                    if(m_typecodeDB != NULL &&
+                                            m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
                                                 typeCode))
                                     {
                                         RTICdrTypeCode_print_IDL(typeCode, 0);
@@ -240,7 +267,8 @@ void RTPSdump::processDataR(const char *serializedData,
                                 if(RTICdrTypeCode_copy_stream(typeCode, topic.parameter->typeCode) == RTI_TRUE)
                                 {
                                     // Add typecode.
-                                    if(m_typecodeDB.addTypecode(topic.parameter->topic, topic.parameter->typeName,
+                                    if(m_typecodeDB != NULL &&
+                                            m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
                                                 typeCode))
                                     {
                                         RTICdrTypeCode_print_IDL(typeCode, 0);

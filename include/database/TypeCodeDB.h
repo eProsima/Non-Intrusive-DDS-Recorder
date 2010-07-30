@@ -44,7 +44,7 @@ namespace eProsima
     {
         public:
 
-            TypeCodeDB(eProsimaLog &log, std::string &database);
+            TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH);
 
             ~TypeCodeDB();
 

@@ -39,16 +39,8 @@ bool eTypeCode::equal(const char *topicName, const char *typeName)
     return returnedValue;
 }
 
-TypeCodeDB::TypeCodeDB(eProsimaLog &log, string &database) : m_log(log), m_databaseH(NULL)
+TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_databaseH(databaseH)
 {
-    const char* const METHOD_NAME = "TypeCodeDB";
-
-    if(sqlite3_open(database.c_str(), &m_databaseH) != SQLITE_OK)
-    {
-        logError(m_log, "Cannot open the database file %s\n", database.c_str());
-        sqlite3_close(m_databaseH);
-        m_databaseH = NULL;
-    }
 }
 
 TypeCodeDB::~TypeCodeDB()
@@ -59,9 +51,6 @@ TypeCodeDB::~TypeCodeDB()
     {
         delete *it;
     }
-
-    if(m_databaseH != NULL)
-        sqlite3_close(m_databaseH);
 }
 
 bool TypeCodeDB::addTypecode(const char *topicName, const char *typeName,
