@@ -154,7 +154,6 @@ void RTPSdump::processDataW(const char *serializedData,
                                             m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
                                                 typeCode))
                                     {
-                                        RTICdrTypeCode_print_IDL(typeCode, 0);
                                     }
                                     else
                                     {
@@ -271,7 +270,6 @@ void RTPSdump::processDataR(const char *serializedData,
                                             m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
                                                 typeCode))
                                     {
-                                        RTICdrTypeCode_print_IDL(typeCode, 0);
                                     }
                                     else
                                     {

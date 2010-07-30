@@ -60,14 +60,31 @@ namespace eProsima
             bool addTypecode(const char *topicName, const char *typeName,
                     struct RTICdrTypeCode *typeCode);
 
+            /**
+             * \brief This function searchs a typecode in the database.
+             *
+             * \param topicName Pointer to the topic's name. Cannot be NULL.
+             * \param typeName Pointer to the type's name. Cannot be NULL.
+             * \return if the typecode is already in the database true value is returned.
+             * In other case false value is returned.
+             */
+            bool findTypecode(const char *topicName, const char *typeName);
+
         private:
+
+            char *getPrintIDL(RTICdrTypeCode *typeCode);
 
             std::list<eTypeCode*> m_typecodes;
 
             eProsimaLog &m_log;
 
+            bool m_ready;
+
             /// Handler of the database.
             sqlite3 *m_databaseH;
+
+            /// Sqlite3 statement used to add typecodes.
+            sqlite3_stmt *m_addStmt;
     };
 }
 
