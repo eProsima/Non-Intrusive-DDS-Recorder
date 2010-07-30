@@ -11,8 +11,8 @@ RTPSDUMP_TARGET= $(BASEDIR)/lib/i86Linux2.6gcc4.1.2/RTPSdump
 RTPSDUMP_INCLUDE_DIRS= $(INCLUDE_DIRS) -I$(BASEDIR)/include \
 					-I$(EPROSIMADIR)/code
 
-RTPSDUMP_LIBS_DEBUG= $(LIBS_DEBUG) -ldl -lpcap
-RTPSDUMP_LIBS_RELEASE= $(LIBS) -ldl -lpcap
+RTPSDUMP_LIBS_DEBUG= $(LIBS_DEBUG) -ldl -lpcap -lsqlite3
+RTPSDUMP_LIBS_RELEASE= $(LIBS) -ldl -lpcap -lsqlite3
 
 RTPSDUMP_SRC_CFILES= $(EPROSIMADIR)/code/eProsima_c/eProsimaLog.c
 
@@ -20,6 +20,7 @@ RTPSDUMP_SRC_CPPFILES= $(EPROSIMADIR)/code/eProsima_cpp/eProsimaLog.cpp \
 		       $(BASEDIR)/src/reader/pcapReader.cpp \
 		       $(BASEDIR)/src/RTPSPacketAnalyzer.cpp \
 		       $(BASEDIR)/src/RTPSdump.cpp \
+		       $(BASEDIR)/src/database/TypeCodeDB.cpp \
 		       $(BASEDIR)/src/main.cpp
 
 # Project sources are copied to the current directory
@@ -48,10 +49,10 @@ checkRTPSdumpDirectories:
 	@mkdir -p $(RTPSDUMP_OUTDIR_RELEASE)
 
 $(RTPSDUMP_TARGET_DEBUG): $(RTPSDUMP_OBJS_DEBUG)
-	$(LN) -o $(RTPSDUMP_TARGET_DEBUG) $(LIBRARY_PATH) $(RTPSDUMP_LIBS_DEBUG) $(RTPSDUMP_OBJS_DEBUG)
+	$(LN) -o $(RTPSDUMP_TARGET_DEBUG) $(LIBRARY_PATH) $(RTPSDUMP_LIBS_DEBUG) $(RTPSDUMP_OBJS_DEBUG) $(RTPSDUMP_STATIC_LIBS)
 
 $(RTPSDUMP_TARGET): $(RTPSDUMP_OBJS_RELEASE)
-	$(LN) -o $(RTPSDUMP_TARGET) $(LIBRARY_PATH) $(RTPSDUMP_LIBS_RELEASE) $(RTPSDUMP_OBJS_RELEASE)
+	$(LN) -o $(RTPSDUMP_TARGET) $(LIBRARY_PATH) $(RTPSDUMP_LIBS_RELEASE) $(RTPSDUMP_OBJS_RELEASE) $(RTPSDUMP_STATIC_LIBS)
 
 vpath %.c $(RTPSDUMP_SOURCES_DIRS)
 vpath %.cpp $(RTPSDUMP_SOURCES_DIRS)

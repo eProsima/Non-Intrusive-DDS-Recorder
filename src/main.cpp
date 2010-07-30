@@ -11,27 +11,54 @@ using namespace eProsima;
 
 void printHelp()
 {
-    printf("RTPSdump usage: RTPSdump.exe [pcap file]\n");
+    printf("RTPSdump usage: RTPSdump.exe [--db database] [pcap file]\n");
+    printf("Options:\n");
+    printf("    --db file: Database file where information will be dumped (Default: dump.db).\n");
+    printf("    --help: Print help information.\n");
 }
 
 int main(int argc, char *argv[])
 {
     int returnedValue = -1;
     string filename;
+    string db = "dump.db";
     eProsimaLog *log = NULL;
     pcapReader *reader = NULL;
     RTPSPacketAnalyzer *analyzer = NULL;
     RTPSdump *rtpsdumper = NULL;
     unsigned int numRTPSPackets = 0;
 
-    if(argc > 1)
+    /* Check options */
+    for(int i = 1; i < argc; i++)
     {
-        filename = argv[1];
+        if(strcmp(argv[i], "--help") == 0)
+        {
+            printHelp();
+            return returnedValue;
+        }
+        else if(strcmp(argv[i], "--db") == 0)
+        {
+            if(i+1 < argc)
+                db = argv[i++];
+            else
+            {
+                printHelp();
+                return returnedValue;
+            }
+        }
+        else
+        {
+            filename = argv[i];
+        }
+    }
 
+    if(!filename.empty())
+    {
         log = new eProsimaLog(NULL);
 
         if(log != NULL)
         {
+            log->setVerbosity(EPROSIMA_INFO_VERBOSITY_LEVEL);
             reader = new pcapReader(filename, *log);
 
             if(reader != NULL)
@@ -42,7 +69,7 @@ int main(int argc, char *argv[])
 
                     if(analyzer != NULL)
                     {
-                        rtpsdumper = new RTPSdump(*log);
+                        rtpsdumper = new RTPSdump(*log, db);
 
                         if(rtpsdumper != NULL)
                         {
@@ -60,6 +87,8 @@ int main(int argc, char *argv[])
 
                 delete reader;
             }
+
+            delete log;
         }
     }
     else
