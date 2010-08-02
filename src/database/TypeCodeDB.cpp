@@ -6,6 +6,7 @@
 #include "osapi/osapi_heap.h"
 
 #define TYPECODE_TABLE "typecodes"
+#define BUFFER_LENGTH 2048
 
 using namespace eProsima;
 using namespace std;
@@ -93,8 +94,13 @@ TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
         {
             m_ready = false;
 
-            if(sqlite3_prepare_v2(m_databaseH, TYPECODE_ADD, strlen(TYPECODE_ADD), &stmt, NULL) == SQLITE_OK)
-                m_ready = true;
+            if(sqlite3_prepare_v2(m_databaseH, TYPECODE_ADD, strlen(TYPECODE_ADD), &m_addStmt, NULL) == SQLITE_OK)
+            {
+                m_buffer = (char*)calloc(BUFFER_LENGTH, sizeof(char));
+
+                if(m_buffer != NULL)
+                    m_ready = true;
+            }
             else
                 logError(m_log, "Cannot create add statement");
                 
@@ -121,6 +127,7 @@ bool TypeCodeDB::addTypecode(const char *topicName, const char *typeName,
 {
     const char* const METHOD_NAME = "addTypeCode";
     bool returnedValue = false;
+    char *buffer = NULL;
 
     if(m_ready)
     {
@@ -130,11 +137,15 @@ bool TypeCodeDB::addTypecode(const char *topicName, const char *typeName,
             {
                 sqlite3_bind_text(m_addStmt, 1, topicName, strlen(topicName), SQLITE_STATIC);
                 sqlite3_bind_text(m_addStmt, 2, typeName, strlen(typeName), SQLITE_STATIC);
-                //sqlite3_bind_text(m_addStmt, 3, typeCode, strlen(typeCode), SQLITE_STATIC);
-                getPrintIDL(typeCode);
+                buffer = getPrintIDL(typeCode);
+                if(buffer != NULL)
+                    sqlite3_bind_text(m_addStmt, 3, buffer, strlen(buffer), SQLITE_STATIC);
 
-                m_typecodes.push_back(new eTypeCode(topicName, typeName, typeCode));
-                returnedValue = true;
+                if(sqlite3_step(m_addStmt) == SQLITE_DONE)
+                {
+                    m_typecodes.push_back(new eTypeCode(topicName, typeName, typeCode));
+                    returnedValue = true;
+                }
             }
             else
             {
@@ -166,18 +177,38 @@ bool TypeCodeDB::findTypecode(const char *topicName, const char *typeName)
 char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
 {
     int fd;
+    int pipefds[2];
+    int readLen = 0;
     fpos_t pos;
+    char *returnedValue = NULL;
 
     if(typeCode != NULL)
     {
+        // Save STDOUT
+        fflush(stdout);
         fgetpos(stdout, &pos);
         fd = dup(fileno(stdout));
-        freopen("tmp_file", "w", stdout);
+
+        // Redirect to pipe.
+        pipe(pipefds);
+        dup2(pipefds[1], fileno(stdout));
         RTICdrTypeCode_print_IDL(typeCode, 0);
         fflush(stdout);
+
+        if((readLen = read(pipefds[0], m_buffer, 1024)) > -1)
+        {
+            if(readLen > 0)
+                returnedValue = m_buffer;
+        }
+
+        close(pipefds[0]);
+        close(pipefds[1]);
+
+        // Restore STDOUT
         dup2(fd, fileno(stdout));
-        close(fd);
         clearerr(stdout);
         fsetpos(stdout, &pos);
     }
+
+    return returnedValue;
 }

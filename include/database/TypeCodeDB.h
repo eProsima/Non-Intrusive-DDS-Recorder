@@ -85,6 +85,9 @@ namespace eProsima
 
             /// Sqlite3 statement used to add typecodes.
             sqlite3_stmt *m_addStmt;
+
+            /// Buffer used in function getPrintID()
+            char *m_buffer;
     };
 }
 
