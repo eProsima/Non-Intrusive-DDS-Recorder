@@ -39,7 +39,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(NDDSHOME)\include&quot;;&quot;$(NDDSHOME)\include\ndds&quot;;&quot;$(ProjectDir)..\..\..\include&quot;;&quot;$(EPROSIMADIR)\code&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Include&quot;"
+				AdditionalIncludeDirectories="&quot;$(NDDSHOME)\include&quot;;&quot;$(NDDSHOME)\include\ndds&quot;;&quot;$(ProjectDir)..\..\..\include&quot;;&quot;$(EPROSIMADIR)\code&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Include&quot;;&quot;D:\richi\programas\sqlite-3.7.0&quot;"
 				PreprocessorDefinitions="NDDS_DLL_VARIABLE;WIN32;RTI_WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,9 +62,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="nddscd.lib nddscored.lib wpcap.lib WS2_32.lib"
+				AdditionalDependencies="nddscd.lib nddscored.lib wpcap.lib sqlite3.lib WS2_32.lib"
 				OutputFile="$(ProjectDir)..\..\..\lib\i86Win32VS2005\RTPSdumpd.exe"
-				AdditionalLibraryDirectories="&quot;$(NDDSHOME)\lib\i86Win32VS2005&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(NDDSHOME)\lib\i86Win32VS2005&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Lib&quot;;&quot;D:\richi\programas\sqlite-3.7.0\lib\i86win32vs2005&quot;"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(NDDSHOME)\include&quot;;&quot;$(NDDSHOME)\include\ndds&quot;;&quot;$(ProjectDir)..\..\..\include&quot;;&quot;$(EPROSIMADIR)\code&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(NDDSHOME)\include&quot;;&quot;$(NDDSHOME)\include\ndds&quot;;&quot;$(ProjectDir)..\..\..\include&quot;;&quot;$(EPROSIMADIR)\code&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Include&quot;;&quot;D:\richi\programas\sqlite-3.7.0&quot;"
 				PreprocessorDefinitions="NDDS_DLL_VARIABLE;WIN32;RTI_WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				AssemblerListingLocation=".\objs\Release\"
@@ -139,9 +139,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="nddsc.lib nddscore.lib wpcap.lib WS2_32.lib"
+				AdditionalDependencies="nddsc.lib nddscore.lib wpcap.lib sqlite3.lib WS2_32.lib"
 				OutputFile="$(ProjectDir)..\..\..\lib\i86Win32VS2005\RTPSdump.exe"
-				AdditionalLibraryDirectories="&quot;$(NDDSHOME)\lib\i86Win32VS2005&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(NDDSHOME)\lib\i86Win32VS2005&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Lib&quot;;&quot;D:\richi\programas\sqlite-3.7.0\lib\i86win32vs2005&quot;"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -185,6 +185,14 @@
 				RelativePath="..\..\..\src\main.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\src\RTPSdump.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\RTPSPacketAnalyzer.cpp"
+				>
+			</File>
 			<Filter
 				Name="eProsima"
 				>
@@ -223,12 +231,28 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="database"
+				>
+				<File
+					RelativePath="..\..\..\src\database\TypeCodeDB.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\..\include\RTPSdump.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\RTPSPacketAnalyzer.h"
+				>
+			</File>
 			<Filter
 				Name="eProsima"
 				>
@@ -242,6 +266,14 @@
 				>
 				<File
 					RelativePath="..\..\..\include\reader\pcapReader.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="database"
+				>
+				<File
+					RelativePath="..\..\..\include\database\TypeCodeDB.h"
 					>
 				</File>
 			</Filter>

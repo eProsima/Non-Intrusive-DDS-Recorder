@@ -5,6 +5,26 @@
 #include "cdr/cdr_typeCode.h"
 #include "osapi/osapi_heap.h"
 
+#ifdef RTI_WIN32
+#include <windows.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <io.h>
+
+#define DUP _dup
+#define DUP2 _dup2
+#define CLOSE _close
+#define READ _read
+#define FILENO _fileno
+
+#else
+#define DUP dup
+#define DUP2 dup2
+#define CLOSE close
+#define READ read
+#define FILENO fileno
+#endif
+
 #define TYPECODE_TABLE "typecodes"
 #define BUFFER_LENGTH 2048
 
@@ -176,36 +196,104 @@ bool TypeCodeDB::findTypecode(const char *topicName, const char *typeName)
 
 char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
 {
-    int fd;
+/* Win32 example
+	HANDLE oldStdout;
+	HANDLE pipefds[2] = {NULL, NULL};
+	int hConHandle;
+	unsigned long readLen = 0;
+	*/
+
+    int oldStdout;
     int pipefds[2];
-    int readLen = 0;
-    fpos_t pos;
+	fpos_t pos;
+	int readLen = 0;
     char *returnedValue = NULL;
 
     if(typeCode != NULL)
     {
+/* Win32 example
+        // Save STDOUT
+		fflush(stdout);
+        oldStdout = ::GetStdHandle(STD_OUTPUT_HANDLE);
+
+		// Create a pipe for the child process's STDOUT. 
+		if(CreatePipe(&pipefds[0], &pipefds[1], NULL, 0) != 0)
+		{
+			// redirect stdout, stdout now writes into the pipe
+			if (::SetStdHandle(STD_OUTPUT_HANDLE, pipefds[1]) != 0)
+			{
+				// new stdout handle
+				HANDLE lStdHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+
+				if(INVALID_HANDLE_VALUE != lStdHandle)
+				{
+
+					hConHandle = ::_open_osfhandle((intptr_t)lStdHandle, _O_TEXT);
+					FILE *fp = ::_fdopen(hConHandle, "w");
+
+					if(fp)
+					{
+						// replace stdout with pipe file handle
+						*stdout = *fp;
+
+						// unbuffered stdout
+						::setvbuf(stdout, NULL, _IONBF, 0);
+
+						hConHandle = ::_open_osfhandle((intptr_t)pipefds[0], _O_TEXT);
+						
+						if (hConHandle != 1)
+						{
+							RTICdrTypeCode_print_IDL(typeCode, 0);
+							fflush(stdout);
+							if(ReadFile(pipefds[0], m_buffer, BUFFER_LENGTH, &readLen, NULL)
+								&& readLen)
+							{
+								returnedValue = m_buffer;
+							}
+
+							hConHandle = -1;
+						}
+					}
+				}
+			}
+
+			// restore stdout
+			SetStdHandle(STD_OUTPUT_HANDLE, oldStdout);
+			CloseHandle(pipefds[0]);
+			CloseHandle(pipefds[1]);
+		}
+
+		CloseHandle (oldStdout);
+*/
+
         // Save STDOUT
         fflush(stdout);
         fgetpos(stdout, &pos);
-        fd = dup(fileno(stdout));
+        oldStdout = DUP(FILENO(stdout));
 
-        // Redirect to pipe.
-        pipe(pipefds);
-        dup2(pipefds[1], fileno(stdout));
+        // Redirect to pipe.       
+#ifdef RTI_WIN32
+		_pipe(pipefds, BUFFER_LENGTH, O_TEXT);
+#else
+		pipe(pipefds);
+        
+#endif
+		DUP2(pipefds[1], FILENO(stdout));
+
         RTICdrTypeCode_print_IDL(typeCode, 0);
         fflush(stdout);
 
-        if((readLen = read(pipefds[0], m_buffer, 1024)) > -1)
+        // TODO Mejorar usando select o poll para comprobar.
+		if((readLen = READ(pipefds[0], m_buffer, BUFFER_LENGTH)) > 0)
         {
-            if(readLen > 0)
-                returnedValue = m_buffer;
+           returnedValue = m_buffer;
         }
 
-        close(pipefds[0]);
-        close(pipefds[1]);
+        CLOSE(pipefds[0]);
+        CLOSE(pipefds[1]);
 
         // Restore STDOUT
-        dup2(fd, fileno(stdout));
+        DUP2(oldStdout, FILENO(stdout));
         clearerr(stdout);
         fsetpos(stdout, &pos);
     }
