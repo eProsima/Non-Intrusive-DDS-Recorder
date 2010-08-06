@@ -5,6 +5,9 @@ RTPSDUMP_OUTDIR_RELEASE = $(RTPSDUMP_OUTDIR)/release
 RTPSDUMP_SED_OUTPUT_DIR_DEBUG= $(subst /,\\/,$(RTPSDUMP_OUTDIR_DEBUG))
 RTPSDUMP_SED_OUTPUT_DIR_RELEASE= $(subst /,\\/,$(RTPSDUMP_OUTDIR_RELEASE))
 
+RTPSDUMP_CFLAGS = $(CFLAGS) -DRTI_ENDIAN_LITTLE
+RTPSDUMP_CFLAGS_DEBUG = $(CFLAGS_DEBUG) -DRTI_ENDIAN_LITTLE
+
 RTPSDUMP_TARGET_DEBUG= $(BASEDIR)/lib/i86Linux2.6gcc4.1.2/RTPSdumpd
 RTPSDUMP_TARGET= $(BASEDIR)/lib/i86Linux2.6gcc4.1.2/RTPSdump
 
@@ -21,6 +24,8 @@ RTPSDUMP_SRC_CPPFILES= $(EPROSIMADIR)/code/eProsima_cpp/eProsimaLog.cpp \
 		       $(BASEDIR)/src/RTPSPacketAnalyzer.cpp \
 		       $(BASEDIR)/src/RTPSdump.cpp \
 		       $(BASEDIR)/src/database/TypeCodeDB.cpp \
+		       $(BASEDIR)/src/database/EntitiesDB.cpp \
+		       $(BASEDIR)/src/database/DynamicDataDB.cpp \
 		       $(BASEDIR)/src/main.cpp
 
 # Project sources are copied to the current directory
@@ -59,39 +64,39 @@ vpath %.cpp $(RTPSDUMP_SOURCES_DIRS)
 
 $(RTPSDUMP_OUTDIR_DEBUG)/%.o:%.c
 	@echo Calculating dependencies \(DEBUG mode\) $<
-	@$(CC) $(CFLAGS_DEBUG) -MM $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_DEBUG)\/&/g" > $(@:%.o=%.d)
+	@$(CC) $(RTPSDUMP_CFLAGS_DEBUG) -MM $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_DEBUG)\/&/g" > $(@:%.o=%.d)
 	@echo Compiling \(DEBUG mode\) $<  
-	@$(CC) $(CFLAGS_DEBUG) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
+	@$(CC) $(RTPSDUMP_CFLAGS_DEBUG) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
 
 $(RTPSDUMP_OUTDIR_RELEASE)/%.o:%.c
 	@echo Calculating dependencies \(RELEASE mode\) $<
-	@$(CC) $(CFLAGS) -MM $(CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_RELEASE)\/&/g" > $(@:%.o=%.d)
+	@$(CC) $(RTPSDUMP_CFLAGS) -MM $(RTPSDUMP_CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_RELEASE)\/&/g" > $(@:%.o=%.d)
 	@echo Compiling \(RELEASE mode\) $<
-	@$(CC) $(CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
+	@$(CC) $(RTPSDUMP_CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
 
 $(RTPSDUMP_OUTDIR_DEBUG)/%.c.o:%.c
 	@echo Calculating dependencies \(DEBUG mode\) $<
-	@$(CC) $(CFLAGS_DEBUG) -MM $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_DEBUG)\/&/g" > $(@:%.o=%.d)
+	@$(CC) $(RTPSDUMP_CFLAGS_DEBUG) -MM $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_DEBUG)\/&/g" > $(@:%.o=%.d)
 	@echo Compiling \(DEBUG mode\) $<  
-	@$(CC) $(CFLAGS_DEBUG) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
+	@$(CC) $(RTPSDUMP_CFLAGS_DEBUG) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
 
 $(RTPSDUMP_OUTDIR_RELEASE)/%.c.o:%.c
 	@echo Calculating dependencies \(RELEASE mode\) $<
-	@$(CC) $(CFLAGS) -MM $(CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_RELEASE)\/&/g" > $(@:%.o=%.d)
+	@$(CC) $(RTPSDUMP_CFLAGS) -MM $(RTPSDUMP_CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_RELEASE)\/&/g" > $(@:%.o=%.d)
 	@echo Compiling \(RELEASE mode\) $<
-	@$(CC) $(CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
+	@$(CC) $(RTPSDUMP_CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
 
 $(RTPSDUMP_OUTDIR_DEBUG)/%.cpp.o:%.cpp
 	@echo Calculating dependencies \(DEBUG mode\) $<
-	@$(CPP) $(CFLAGS_DEBUG) -MM $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_DEBUG)\/&/g" > $(@:%.o=%.d)
+	@$(CPP) $(RTPSDUMP_CFLAGS_DEBUG) -MM $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_DEBUG)\/&/g" > $(@:%.o=%.d)
 	@echo Compiling \(DEBUG mode\) $<
-	@$(CPP) $(CFLAGS_DEBUG) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
+	@$(CPP) $(RTPSDUMP_CFLAGS_DEBUG) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
 
 $(RTPSDUMP_OUTDIR_RELEASE)/%.cpp.o:%.cpp
 	@echo Calculating dependencies \(RELEASE mode\) $<
-	@$(CPP) $(CFLAGS) -MM $(CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_RELEASE)\/&/g" > $(@:%.o=%.d)
+	@$(CPP) $(RTPSDUMP_CFLAGS) -MM $(RTPSDUMP_CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< | sed "s/^.*:/$(RTPSDUMP_SED_OUTPUT_DIR_RELEASE)\/&/g" > $(@:%.o=%.d)
 	@echo Compiling \(RELEASE mode\) $<
-	@$(CPP) $(CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
+	@$(CPP) $(RTPSDUMP_CFLAGS) $(RTPSDUMP_INCLUDE_DIRS) $< -o $@
 
 
 

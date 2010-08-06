@@ -1,7 +1,6 @@
 #ifndef _RTPSDUMP_H_
 #define _RTPSDUMP_H_
 
-#include "database/TypeCodeDB.h"
 #include <string>
 
 #include <sqlite3.h>
@@ -11,6 +10,8 @@
 namespace eProsima
 {
     class eProsimaLog;
+    class TypeCodeDB;
+    class EntitiesDB;
 
     class RTPSdump
     {
@@ -20,12 +21,13 @@ namespace eProsima
 
             ~RTPSdump();
 
-            static void processDataCallback(void *user, unsigned int readerId,
+            static void processDataCallback(void *user, unsigned int hostId,
+                    unsigned int appId, unsigned int instanceId, unsigned int readerId,
                     unsigned int writerId, const char *serializedData,
                     unsigned int serializedDataLen);
 
-            void processData(unsigned int readerId,
-                    unsigned int writerId, const char *serializedData,
+            void processData(unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, const char *serializedData,
                     unsigned int serializedDataLen);
 
         private:
@@ -36,12 +38,18 @@ namespace eProsima
             void processDataR(const char *serializedData,
                     unsigned int serializedDataLen);
 
+            void processDataNormal(unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, const char *serializedData,
+                    unsigned int serializedDataLen);
+
             eProsimaLog &m_log;
             
             /// Handler of the database.
             sqlite3 *m_databaseH;
 
             TypeCodeDB *m_typecodeDB;
+
+            EntitiesDB *m_entitiesDB;
     };
 }
 

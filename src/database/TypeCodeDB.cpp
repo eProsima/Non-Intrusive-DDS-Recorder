@@ -1,4 +1,5 @@
 #include "database/TypeCodeDB.h"
+#include "database/DynamicDataDB.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
 #include "cdr/cdr_stream.h"
@@ -35,14 +36,18 @@ static const char* const CLASS_NAME = "TypeCodeDB";
 static const char* const TYPECODE_ADD = "INSERT INTO " TYPECODE_TABLE " VALUES(?, ?, ?)";
 
 eTypeCode::eTypeCode(const char *topicName, const char *typeName,
-        struct RTICdrTypeCode *typeCode) : m_topicName(topicName),
-    m_typeName(typeName), m_typeCode(typeCode)
+        struct RTICdrTypeCode *typeCode, DynamicDataDB *dynamicDB) :
+    m_topicName(topicName), m_typeName(typeName), m_typeCode(typeCode),
+    m_dynamicDB(dynamicDB)
 {
 }
 
 eTypeCode::~eTypeCode()
 {
     RTIOsapiHeap_freeBufferNotAligned(m_typeCode);
+
+    if(m_dynamicDB != NULL)
+        delete m_dynamicDB;
 }
 
 bool eTypeCode::equal(const char *topicName, const char *typeName)
@@ -64,14 +69,24 @@ bool eTypeCode::equal(const char *topicName, const char *typeName)
     return returnedValue;
 }
 
+RTICdrTypeCode* eTypeCode::getCdrTypecode()
+{
+    return m_typeCode;
+}
+
+DynamicDataDB* eTypeCode::getDynamicDataDB()
+{
+    return m_dynamicDB;
+}
+
 TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_ready(false),
-    m_databaseH(databaseH), m_addStmt(NULL)
+    m_databaseH(databaseH), m_addStmt(NULL), m_buffer(NULL)
 {
     const char* const METHOD_NAME = "TypeCodeDB";
     const char* const TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='" TYPECODE_TABLE "'";
     const char* const TABLE_TRUNCATE = "DELETE FROM " TYPECODE_TABLE;
-    const char* const TABLE_CREATE = "CREATE TABLE " TYPECODE_TABLE " (topic_name VARCHAR(50)," \
-                                      "type_name VARCHAR(50), typecode VARCHAR(2048)," \
+    const char* const TABLE_CREATE = "CREATE TABLE " TYPECODE_TABLE " (topic_name STRING," \
+                                      "type_name STRING, typecode TEXT," \
                                       "PRIMARY KEY(topic_name, type_name))";
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
@@ -140,56 +155,87 @@ TypeCodeDB::~TypeCodeDB()
     {
         delete *it;
     }
+
+    if(m_buffer != NULL)
+    {
+        free(m_buffer);
+    }
+
+    if(m_addStmt != NULL)
+    {
+        sqlite3_finalize(m_addStmt);
+    }
 }
 
 bool TypeCodeDB::addTypecode(const char *topicName, const char *typeName,
                     struct RTICdrTypeCode *typeCode)
 {
     const char* const METHOD_NAME = "addTypeCode";
-    bool returnedValue = false;
     char *buffer = NULL;
+    DynamicDataDB *dynamicDB;
+    string dynamicTableName;
 
     if(m_ready)
     {
-        if(!findTypecode(topicName, typeName))
+        if(findTypecode(topicName, typeName) == NULL)
         {
-            if(sqlite3_reset(m_addStmt) == SQLITE_OK)
-            {
-                sqlite3_bind_text(m_addStmt, 1, topicName, strlen(topicName), SQLITE_STATIC);
-                sqlite3_bind_text(m_addStmt, 2, typeName, strlen(typeName), SQLITE_STATIC);
-                buffer = getPrintIDL(typeCode);
-                if(buffer != NULL)
-                    sqlite3_bind_text(m_addStmt, 3, buffer, strlen(buffer), SQLITE_STATIC);
+            // Create the dynamic data database.
+            dynamicTableName = topicName;
+            dynamicTableName += "__";
+            dynamicTableName += typeName;
+            DynamicDataDB::eraseSpacesInTableName(dynamicTableName);
+            dynamicDB = new DynamicDataDB(m_log, m_databaseH, dynamicTableName, typeCode);
 
-                if(sqlite3_step(m_addStmt) == SQLITE_DONE)
+            if(dynamicDB != NULL)
+            {
+                if(sqlite3_reset(m_addStmt) == SQLITE_OK)
                 {
-                    m_typecodes.push_back(new eTypeCode(topicName, typeName, typeCode));
-                    returnedValue = true;
+                    sqlite3_bind_text(m_addStmt, 1, topicName, strlen(topicName), SQLITE_STATIC);
+                    sqlite3_bind_text(m_addStmt, 2, typeName, strlen(typeName), SQLITE_STATIC);
+                    buffer = getPrintIDL(typeCode);
+                    if(buffer != NULL)
+                        sqlite3_bind_text(m_addStmt, 3, buffer, strlen(buffer), SQLITE_STATIC);
+
+                    if(sqlite3_step(m_addStmt) == SQLITE_DONE)
+                    {
+                        m_typecodes.push_back(new eTypeCode(topicName, typeName, typeCode, dynamicDB));
+                        return true;
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot step the add statement");
+                    }
                 }
+                else
+                {
+                    logError(m_log, "Cannot reset the add statement");
+                }
+
+                delete dynamicDB;
             }
             else
             {
-                logError(m_log, "Cannot reset the add statement");
+                logError(m_log, "Cannot create the DynamicDataDB to topic %s", topicName);
             }
         }
     }
 
-    return returnedValue;
+    return false;
 }
 
-bool TypeCodeDB::findTypecode(const char *topicName, const char *typeName)
+eTypeCode* TypeCodeDB::findTypecode(const char *topicName, const char *typeName)
 {
-    bool returnedValue = false;
+    eTypeCode *returnedValue = NULL;
     list<eTypeCode*>::iterator it;
 
     for(it = m_typecodes.begin(); it != m_typecodes.end(); it++)
     {
         if((*it)->equal(topicName, typeName))
+        {
+            returnedValue = (*it);
             break;
+        }
     }
-
-    if(it != m_typecodes.end())
-        returnedValue = true;
 
     return returnedValue;
 }

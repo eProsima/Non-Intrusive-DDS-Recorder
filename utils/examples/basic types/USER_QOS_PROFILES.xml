@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!-- 
+(c) Copyright, Real-Time Innovations, $Date: 2009/04/02 06:18:47 $.
+All rights reserved.
+No duplications, whole or partial, manual or electronic, may be made
+without express written permission.  Any such copies, or
+revisions thereof, must display this notice unaltered.
+This code contains trade secrets of Real-Time Innovations, Inc.
+
+Description
+XML QoS Profile for BasicTypes
+
+The QoS configuration of the DDS entities in the generated example is 
+loaded from this file.
+
+This file is used only when it is in the current working directory
+or when the enviroment variable
+NDDS_QOS_PROFILES is defined and points to this file.
+
+For more information about XML QoS Profiles see Chapter 15 in the 
+RTI Data Distribution Service user manual.
+-->
+<dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="/opt/rti/ndds.4.4d/scripts/../resource/rtiddsgen/../qos_profiles_4.4d/schema/rti_dds_qos_profiles.xsd"
+	version="4.4d">
+	<!-- QoS Library containing the QoS profile used in the generated example.
+
+	A QoS library is a named set of QoS profiles.
+	-->
+	<qos_library name="BasicTypes_Library">
+
+		<!-- QoS profile used to configure reliable communication between the DataWriter 
+		and DataReader created in the example code.
+
+		A QoS profile groups a set of related QoS.
+		-->
+		<qos_profile name="BasicTypes_Profile" is_default_qos="true">
+			<!-- QoS used to configure the data writer created in the example code -->                
+			<datawriter_qos>
+				<reliability>
+					<kind>RELIABLE_RELIABILITY_QOS</kind>
+					<max_blocking_time>
+						<sec>60</sec>
+					</max_blocking_time>
+				</reliability>                
+
+				<history>
+					<kind>KEEP_ALL_HISTORY_QOS</kind>
+				</history>
+
+				<resource_limits>
+					<max_samples>50</max_samples>
+				</resource_limits>
+			</datawriter_qos>
+
+			<!-- QoS used to configure the data reader created in the example code -->                
+			<datareader_qos>
+				<reliability>
+					<kind>RELIABLE_RELIABILITY_QOS</kind>
+				</reliability>                
+
+				<history>
+					<kind>KEEP_ALL_HISTORY_QOS</kind>
+				</history>
+			</datareader_qos>
+
+			<participant_qos>
+				<transport_builtin>
+					<mask>UDPv4</mask>
+				</transport_builtin>
+			</participant_qos>
+		</qos_profile>
+
+	</qos_library>
+</dds>

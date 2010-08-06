@@ -13,13 +13,14 @@ struct RTICdrTypeCode;
 namespace eProsima
 {
     class eProsimaLog;
+    class DynamicDataDB;
 
     class eTypeCode
     {
         public:
 
             eTypeCode(const char *topicName, const char *typeName,
-                    struct RTICdrTypeCode *typeCode);
+                    struct RTICdrTypeCode *typeCode, DynamicDataDB *dynamicDB);
 
             ~eTypeCode();
 
@@ -33,11 +34,21 @@ namespace eProsima
              */
             bool equal(const char *topicName, const char *typeName);
 
+            /**
+             * \brief This function return the typecode.
+             *
+             * \return Return the CdrTypeCode. Don't free this pointer.
+             */
+            RTICdrTypeCode* getCdrTypecode();
+
+            DynamicDataDB* getDynamicDataDB();
+
         private:
 
             std::string m_topicName;
             std::string m_typeName;
             struct RTICdrTypeCode *m_typeCode;
+            DynamicDataDB *m_dynamicDB;
     };
 
     class TypeCodeDB
@@ -65,10 +76,10 @@ namespace eProsima
              *
              * \param topicName Pointer to the topic's name. Cannot be NULL.
              * \param typeName Pointer to the type's name. Cannot be NULL.
-             * \return if the typecode is already in the database true value is returned.
-             * In other case false value is returned.
+             * \return Return the pointer to the eTypeCode structure if this was found.
+             * In other case NULL pointer is returned. Don't free this pointer.
              */
-            bool findTypecode(const char *topicName, const char *typeName);
+            eTypeCode* findTypecode(const char *topicName, const char *typeName);
 
         private:
 

@@ -7,7 +7,8 @@ namespace eProsima
 {
     class eProsimaLog;
 
-    typedef void (*getDataCallback)(void *user, unsigned int readerId, unsigned int writerId,
+    typedef void (*getDataCallback)(void *user, unsigned int hostId,
+            unsigned int appId, unsigned int instanceId, unsigned int readerId, unsigned int writerId,
             const char *serializedData, unsigned int serializedDataLen);
 
     class RTPSPacketAnalyzer

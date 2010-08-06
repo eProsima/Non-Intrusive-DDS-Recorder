@@ -220,7 +220,8 @@ void RTPSPacketAnalyzer::processDATASubmessage(const char *dataSubmessage,
         serializedDataLen = auxPointerLen;
 
         if(m_getDataCallback != NULL)
-            m_getDataCallback(m_getDataUser, readerId, writerId, serializedData,
+            m_getDataCallback(m_getDataUser, m_guidPrefix[0], m_guidPrefix[1],
+                    m_guidPrefix[2], readerId, writerId, serializedData,
                     serializedDataLen);
     }
     else

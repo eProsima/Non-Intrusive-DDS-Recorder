@@ -1,11 +1,16 @@
 #include "RTPSdump.h"
 #include "eProsima_cpp/eProsimaLog.h"
+#include "database/TypeCodeDB.h"
+#include "database/EntitiesDB.h"
+#include "database/DynamicDataDB.h"
 
 #include "disc/disc_builtin.h"
 #include "cdr/cdr_stream.h"
 #include "pres/pres_typePlugin.h"
 #include "dds_c/dds_c_typecode.h"
+#include "dds_c/dds_c_dynamicdata.h"
 
+#define ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER 0x000100c2
 #define ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER 0x000003c7
 #define ENTITYID_SEDP_BUILTIN_PUBLICATIONS_WRITER 0x000003c2
 #define ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER 0x000004c7
@@ -24,13 +29,21 @@ struct DISCBuiltinTopicSubscriptionDataPluginEndpointData {
     struct DISCBuiltinTopicSubscriptionDataPool * pool;
 };
 
+extern "C" RTIBool DDS_DynamicDataTypePlugin_deserialize(
+    PRESTypePluginEndpointData endpoint_data,
+    DDS_DynamicData *sample, 
+    struct RTICdrStream *stream,
+    RTIBool deserialize_encapsulation,
+    RTIBool deserialize_sample,
+    void *endpoint_plugin_qos);
+
 using namespace eProsima;
 using namespace std;
 
 static const char* const CLASS_NAME = "RTPSdump";
 
 RTPSdump::RTPSdump(eProsimaLog &log, string &database) : m_log(log), m_databaseH(NULL),
-    m_typecodeDB(NULL)
+    m_typecodeDB(NULL), m_entitiesDB(NULL)
 {
     const char* const METHOD_NAME = "RTPSdump";
 
@@ -38,7 +51,16 @@ RTPSdump::RTPSdump(eProsimaLog &log, string &database) : m_log(log), m_databaseH
     {
         m_typecodeDB = new TypeCodeDB(m_log, m_databaseH);
 
-        if(m_typecodeDB == NULL)
+        if(m_typecodeDB != NULL)
+        {
+            m_entitiesDB = new EntitiesDB(m_log, m_databaseH);
+
+            if(m_entitiesDB == NULL)
+            {
+                logError(m_log, "Cannot create object EntitiesDB");
+            }
+        }
+        else
         {
             logError(m_log, "Cannot create object TypeCodeDB");
         }
@@ -55,11 +77,14 @@ RTPSdump::~RTPSdump()
 {
     if(m_typecodeDB != NULL)
         delete m_typecodeDB;
+    if(m_entitiesDB != NULL)
+        delete m_entitiesDB;
     if(m_databaseH != NULL)
         sqlite3_close(m_databaseH);
 }
 
-void RTPSdump::processDataCallback(void *user, unsigned int readerId,
+void RTPSdump::processDataCallback(void *user, unsigned int hostId,
+        unsigned int appId, unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, const char *serializedData,
         unsigned int serializedDataLen)
 {
@@ -68,7 +93,8 @@ void RTPSdump::processDataCallback(void *user, unsigned int readerId,
 
     if(user != NULL)
     {
-        rtpsdumper->processData(readerId, writerId, serializedData,
+        rtpsdumper->processData(hostId, appId, instanceId,
+                readerId, writerId, serializedData,
                 serializedDataLen);
     }
     else
@@ -77,9 +103,10 @@ void RTPSdump::processDataCallback(void *user, unsigned int readerId,
     }
 }
 
-void RTPSdump::processData(unsigned int readerId,
-                    unsigned int writerId, const char *serializedData,
-                    unsigned int serializedDataLen)
+void RTPSdump::processData(unsigned int hostId, unsigned int appId,
+        unsigned int instanceId, unsigned int readerId,
+        unsigned int writerId, const char *serializedData,
+        unsigned int serializedDataLen)
 {
     // Data(w)
     if(readerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER &&
@@ -87,10 +114,17 @@ void RTPSdump::processData(unsigned int readerId,
     {
         processDataW(serializedData, serializedDataLen);
     }
+    // Data(r)
     else if(readerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER &&
             writerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_WRITER)
     {
         processDataR(serializedData, serializedDataLen);
+    }
+    // It's not a Data(p)
+    else if(writerId != ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER)
+    {
+        processDataNormal(hostId, appId, instanceId, readerId, writerId,
+                serializedData, serializedDataLen);
     }
 }
 
@@ -139,7 +173,7 @@ void RTPSdump::processDataW(const char *serializedData,
                         RTICdrStream_set(&stream, (char*)serializedData, serializedDataLen);
 
                         if(DISCBuiltinTopicPublicationDataPlugin_deserialize(epd, &topic, &stream,
-                                    RTI_FALSE, RTI_TRUE, NULL) == RTI_TRUE)
+                                    RTI_TRUE, RTI_TRUE, NULL) == RTI_TRUE)
                         {
                             RTIOsapiHeap_allocateBufferNotAligned((char**)&typeCode, RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
 
@@ -150,15 +184,18 @@ void RTPSdump::processDataW(const char *serializedData,
                                 if(RTICdrTypeCode_copy_stream(typeCode, topic.parameter->typeCode) == RTI_TRUE)
                                 {
                                     // Add typecode.
-                                    if(m_typecodeDB != NULL &&
+                                    if(m_typecodeDB == NULL ||
                                             m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
-                                                typeCode))
-                                    {
-                                    }
-                                    else
+                                                typeCode) == false)
                                     {
                                         RTIOsapiHeap_freeBufferNotAligned(typeCode);
                                     }
+
+                                    // Add entity.
+                                    if(m_entitiesDB != NULL)
+                                        m_entitiesDB->addEntity(topic.guid.prefix.hostId,
+                                                topic.guid.prefix.appId, topic.guid.prefix.instanceId,
+                                                topic.guid.objectId, topic.parameter->topic, topic.parameter->typeName);
                                 }
                                 else
                                 {
@@ -255,7 +292,7 @@ void RTPSdump::processDataR(const char *serializedData,
                         RTICdrStream_set(&stream, (char*)serializedData, serializedDataLen);
 
                         if(DISCBuiltinTopicSubscriptionDataPlugin_deserialize(epd, &topic, &stream,
-                                    RTI_FALSE, RTI_TRUE, NULL) == RTI_TRUE)
+                                    RTI_TRUE, RTI_TRUE, NULL) == RTI_TRUE)
                         {
                             RTIOsapiHeap_allocateBufferNotAligned((char**)&typeCode, RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
 
@@ -266,15 +303,18 @@ void RTPSdump::processDataR(const char *serializedData,
                                 if(RTICdrTypeCode_copy_stream(typeCode, topic.parameter->typeCode) == RTI_TRUE)
                                 {
                                     // Add typecode.
-                                    if(m_typecodeDB != NULL &&
+                                    if(m_typecodeDB == NULL ||
                                             m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
-                                                typeCode))
-                                    {
-                                    }
-                                    else
+                                                typeCode) == false)
                                     {
                                         RTIOsapiHeap_freeBufferNotAligned(typeCode);
                                     }
+
+                                    // Add entity.
+                                    if(m_entitiesDB != NULL)
+                                        m_entitiesDB->addEntity(topic.guid.prefix.hostId,
+                                                topic.guid.prefix.appId, topic.guid.prefix.instanceId,
+                                                topic.guid.objectId, topic.parameter->topic, topic.parameter->typeName);
                                 }
                                 else
                                 {
@@ -325,4 +365,81 @@ void RTPSdump::processDataR(const char *serializedData,
     {
         logError(m_log, "Bad parameters");
     }
+}
+
+void RTPSdump::processDataNormal(unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, const char *serializedData,
+                    unsigned int serializedDataLen)
+{
+    const char* const METHOD_NAME = "processDataNormal";
+    eEntity *entity = NULL;
+    eTypeCode *typecode = NULL;
+    struct DDS_DynamicDataTypeSupport *typeSupport = NULL;
+    struct DDS_DynamicDataTypeProperty_t typeProp = DDS_DynamicDataTypeProperty_t_INITIALIZER;
+    struct DDS_DynamicData *dynamicData = NULL;
+    RTICdrStream stream;
+    DynamicDataDB *dynamicDB = NULL;
+
+    // Check the writer or reader has associated a typecode.
+    if((entity = m_entitiesDB->findEntity(hostId, appId,
+                    instanceId, writerId)) != NULL ||
+            (entity = m_entitiesDB->findEntity(hostId, appId,
+                                               instanceId, readerId)) != NULL)
+    {
+        if((typecode = m_typecodeDB->findTypecode(entity->getTopicName().c_str(),
+                        entity->getTypeName().c_str())) != NULL)
+        {
+            typeSupport = DDS_DynamicDataTypeSupport_new((struct DDS_TypeCode*)typecode->getCdrTypecode(), &typeProp);
+
+            if(typeSupport != NULL)
+            {
+                dynamicData = DDS_DynamicDataTypeSupport_create_data(typeSupport);
+
+                if(dynamicData != NULL)
+                {
+                    RTICdrStream_init(&stream);
+                    RTICdrStream_set(&stream, (char*)serializedData, serializedDataLen);
+
+                    if(DDS_DynamicDataTypePlugin_deserialize(NULL, dynamicData, 
+                            &stream, RTI_TRUE, RTI_TRUE, NULL) == RTI_TRUE)
+                    {
+                        dynamicDB = typecode->getDynamicDataDB();
+                        
+                        if(dynamicDB != NULL)
+                        {
+                            if(!dynamicDB->storeDynamicData(hostId,
+                                        appId, instanceId, writerId,
+                                        typecode->getCdrTypecode(), dynamicData))
+                            {
+                                logError(m_log, "Cannot stores the dynamic data in database");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot deserialize the DynamicData");
+                    }
+
+                    DDS_DynamicDataTypeSupport_delete_data(typeSupport, dynamicData);
+                }
+                else
+                {
+                    logError(m_log, "Cannot create the DynamicData");
+                }
+
+                DDS_DynamicDataTypeSupport_delete(typeSupport);
+            }
+            else
+            {
+                logError(m_log, "Cannot create the DynamicDataTypeSupport");
+            }
+        }
+    }
+    else
+    {
+        logError(m_log, "Cannot find entity in database: (0x%X, 0x%X, 0x%X, 0x%X) or " \
+                "(0x%X, 0x%X, 0x%X, 0x%X)", hostId, appId, instanceId, writerId,
+                hostId, appId, instanceId, readerId);
+    }
+
 }

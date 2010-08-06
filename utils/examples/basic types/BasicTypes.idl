@@ -1,0 +1,12 @@
+struct BasicTypes
+{
+	octet oc;
+	char ch;
+	short sh;
+	unsigned short ush;
+	long lo;
+	unsigned long ulo;
+	long long lolo;
+	unsigned long long ulolo;
+	string st;
+};
