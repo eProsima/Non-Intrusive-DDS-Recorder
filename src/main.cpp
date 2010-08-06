@@ -3,6 +3,8 @@
 #include "RTPSdump.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
+#include "ndds/ndds_config_c.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -51,6 +53,9 @@ int main(int argc, char *argv[])
             filename = argv[i];
         }
     }
+
+    NDDS_Config_Logger_set_verbosity(NDDS_Config_Logger_get_instance(),
+            NDDS_CONFIG_LOG_VERBOSITY_STATUS_ALL);
 
     if(!filename.empty())
     {

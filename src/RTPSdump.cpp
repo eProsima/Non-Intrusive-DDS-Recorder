@@ -251,7 +251,7 @@ void RTPSdump::processDataW(const char *serializedData,
 void RTPSdump::processDataR(const char *serializedData,
         unsigned int serializedDataLen)
 {
-    const char* const METHOD_NAME = "processDataW";
+    const char* const METHOD_NAME = "processDataR";
     struct DISCBuiltinTopicSubscriptionData topic = DISC_BUILTIN_TOPIC_SUBSCRIPTION_DATA_INITIALIZE;
     struct DISCBuiltinTopicSubscriptionDataPluginEndpointData * epd = NULL;
     struct DISCBuiltinTopicSubscriptionDataPool *pool = NULL;
