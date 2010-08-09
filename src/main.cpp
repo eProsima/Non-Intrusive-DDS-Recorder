@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    NDDS_Config_Logger_set_verbosity(NDDS_Config_Logger_get_instance(),
-            NDDS_CONFIG_LOG_VERBOSITY_STATUS_ALL);
+    /*NDDS_Config_Logger_set_verbosity(NDDS_Config_Logger_get_instance(),
+            NDDS_CONFIG_LOG_VERBOSITY_STATUS_ALL);*/
 
     if(!filename.empty())
     {
