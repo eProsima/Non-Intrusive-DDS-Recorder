@@ -83,9 +83,17 @@ namespace eProsima
             {
                 RTICdrTCKind _kind;
                 bool (*_addToStream)(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                        arrayProcessInfo *arrayProcessingInfo);
+                        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
                             
             } writeArrayPrimitiveFunctions;
+
+            typedef struct writeSequencePrimitiveFunctions
+            {
+                RTICdrTCKind _kind;
+                bool (*_addToStream)(sqlite3_stmt *stmt, int ref,
+                        std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+                            
+            } writeSequencePrimitiveFunctions;
 
             DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
                     struct RTICdrTypeCode *typeCode);
@@ -135,21 +143,30 @@ namespace eProsima
                     std::string &name, int &index);
 
             static bool addOctetArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo);
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             static bool addShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo);
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             static bool addUShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo);
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             static bool addLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo);
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             static bool addULongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo);
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             static bool addLongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo);
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             static bool addULongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo);
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             static bool addCharArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo);
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+
+            static bool addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addShortSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addLongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addULongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addCharSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
 
         private:
 
@@ -163,15 +180,21 @@ namespace eProsima
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
             bool processArraysInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
+            bool processSequencesInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix);
             bool processMembersInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *memberInfo, std::string &memberName, std::string &suffix);
             bool processDimensionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix, RTICdrUnsignedLong dimensionCount,
                     RTICdrUnsignedLong currentDimension);
             bool processArrayElementsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, std::string &suffix, RTICdrUnsignedLong dimensionIndex);
+                    struct RTICdrTypeCode *typeCode);
             bool processArrayPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, std::string &suffix, RTICdrUnsignedLong dimensionIndex);
+                    struct RTICdrTypeCode *typeCode);
+            bool processSequenceElementsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix);
+            bool processSequencePrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix);
             bool processPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *primitiveInfo, std::string &primitiveName,
                     std::string &suffix);
@@ -194,9 +217,16 @@ namespace eProsima
                     struct DDS_DynamicData *dynamicData,
                     arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             bool processArrayElementsStorage(sqlite3_stmt *stmt,
-                    struct DDS_DynamicData *dynamicData, arrayProcessInfo *arrayProcessingInfo);
+                    struct DDS_DynamicData *dynamicData, arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             bool processArrayPrimitiveStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicData,
-                    arrayProcessInfo *arrayProcessingInfo);
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            bool processSequencesStorage(struct RTICdrTypeCode *typeCode,
+                    struct DDS_DynamicData *dynamicData, std::string &suffix,
+                    std::string &memberName, int &index, bool step);
+            bool processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, std::string &memberName,
+                    RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData);
+            bool processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref, std::string &memberName,
+                    RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData);
             bool processPrimitiveStorage(struct RTICdrTypeCode *primitiveInfo, std::string &primitiveName,
                     struct DDS_DynamicData *primitiveData, int &index, bool step);
 
@@ -213,10 +243,12 @@ namespace eProsima
             sqlite3_stmt *m_addStmt;
 
             std::list<arrayNode*> m_arrays;
+            std::list<arrayNode*> m_sequences;
 
             static writePrimitiveInitialStatementsFunctions writePrimitiveInitialStatementsFunctionsMap[];
             static writePrimitiveStorageFunctions writePrimitiveStorageFunctionsMap[];
             static writeArrayPrimitiveFunctions writeArrayPrimitiveFunctionsMap[];
+            static writeSequencePrimitiveFunctions writeSequencePrimitiveFunctionsMap[];
     };
 }
 

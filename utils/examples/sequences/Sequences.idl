@@ -1,0 +1,12 @@
+struct Inside
+{
+	short count;
+	sequence<short> sesh;
+};
+
+struct Sequences
+{
+	string message;
+	sequence<long> selo;
+	Inside ins;
+};
