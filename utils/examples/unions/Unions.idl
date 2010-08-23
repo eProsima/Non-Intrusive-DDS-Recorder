@@ -1,0 +1,14 @@
+union Union switch (long)
+{
+	case 1:
+		short sh;
+	case 2:
+		long lo;
+	default:
+		string message;
+};
+
+struct Unions
+{
+    Union u_n_i_o_n;
+};

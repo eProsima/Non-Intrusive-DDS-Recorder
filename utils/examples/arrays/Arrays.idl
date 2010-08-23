@@ -1,0 +1,11 @@
+struct Inside
+{
+	long count;
+	short sharray[10][2];
+};
+struct Arrays
+{
+	string message;
+	long loarray[20];
+	Inside ins;
+};
