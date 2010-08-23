@@ -44,9 +44,12 @@ ntohl(((unsigned int*)(buffer))[0])
 #define SUBMESSAGE_BODY_OCTETSTOINLINEQOS_SIZE 2
 #define SUBMESSAGE_BODY_ENTITIESID_SIZE 8
 #define SUBMESSAGE_BODY_SEQUENCENUMBER_SIZE 8
+#define SUBMESSAGE_INFOTS_SEC 4
+#define SUBMESSAGE_INFOTS_NANOSEC 4
 
 enum RtpsSubmessageId
 {
+    RTPS_INFOTS_ID = 0x9,
     RTPS_DATA_ID = 0x15
 };
 
@@ -57,6 +60,8 @@ static const char* const CLASS_NAME = "RTPSPacketAnalyzer";
 RTPSPacketAnalyzer::RTPSPacketAnalyzer(eProsimaLog &log) : m_log(log), m_getDataUser(NULL),
     m_getDataCallback(NULL)
 {
+    m_lastSourceTmp.sec = 0;
+    m_lastSourceTmp.nanosec = 0;
 }
 
 void RTPSPacketAnalyzer::setGetDataCallback(void *user, getDataCallback callback)
@@ -169,7 +174,11 @@ unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const char *submessage)
         submessageSize = GET_USHORT_ENDIAN(endianess, auxPointer);
         JUMP(auxPointer, SUBMESSAGE_HEADER_OCTECTSTONEXTHEADER_SIZE);
 
-        if(submessageId == RTPS_DATA_ID && m_getDataCallback != NULL)
+        if(submessageId == RTPS_INFOTS_ID)
+        {
+            processINFOTSSubmessage(auxPointer, endianess);
+        }
+        else if(submessageId == RTPS_DATA_ID && m_getDataCallback != NULL)
         {
             processDATASubmessage(auxPointer, submessageSize, endianess, dataInside);
         }
@@ -184,6 +193,24 @@ unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const char *submessage)
     }
 
     return submessageSize;
+}
+
+void RTPSPacketAnalyzer::processINFOTSSubmessage(const char *dataSubmessage, bool endianess)
+{
+    const char* const METHOD_NAME = "processINFOTSSubmessage";
+    const char *auxPointer = dataSubmessage;
+
+    if(dataSubmessage != NULL)
+    {
+        m_lastSourceTmp.sec = GET_UINT_ENDIAN(endianess, auxPointer);
+        JUMP(auxPointer, SUBMESSAGE_INFOTS_SEC);
+        m_lastSourceTmp.nanosec = GET_UINT_ENDIAN(endianess, auxPointer);
+        JUMP(auxPointer, SUBMESSAGE_INFOTS_NANOSEC);
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
 }
 
 void RTPSPacketAnalyzer::processDATASubmessage(const char *dataSubmessage,
@@ -221,8 +248,8 @@ void RTPSPacketAnalyzer::processDATASubmessage(const char *dataSubmessage,
 
         if(m_getDataCallback != NULL)
             m_getDataCallback(m_getDataUser, m_guidPrefix[0], m_guidPrefix[1],
-                    m_guidPrefix[2], readerId, writerId, sequencenum, serializedData,
-                    serializedDataLen);
+                    m_guidPrefix[2], readerId, writerId, sequencenum, m_lastSourceTmp,
+                    serializedData, serializedDataLen);
     }
     else
     {

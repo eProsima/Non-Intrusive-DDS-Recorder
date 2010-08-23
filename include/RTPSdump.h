@@ -5,6 +5,8 @@
 
 #include <sqlite3.h>
 
+struct DDS_Time_t;
+
 #ifdef __cplusplus
 
 namespace eProsima
@@ -23,11 +25,13 @@ namespace eProsima
 
             static void processDataCallback(void *user, unsigned int hostId,
                     unsigned int appId, unsigned int instanceId, unsigned int readerId,
-                    unsigned int writerId, unsigned long long writerSequenceNum, const char *serializedData,
+                    unsigned int writerId, unsigned long long writerSequenceNum, 
+                    struct DDS_Time_t &sourceTmp, const char *serializedData,
                     unsigned int serializedDataLen);
 
             void processData(unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum, const char *serializedData,
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum, 
+                    struct DDS_Time_t &sourceTmp, const char *serializedData,
                     unsigned int serializedDataLen);
 
         private:
@@ -39,7 +43,8 @@ namespace eProsima
                     unsigned int serializedDataLen);
 
             void processDataNormal(unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum, const char *serializedData,
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    struct DDS_Time_t &sourceTmp, const char *serializedData,
                     unsigned int serializedDataLen);
 
             eProsimaLog &m_log;

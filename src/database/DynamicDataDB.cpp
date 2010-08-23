@@ -192,11 +192,12 @@ bool DynamicDataDB::createInitialStatements(string &table_create, string &dynami
     table_create = "CREATE TABLE ";
     table_create += m_tableName;
     table_create += " (host_id UNSIGNED INT, app_id UNSIGNED INT, instance_id UNSIGNED INT, " \
-                     "reader_id UNSIGNED INT, writer_id UNSIGNED INT, writer_seq_num UNSIGNED BIGINT";
+                     "reader_id UNSIGNED INT, writer_id UNSIGNED INT, writer_seq_num UNSIGNED BIGINT," \
+                     "sourcetimestamp_sec INT, sourcetimestamp_nanosec UNSIGNED INT";
 
     dynamicDataAdd = "INSERT INTO ";
     dynamicDataAdd += m_tableName;
-    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?";
+    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?";
 
     returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, typeCode, suffix);
 
@@ -834,7 +835,7 @@ bool DynamicDataDB::addTextInitialStatements(string &memberName, string &table_c
 
 bool DynamicDataDB::storeDynamicData(unsigned int hostId, unsigned int appId, unsigned int instanceId,
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-        struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData)
+        struct DDS_Time_t &sourceTmp, struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData)
 {
     const char* const METHOD_NAME = "storeDynamicData";
     bool returnedValue = false;
@@ -854,6 +855,8 @@ bool DynamicDataDB::storeDynamicData(unsigned int hostId, unsigned int appId, un
                 sqlite3_bind_int(m_addStmt, index++, readerId);
                 sqlite3_bind_int(m_addStmt, index++, writerId);
                 sqlite3_bind_int64(m_addStmt, index++, writerSeqNum);
+                sqlite3_bind_int(m_addStmt, index++, sourceTmp.sec);
+                sqlite3_bind_int(m_addStmt, index++, sourceTmp.nanosec);
 
                 returnedValue = processStructsStorage(typeCode, dynamicData, suffix, index, false);
 

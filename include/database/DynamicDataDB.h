@@ -12,6 +12,7 @@
 #include "dds_c/dds_c_common.h"
 
 struct DDS_DynamicData;
+struct DDS_Time_t;
 
 #ifdef __cplusplus
 
@@ -102,7 +103,7 @@ namespace eProsima
 
             bool storeDynamicData(unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-                    struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData);
+                    struct DDS_Time_t &sourceTmp, struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData);
 
             static void eraseSpacesInTableName(std::string &tableName);
 

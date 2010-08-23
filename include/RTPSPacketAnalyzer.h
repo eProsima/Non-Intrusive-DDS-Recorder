@@ -1,6 +1,8 @@
 #ifndef _RTPSPACKETANALYZER_H_
 #define _RTPSPACKETANALYZER_H_
 
+#include "dds_c/dds_c_infrastructure.h"
+
 #ifdef __cplusplus
 
 namespace eProsima
@@ -9,7 +11,8 @@ namespace eProsima
 
     typedef void (*getDataCallback)(void *user, unsigned int hostId,
             unsigned int appId, unsigned int instanceId, unsigned int readerId, unsigned int writerId,
-            unsigned long long writerSequenceNum, const char *serializedData, unsigned int serializedDataLen);
+            unsigned long long writerSequenceNum, struct DDS_Time_t &sourceTmp,
+            const char *serializedData, unsigned int serializedDataLen);
 
     class RTPSPacketAnalyzer
     {
@@ -68,6 +71,8 @@ namespace eProsima
             void processDATASubmessage(const char *dataSubmessage, unsigned short dataSubmessageLen,
                     bool endianess, bool dataInside);
 
+            void processINFOTSSubmessage(const char *dataSubmessage, bool endianess);
+
             eProsimaLog &m_log;
 
             /// Stores the RTPS protocol version
@@ -81,6 +86,8 @@ namespace eProsima
             /// Stores callback that is called when DATA submessage was found.
             void *m_getDataUser;
             getDataCallback m_getDataCallback;
+
+            struct DDS_Time_t m_lastSourceTmp;
     };
 }
 
