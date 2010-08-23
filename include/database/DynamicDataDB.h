@@ -101,8 +101,8 @@ namespace eProsima
             ~DynamicDataDB();
 
             bool storeDynamicData(unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int writerId, struct RTICdrTypeCode *typeCode,
-                    struct DDS_DynamicData *dynamicData);
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData);
 
             static void eraseSpacesInTableName(std::string &tableName);
 

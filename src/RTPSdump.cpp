@@ -85,8 +85,8 @@ RTPSdump::~RTPSdump()
 
 void RTPSdump::processDataCallback(void *user, unsigned int hostId,
         unsigned int appId, unsigned int instanceId, unsigned int readerId,
-        unsigned int writerId, const char *serializedData,
-        unsigned int serializedDataLen)
+        unsigned int writerId, unsigned long long writerSequenceNum,
+        const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataCallback";
     RTPSdump *rtpsdumper = (RTPSdump*)user;
@@ -94,7 +94,7 @@ void RTPSdump::processDataCallback(void *user, unsigned int hostId,
     if(user != NULL)
     {
         rtpsdumper->processData(hostId, appId, instanceId,
-                readerId, writerId, serializedData,
+                readerId, writerId, writerSequenceNum, serializedData,
                 serializedDataLen);
     }
     else
@@ -105,8 +105,8 @@ void RTPSdump::processDataCallback(void *user, unsigned int hostId,
 
 void RTPSdump::processData(unsigned int hostId, unsigned int appId,
         unsigned int instanceId, unsigned int readerId,
-        unsigned int writerId, const char *serializedData,
-        unsigned int serializedDataLen)
+        unsigned int writerId, unsigned long long writerSeqNum,
+        const char *serializedData, unsigned int serializedDataLen)
 {
     // Data(w)
     if(readerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER &&
@@ -124,7 +124,7 @@ void RTPSdump::processData(unsigned int hostId, unsigned int appId,
     else if(writerId != ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER)
     {
         processDataNormal(hostId, appId, instanceId, readerId, writerId,
-                serializedData, serializedDataLen);
+                writerSeqNum, serializedData, serializedDataLen);
     }
 }
 
@@ -195,7 +195,7 @@ void RTPSdump::processDataW(const char *serializedData,
                                     if(m_entitiesDB != NULL)
                                         m_entitiesDB->addEntity(topic.guid.prefix.hostId,
                                                 topic.guid.prefix.appId, topic.guid.prefix.instanceId,
-                                                topic.guid.objectId, topic.parameter->topic, topic.parameter->typeName);
+                                                topic.guid.objectId, 1, topic.parameter->topic, topic.parameter->typeName);
                                 }
                                 else
                                 {
@@ -314,7 +314,7 @@ void RTPSdump::processDataR(const char *serializedData,
                                     if(m_entitiesDB != NULL)
                                         m_entitiesDB->addEntity(topic.guid.prefix.hostId,
                                                 topic.guid.prefix.appId, topic.guid.prefix.instanceId,
-                                                topic.guid.objectId, topic.parameter->topic, topic.parameter->typeName);
+                                                topic.guid.objectId, 0, topic.parameter->topic, topic.parameter->typeName);
                                 }
                                 else
                                 {
@@ -368,8 +368,8 @@ void RTPSdump::processDataR(const char *serializedData,
 }
 
 void RTPSdump::processDataNormal(unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int readerId, unsigned int writerId, const char *serializedData,
-                    unsigned int serializedDataLen)
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataNormal";
     eEntity *entity = NULL;
@@ -408,7 +408,7 @@ void RTPSdump::processDataNormal(unsigned int hostId, unsigned int appId, unsign
                         if(dynamicDB != NULL)
                         {
                             if(!dynamicDB->storeDynamicData(hostId,
-                                        appId, instanceId, writerId,
+                                        appId, instanceId, readerId, writerId, writerSeqNum,
                                         typecode->getCdrTypecode(), dynamicData))
                             {
                                 logError(m_log, "Cannot stores the dynamic data in database");

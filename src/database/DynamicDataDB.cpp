@@ -191,11 +191,12 @@ bool DynamicDataDB::createInitialStatements(string &table_create, string &dynami
 
     table_create = "CREATE TABLE ";
     table_create += m_tableName;
-    table_create += " (host_id INT, app_id INT, instance_id INT, entity_id INT";
+    table_create += " (host_id UNSIGNED INT, app_id UNSIGNED INT, instance_id UNSIGNED INT, " \
+                     "reader_id UNSIGNED INT, writer_id UNSIGNED INT, writer_seq_num UNSIGNED BIGINT";
 
     dynamicDataAdd = "INSERT INTO ";
     dynamicDataAdd += m_tableName;
-    dynamicDataAdd += " VALUES(?, ?, ?, ?";
+    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?";
 
     returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, typeCode, suffix);
 
@@ -267,11 +268,18 @@ bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string 
     struct RTICdrTypeCode *memberInfo;
     const char *memberName = NULL;
     string smemberName;
+    string newSuffix = suffix;
 
     if(typeCode != NULL)
     {
         if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
         {
+            newSuffix += "_discriminator";
+            table_create += ", ";
+            table_create += newSuffix;
+            table_create += " INT";
+            dynamicDataAdd += ", ?";
+
             returnedValue = true;
             for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
             {
@@ -825,8 +833,8 @@ bool DynamicDataDB::addTextInitialStatements(string &memberName, string &table_c
 }
 
 bool DynamicDataDB::storeDynamicData(unsigned int hostId, unsigned int appId, unsigned int instanceId,
-        unsigned int writerId, struct RTICdrTypeCode *typeCode,
-        struct DDS_DynamicData *dynamicData)
+        unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+        struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData)
 {
     const char* const METHOD_NAME = "storeDynamicData";
     bool returnedValue = false;
@@ -843,7 +851,9 @@ bool DynamicDataDB::storeDynamicData(unsigned int hostId, unsigned int appId, un
                 sqlite3_bind_int(m_addStmt, index++, hostId);
                 sqlite3_bind_int(m_addStmt, index++, appId);
                 sqlite3_bind_int(m_addStmt, index++, instanceId);
+                sqlite3_bind_int(m_addStmt, index++, readerId);
                 sqlite3_bind_int(m_addStmt, index++, writerId);
+                sqlite3_bind_int64(m_addStmt, index++, writerSeqNum);
 
                 returnedValue = processStructsStorage(typeCode, dynamicData, suffix, index, false);
 
@@ -970,6 +980,7 @@ bool DynamicDataDB::processUnionsStorage(struct RTICdrTypeCode *typeCode,
         {
             if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
             {
+                sqlite3_bind_int(m_addStmt, index++, disInfo.member_id);
                 returnedValue = true;
                 for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
                 {

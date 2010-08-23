@@ -6,9 +6,11 @@
 #include <string.h>
 
 #define ENTITIES_TABLE "entities"
+#define READER_TEXT "reader"
+#define WRITER_TEXT "writer"
 
 static const char* const CLASS_NAME = "EntitiesDB";
-static const char* const ENTITY_ADD = "INSERT INTO " ENTITIES_TABLE " VALUES(?, ?, ?, ?, ?, ?)";
+static const char* const ENTITY_ADD = "INSERT INTO " ENTITIES_TABLE " VALUES(?, ?, ?, ?, ?, ?, ?)";
 
 using namespace eProsima;
 using namespace std;
@@ -51,9 +53,9 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     const char* const METHOD_NAME = "EntitiesDB";
     const char* const TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='" ENTITIES_TABLE "'";
     const char* const TABLE_TRUNCATE = "DELETE FROM " ENTITIES_TABLE;
-    const char* const TABLE_CREATE = "CREATE TABLE " ENTITIES_TABLE " (host_id INT," \
-                                      "app_id INT, instance_id INT, entity_id INT," \
-                                      "topic_name STRING, type_name STRING," \
+    const char* const TABLE_CREATE = "CREATE TABLE " ENTITIES_TABLE " (host_id UNSIGNED INT," \
+                                      "app_id UNSIGNED INT, instance_id UNSIGNED INT, entity_id UNSIGNED INT," \
+                                      "type STRING, topic_name STRING, type_name STRING," \
                                       "PRIMARY KEY(host_id, app_id, instance_id, entity_id))";
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
@@ -127,7 +129,7 @@ EntitiesDB::~EntitiesDB()
 }
 
 bool EntitiesDB::addEntity(const unsigned int hostId, const unsigned int appId,
-        const unsigned int instanceId, const unsigned int entityId,
+        const unsigned int instanceId, const unsigned int entityId, int type,
         const char *topicName, const char *typeName)
 {
     const char* const METHOD_NAME = "addTypeCode";
@@ -143,8 +145,12 @@ bool EntitiesDB::addEntity(const unsigned int hostId, const unsigned int appId,
                 sqlite3_bind_int(m_addStmt, 2, appId);
                 sqlite3_bind_int(m_addStmt, 3, instanceId);
                 sqlite3_bind_int(m_addStmt, 4, entityId);
-                sqlite3_bind_text(m_addStmt, 5, topicName, strlen(topicName), SQLITE_STATIC);
-                sqlite3_bind_text(m_addStmt, 6, typeName, strlen(typeName), SQLITE_STATIC);
+                if(type == 0)
+                    sqlite3_bind_text(m_addStmt, 5, READER_TEXT, strlen(READER_TEXT), SQLITE_STATIC);
+                else
+                    sqlite3_bind_text(m_addStmt, 5, WRITER_TEXT, strlen(WRITER_TEXT), SQLITE_STATIC);
+                sqlite3_bind_text(m_addStmt, 6, topicName, strlen(topicName), SQLITE_STATIC);
+                sqlite3_bind_text(m_addStmt, 7, typeName, strlen(typeName), SQLITE_STATIC);
 
                 if(sqlite3_step(m_addStmt) == SQLITE_DONE)
                 {

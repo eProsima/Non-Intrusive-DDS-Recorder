@@ -53,7 +53,7 @@ namespace eProsima
 
             bool addEntity(const unsigned int hostId, const unsigned int appId,
                     const unsigned int instanceId, const unsigned int entityId,
-                    const char *topicName, const char *typeName);
+                    int type, const char *topicName, const char *typeName);
 
             eEntity* findEntity(const unsigned int hostId, const unsigned int appId,
                     const unsigned int instanceId, const unsigned int entityId);
