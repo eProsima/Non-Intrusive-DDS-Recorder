@@ -10,6 +10,8 @@
 #include "dds_c/dds_c_typecode.h"
 #include "dds_c/dds_c_dynamicdata.h"
 
+#include <sys/time.h>
+
 #define ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER 0x000100c2
 #define ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER 0x000003c7
 #define ENTITYID_SEDP_BUILTIN_PUBLICATIONS_WRITER 0x000003c2
@@ -83,7 +85,8 @@ RTPSdump::~RTPSdump()
         sqlite3_close(m_databaseH);
 }
 
-void RTPSdump::processDataCallback(void *user, unsigned int hostId,
+void RTPSdump::processDataCallback(void *user, const struct timeval &wts,
+        string &ip_src, string &ip_dst, unsigned int hostId,
         unsigned int appId, unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSequenceNum,
         struct DDS_Time_t &sourceTmp, const char *serializedData, unsigned int serializedDataLen)
@@ -93,7 +96,7 @@ void RTPSdump::processDataCallback(void *user, unsigned int hostId,
 
     if(user != NULL)
     {
-        rtpsdumper->processData(hostId, appId, instanceId,
+        rtpsdumper->processData(wts, ip_src, ip_dst, hostId, appId, instanceId,
                 readerId, writerId, writerSequenceNum, sourceTmp,
                 serializedData, serializedDataLen);
     }
@@ -103,7 +106,8 @@ void RTPSdump::processDataCallback(void *user, unsigned int hostId,
     }
 }
 
-void RTPSdump::processData(unsigned int hostId, unsigned int appId,
+void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip_dst,
+        unsigned int hostId, unsigned int appId,
         unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSeqNum,
         struct DDS_Time_t &sourceTmp, const char *serializedData, unsigned int serializedDataLen)
@@ -123,7 +127,7 @@ void RTPSdump::processData(unsigned int hostId, unsigned int appId,
     // It's not a Data(p)
     else if(writerId != ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER)
     {
-        processDataNormal(hostId, appId, instanceId, readerId, writerId,
+        processDataNormal(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
                 writerSeqNum, sourceTmp, serializedData, serializedDataLen);
     }
 }
@@ -367,9 +371,10 @@ void RTPSdump::processDataR(const char *serializedData,
     }
 }
 
-void RTPSdump::processDataNormal(unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-                    struct DDS_Time_t &sourceTmp, const char *serializedData, unsigned int serializedDataLen)
+void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, string &ip_dst,
+        unsigned int hostId, unsigned int appId, unsigned int instanceId,
+        unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+        struct DDS_Time_t &sourceTmp, const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataNormal";
     eEntity *entity = NULL;
@@ -407,7 +412,7 @@ void RTPSdump::processDataNormal(unsigned int hostId, unsigned int appId, unsign
                         
                         if(dynamicDB != NULL)
                         {
-                            if(!dynamicDB->storeDynamicData(hostId,
+                            if(!dynamicDB->storeDynamicData(wts, ip_src, ip_dst, hostId,
                                         appId, instanceId, readerId, writerId, writerSeqNum,
                                         sourceTmp, typecode->getCdrTypecode(), dynamicData))
                             {

@@ -6,6 +6,7 @@
 #include <sqlite3.h>
 
 struct DDS_Time_t;
+struct timeval;
 
 #ifdef __cplusplus
 
@@ -23,13 +24,15 @@ namespace eProsima
 
             ~RTPSdump();
 
-            static void processDataCallback(void *user, unsigned int hostId,
+            static void processDataCallback(void *user, const struct timeval &wts,
+                    std::string &ip_src, std::string &ip_dst, unsigned int hostId,
                     unsigned int appId, unsigned int instanceId, unsigned int readerId,
                     unsigned int writerId, unsigned long long writerSequenceNum, 
                     struct DDS_Time_t &sourceTmp, const char *serializedData,
                     unsigned int serializedDataLen);
 
-            void processData(unsigned int hostId, unsigned int appId, unsigned int instanceId,
+            void processData(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum, 
                     struct DDS_Time_t &sourceTmp, const char *serializedData,
                     unsigned int serializedDataLen);
@@ -42,7 +45,8 @@ namespace eProsima
             void processDataR(const char *serializedData,
                     unsigned int serializedDataLen);
 
-            void processDataNormal(unsigned int hostId, unsigned int appId, unsigned int instanceId,
+            void processDataNormal(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, const char *serializedData,
                     unsigned int serializedDataLen);

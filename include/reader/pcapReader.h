@@ -11,7 +11,9 @@ namespace eProsima
 {
     class eProsimaLog;
 
-    typedef void (*processRTPSPacketCallback)(void *user, const char *rtpsPayload, const unsigned short rtpsPayloadLen);
+    typedef void (*processRTPSPacketCallback)(void *user, const struct timeval &wts,
+            std::string &ip_src, std::string &ip_dst,
+            const char *rtpsPayload, const unsigned short rtpsPayloadLen);
 
     class pcapReader
     {

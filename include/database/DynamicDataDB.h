@@ -13,6 +13,7 @@
 
 struct DDS_DynamicData;
 struct DDS_Time_t;
+struct timeval;
 
 #ifdef __cplusplus
 
@@ -101,7 +102,8 @@ namespace eProsima
 
             ~DynamicDataDB();
 
-            bool storeDynamicData(unsigned int hostId, unsigned int appId, unsigned int instanceId,
+            bool storeDynamicData(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData);
 

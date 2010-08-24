@@ -8,6 +8,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 static const char* const CLASS_NAME = "DynamicDataDB";
 
@@ -191,13 +192,15 @@ bool DynamicDataDB::createInitialStatements(string &table_create, string &dynami
 
     table_create = "CREATE TABLE ";
     table_create += m_tableName;
-    table_create += " (host_id UNSIGNED INT, app_id UNSIGNED INT, instance_id UNSIGNED INT, " \
+    table_create += " (wireshark_sourcetimestamp_sec INT, wireshark_sourcetimestamp_msec UNSIGNED INT, " \
+                     "ip_src TEXT, ip_dst TEXT, " \
+                     "host_id UNSIGNED INT, app_id UNSIGNED INT, instance_id UNSIGNED INT, " \
                      "reader_id UNSIGNED INT, writer_id UNSIGNED INT, writer_seq_num UNSIGNED BIGINT," \
                      "sourcetimestamp_sec INT, sourcetimestamp_nanosec UNSIGNED INT";
 
     dynamicDataAdd = "INSERT INTO ";
     dynamicDataAdd += m_tableName;
-    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?";
+    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
     returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, typeCode, suffix);
 
@@ -833,7 +836,8 @@ bool DynamicDataDB::addTextInitialStatements(string &memberName, string &table_c
     return true;
 }
 
-bool DynamicDataDB::storeDynamicData(unsigned int hostId, unsigned int appId, unsigned int instanceId,
+bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, string &ip_dst,
+        unsigned int hostId, unsigned int appId, unsigned int instanceId,
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
         struct DDS_Time_t &sourceTmp, struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData)
 {
@@ -849,6 +853,10 @@ bool DynamicDataDB::storeDynamicData(unsigned int hostId, unsigned int appId, un
         {
             if(sqlite3_reset(m_addStmt) == SQLITE_OK)
             {
+                sqlite3_bind_int(m_addStmt, index++, wts.tv_sec);
+                sqlite3_bind_int(m_addStmt, index++, wts.tv_usec);
+                sqlite3_bind_text(m_addStmt, index++, ip_src.c_str(), ip_src.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addStmt, index++, ip_dst.c_str(), ip_dst.length(), SQLITE_STATIC);
                 sqlite3_bind_int(m_addStmt, index++, hostId);
                 sqlite3_bind_int(m_addStmt, index++, appId);
                 sqlite3_bind_int(m_addStmt, index++, instanceId);
