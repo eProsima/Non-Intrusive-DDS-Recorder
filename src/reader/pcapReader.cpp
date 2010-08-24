@@ -14,14 +14,6 @@ struct ether_header
     u_int16_t ether_type;
 };
 
-typedef struct ip_address
-{
-	u_char byte1;
-	u_char byte2;
-	u_char byte3;
-	u_char byte4;
-} ip_address;
-
 /* IPv4 header */
 struct ip
 {
@@ -33,8 +25,8 @@ struct ip
 	u_char	ttl;			// Time to live
 	u_char	ip_p;			// Protocol
 	u_short crc;			// Header checksum
-	ip_address	ip_src;		// Source address
-	ip_address	ip_dst;		// Destination address
+	in_addr	ip_src;		// Source address
+	in_addr	ip_dst;		// Destination address
 	u_int	op_pad;			// Option + Padding
 };
 
