@@ -53,9 +53,9 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     const char* const METHOD_NAME = "EntitiesDB";
     const char* const TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='" ENTITIES_TABLE "'";
     const char* const TABLE_TRUNCATE = "DELETE FROM " ENTITIES_TABLE;
-    const char* const TABLE_CREATE = "CREATE TABLE " ENTITIES_TABLE " (host_id UNSIGNED INT," \
-                                      "app_id UNSIGNED INT, instance_id UNSIGNED INT, entity_id UNSIGNED INT," \
-                                      "type STRING, topic_name STRING, type_name STRING," \
+    const char* const TABLE_CREATE = "CREATE TABLE " ENTITIES_TABLE " (host_id BIGINT UNSIGNED," \
+                                      "app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, entity_id BIGINT UNSIGNED," \
+                                      "type TEXT, topic_name TEXT, type_name TEXT," \
                                       "PRIMARY KEY(host_id, app_id, instance_id, entity_id))";
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
@@ -141,10 +141,10 @@ bool EntitiesDB::addEntity(const unsigned int hostId, const unsigned int appId,
         {
             if(sqlite3_reset(m_addStmt) == SQLITE_OK)
             {
-                sqlite3_bind_int(m_addStmt, 1, hostId);
-                sqlite3_bind_int(m_addStmt, 2, appId);
-                sqlite3_bind_int(m_addStmt, 3, instanceId);
-                sqlite3_bind_int(m_addStmt, 4, entityId);
+                sqlite3_bind_int64(m_addStmt, 1, hostId);
+                sqlite3_bind_int64(m_addStmt, 2, appId);
+                sqlite3_bind_int64(m_addStmt, 3, instanceId);
+                sqlite3_bind_int64(m_addStmt, 4, entityId);
                 if(type == 0)
                     sqlite3_bind_text(m_addStmt, 5, READER_TEXT, strlen(READER_TEXT), SQLITE_STATIC);
                 else

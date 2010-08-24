@@ -85,9 +85,8 @@ TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     const char* const METHOD_NAME = "TypeCodeDB";
     const char* const TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='" TYPECODE_TABLE "'";
     const char* const TABLE_TRUNCATE = "DELETE FROM " TYPECODE_TABLE;
-    const char* const TABLE_CREATE = "CREATE TABLE " TYPECODE_TABLE " (topic_name STRING," \
-                                      "type_name STRING, typecode TEXT," \
-                                      "PRIMARY KEY(topic_name, type_name))";
+    const char* const TABLE_CREATE = "CREATE TABLE " TYPECODE_TABLE " (topic_name TEXT," \
+                                      "type_name TEXT, typecode TEXT)";
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
 

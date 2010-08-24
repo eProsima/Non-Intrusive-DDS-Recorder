@@ -192,11 +192,11 @@ bool DynamicDataDB::createInitialStatements(string &table_create, string &dynami
 
     table_create = "CREATE TABLE ";
     table_create += m_tableName;
-    table_create += " (wireshark_sourcetimestamp_sec INT, wireshark_sourcetimestamp_msec UNSIGNED INT, " \
+    table_create += " (wireshark_sourcetimestamp_sec BIGINT, wireshark_sourcetimestamp_msec BIGINT UNSIGNED, " \
                      "ip_src TEXT, ip_dst TEXT, " \
-                     "host_id UNSIGNED INT, app_id UNSIGNED INT, instance_id UNSIGNED INT, " \
-                     "reader_id UNSIGNED INT, writer_id UNSIGNED INT, writer_seq_num UNSIGNED BIGINT," \
-                     "sourcetimestamp_sec INT, sourcetimestamp_nanosec UNSIGNED INT";
+                     "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
+                     "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED," \
+                     "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED";
 
     dynamicDataAdd = "INSERT INTO ";
     dynamicDataAdd += m_tableName;
@@ -764,7 +764,7 @@ bool DynamicDataDB::addShortInitialStatements(string &memberName, string &table_
 {
     table_create += ", ";
     table_create += memberName;
-    table_create += " SHORT INT";
+    table_create += " SMALLINT";
     dynamicDataAdd += ", ?";
     return true;
 }
@@ -774,7 +774,7 @@ bool DynamicDataDB::addUShortInitialStatements(string &memberName, string &table
 {
     table_create += ", ";
     table_create += memberName;
-    table_create += " UNSINGED SHORT INT";
+    table_create += " SMALLINT UNSIGNED";
     dynamicDataAdd += ", ?";
     return true;
 }
@@ -793,7 +793,7 @@ bool DynamicDataDB::addUIntInitialStatements(string &memberName, string &table_c
 {
     table_create += ", ";
     table_create += memberName;
-    table_create += " UNSIGNED INT";
+    table_create += " INT UNSIGNED ";
     dynamicDataAdd += ", ?";
     return true;
 }
@@ -813,7 +813,7 @@ bool DynamicDataDB::addUBigIntInitialStatements(string &memberName, string &tabl
 {
     table_create += ", ";
     table_create += memberName;
-    table_create += " UNSIGNED BIGINT";
+    table_create += " BIGINT UNSIGNED ";
     dynamicDataAdd += ", ?";
     return true;
 }
@@ -853,18 +853,18 @@ bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, 
         {
             if(sqlite3_reset(m_addStmt) == SQLITE_OK)
             {
-                sqlite3_bind_int(m_addStmt, index++, wts.tv_sec);
-                sqlite3_bind_int(m_addStmt, index++, wts.tv_usec);
+                sqlite3_bind_int64(m_addStmt, index++, wts.tv_sec);
+                sqlite3_bind_int64(m_addStmt, index++, wts.tv_usec);
                 sqlite3_bind_text(m_addStmt, index++, ip_src.c_str(), ip_src.length(), SQLITE_STATIC);
                 sqlite3_bind_text(m_addStmt, index++, ip_dst.c_str(), ip_dst.length(), SQLITE_STATIC);
-                sqlite3_bind_int(m_addStmt, index++, hostId);
-                sqlite3_bind_int(m_addStmt, index++, appId);
-                sqlite3_bind_int(m_addStmt, index++, instanceId);
-                sqlite3_bind_int(m_addStmt, index++, readerId);
-                sqlite3_bind_int(m_addStmt, index++, writerId);
+                sqlite3_bind_int64(m_addStmt, index++, hostId);
+                sqlite3_bind_int64(m_addStmt, index++, appId);
+                sqlite3_bind_int64(m_addStmt, index++, instanceId);
+                sqlite3_bind_int64(m_addStmt, index++, readerId);
+                sqlite3_bind_int64(m_addStmt, index++, writerId);
                 sqlite3_bind_int64(m_addStmt, index++, writerSeqNum);
-                sqlite3_bind_int(m_addStmt, index++, sourceTmp.sec);
-                sqlite3_bind_int(m_addStmt, index++, sourceTmp.nanosec);
+                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.sec);
+                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.nanosec);
 
                 returnedValue = processStructsStorage(typeCode, dynamicData, suffix, index, false);
 
