@@ -1,6 +1,8 @@
 #include "reader/pcapReader.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
+#include <string.h>
+
 #ifdef RTI_WIN32
 #include <winsock.h>
 
@@ -31,8 +33,8 @@ struct ip
 	u_char	ttl;			// Time to live
 	u_char	ip_p;			// Protocol
 	u_short crc;			// Header checksum
-	ip_address	saddr;		// Source address
-	ip_address	daddr;		// Destination address
+	ip_address	ip_src;		// Source address
+	ip_address	ip_dst;		// Destination address
 	u_int	op_pad;			// Option + Padding
 };
 
@@ -53,6 +55,7 @@ struct udphdr
 #include <netinet/if_ether.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
+#include <arpa/inet.h>
 
 #define IP_HEADER_LEN(ip) ip->ip_hl * 4
 
@@ -149,6 +152,7 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
     struct ip *ipc = NULL;
     struct udphdr *udpc = NULL;
     u_char *rtpsPayload = NULL;
+    string ip_src, ip_dst;
 
     if(hdr != NULL && data != NULL)
     {
@@ -168,6 +172,10 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
                         rtpsPayload[2] == 'P' &&
                         rtpsPayload[3] == 'S')
                 {
+                    // Get IPs in strings.
+                    ip_src = inet_ntoa(ipc->ip_src);
+                    ip_dst = inet_ntoa(ipc->ip_dst);
+                    
                     m_npackets++;
 
                     if(m_callback != NULL)
