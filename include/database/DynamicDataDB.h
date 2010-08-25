@@ -129,6 +129,8 @@ namespace eProsima
                     std::string &dynamicDataAdd);
             static bool addDoubleInitialStatements(std::string &memberName, std::string &table_create,
                     std::string &dynamicDataAdd);
+            static bool addEnumInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
 
             static bool addOctetStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     std::string &name, int &index);
@@ -152,6 +154,8 @@ namespace eProsima
                     std::string &name, int &index);
             static bool addDoubleStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     std::string &name, int &index);
+            static bool addEnumStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    std::string &name, int &index);
 
             static bool addOctetArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
@@ -173,6 +177,8 @@ namespace eProsima
                     arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
             static bool addDoubleArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addEnumArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
 
             static bool addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
             static bool addShortSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
@@ -184,6 +190,7 @@ namespace eProsima
             static bool addCharSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
             static bool addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
             static bool addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
 
         private:
 

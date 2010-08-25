@@ -31,6 +31,7 @@ DynamicDataDB::writePrimitiveInitialStatementsFunctions DynamicDataDB::writePrim
     {RTI_CDR_TK_STRING, DynamicDataDB::addTextInitialStatements},
     {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatInitialStatements},
     {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleInitialStatements},
+    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumInitialStatements},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -47,6 +48,7 @@ DynamicDataDB::writePrimitiveStorageFunctions DynamicDataDB::writePrimitiveStora
     {RTI_CDR_TK_STRING, DynamicDataDB::addStringStorage},
     {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatStorage},
     {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleStorage},
+    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumStorage},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -62,6 +64,7 @@ DynamicDataDB::writeArrayPrimitiveFunctions DynamicDataDB::writeArrayPrimitiveFu
     {RTI_CDR_TK_CHAR, DynamicDataDB::addCharArrayStorage},
     {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatArrayStorage},
     {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleArrayStorage},
+    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumArrayStorage},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -77,6 +80,7 @@ DynamicDataDB::writeSequencePrimitiveFunctions DynamicDataDB::writeSequencePrimi
     {RTI_CDR_TK_CHAR, DynamicDataDB::addCharSequenceStorage},
     {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatSequenceStorage},
     {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleSequenceStorage},
+    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumSequenceStorage},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -354,9 +358,9 @@ bool DynamicDataDB::processArraysInitialStatements(string &table_create, string 
         TABLE_CREATE += " (ref INT";
         TABLE_INSERT += suffix;
         TABLE_INSERT += " VALUES(?";
-        TABLE_CHECK += m_tableName;
+        TABLE_CHECK += suffix;
         TABLE_CHECK += "'";
-        TABLE_DROP += m_tableName;
+        TABLE_DROP += suffix;
 
         if(RTICdrTypeCode_get_array_dimension_count(typeCode, &dimensionCount) == RTI_TRUE)
         {
@@ -453,9 +457,9 @@ bool DynamicDataDB::processSequencesInitialStatements(string &table_create, stri
         TABLE_CREATE += " (ref INT, indice INT";
         TABLE_INSERT += suffix;
         TABLE_INSERT += " VALUES(?, ?";
-        TABLE_CHECK += m_tableName;
+        TABLE_CHECK += suffix;
         TABLE_CHECK += "'";
-        TABLE_DROP += m_tableName;
+        TABLE_DROP += suffix;
 
         if(processSequenceElementsInitialStatements(TABLE_CREATE, TABLE_INSERT, typeCode,
                     newSuffix))
@@ -920,6 +924,16 @@ bool DynamicDataDB::addDoubleInitialStatements(string &memberName, string &table
     dynamicDataAdd += ", ?";
     return true;
 }
+bool DynamicDataDB::addEnumInitialStatements(string &memberName, string &table_create,
+        string &dynamicDataAdd)
+{
+    table_create += ", ";
+    table_create += memberName;
+    table_create += " TEXT";
+    dynamicDataAdd += ", ?";
+    return true;
+}
+
 
 bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, string &ip_dst,
         unsigned int hostId, unsigned int appId, unsigned int instanceId,
@@ -1016,7 +1030,7 @@ bool DynamicDataDB::processStructsStorage(struct RTICdrTypeCode *typeCode,
     const char *memberName = NULL;
     string smemberName;
 
-    if(typeCode != NULL && dynamicData != NULL)
+    if(typeCode != NULL && (dynamicData != NULL || step))
     {
         if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
         {
@@ -1161,17 +1175,19 @@ bool DynamicDataDB::processMembersStorage(struct RTICdrTypeCode *memberInfo, str
     {
         if(kind == RTI_CDR_TK_STRUCT)
         {
-            memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
-                    memberName, dynamicData);
+            if(!step)
+                memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
+                        memberName, dynamicData);
 
-            if(memberDynamicDataObject != NULL)
+            if((memberDynamicDataObject != NULL) || (step))
             {
                 newSuffix = suffix;
                 newSuffix += memberName;
                 newSuffix += "__";
                 returnedValue = processStructsStorage(memberInfo, memberDynamicDataObject,
                         newSuffix, index, step);
-                DDS_DynamicData_delete(memberDynamicDataObject);
+                if(memberDynamicDataObject != NULL)
+                    DDS_DynamicData_delete(memberDynamicDataObject);
             }
         }
         else if(kind == RTI_CDR_TK_UNION)
@@ -1224,7 +1240,7 @@ bool DynamicDataDB::processArraysStorage(struct RTICdrTypeCode *typeCode,
     arrayNode *aNode = NULL;
     arrayProcessInfo arrayProcessingInfo;
 
-    if(typeCode != NULL && dynamicData != NULL)
+    if(typeCode != NULL && (dynamicData != NULL || step))
     {
         arrayProcessingInfo.pointer = 0;
         arrayProcessingInfo.buffer = 0;
@@ -1436,7 +1452,7 @@ bool DynamicDataDB::processSequencesStorage(struct RTICdrTypeCode *typeCode,
     RTICdrTypeCode *elementType = NULL;
     RTICdrTCKind elementKind;
 
-    if(typeCode != NULL && dynamicData != NULL)
+    if(typeCode != NULL && (dynamicData != NULL || step))
     {
         // Search array statement.
         for(it = m_sequences.begin(); it != m_sequences.end(); it++)
@@ -1880,6 +1896,46 @@ bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, struct DDS_DynamicData 
         else
         {
             printError("Cannot get the double field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addEnumStorage";
+    bool returnedValue = false;
+    DDS_TypeCode *enumTypeCode = NULL;
+    DDS_Long ordinal;
+    DDS_UnsignedLong eindex;
+    DDS_ExceptionCode_t exception = DDS_NO_EXCEPTION_CODE;
+    const char *label;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_DynamicData_get_long(dynamicDataObject, &ordinal, (char*)name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+        if(DDS_DynamicData_get_member_type(dynamicDataObject, (const DDS_TypeCode**)&enumTypeCode, name.c_str(),
+                    DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            eindex = DDS_TypeCode_find_member_by_label(enumTypeCode, ordinal, &exception);
+
+            if(exception == DDS_NO_EXCEPTION_CODE)
+            {
+                label = DDS_TypeCode_member_name(enumTypeCode, eindex, &exception);
+
+                if(exception == DDS_NO_EXCEPTION_CODE)
+                {
+                    sqlite3_bind_text(stmt, index++, label, strlen(label), SQLITE_STATIC);
+                    returnedValue = true;
+                }
+            }
         }
     }
     else
@@ -2460,6 +2516,76 @@ bool DynamicDataDB::addDoubleArrayStorage(sqlite3_stmt *stmt, struct DDS_Dynamic
     return returnedValue;
 }
 
+bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+ arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addEnumArrayStorage";
+    bool returnedValue = false;
+    DDS_Long *auxPointerBuffer = NULL;
+    DDS_UnsignedLong eindex, length;
+    DDS_ExceptionCode_t exception = DDS_NO_EXCEPTION_CODE;
+    string label;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Long*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Long)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Long));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_long_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                eindex = DDS_TypeCode_find_member_by_label((struct DDS_TypeCode*)arrayProcessingInfo->elementType,
+                        auxPointerBuffer[count], &exception);
+
+                if(exception == DDS_NO_EXCEPTION_CODE)
+                {
+                    label = DDS_TypeCode_member_name((struct DDS_TypeCode*)arrayProcessingInfo->elementType, eindex, &exception);
+
+                    if(exception == DDS_NO_EXCEPTION_CODE)
+                    {
+                        if(sqlite3_reset(stmt) == SQLITE_OK)
+                        {
+                            sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                            sqlite3_bind_text(stmt, currentDimension + 3, label.c_str(), label.length(), SQLITE_STATIC); // +1 saltando campo de referencia.
+
+                            if(sqlite3_step(stmt) != SQLITE_DONE)
+                                printError("Cannot step the statement");
+                        }
+                        else
+                            printError("Cannot reset the statement");
+                    }
+                }
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
 bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
         struct DDS_DynamicData *dynamicDataObject)
 {
@@ -2986,6 +3112,84 @@ bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, string
             }
 
             DDS_DoubleSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addEnumSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_LongSeq ordinals;
+    DDS_Long eindex;
+    DDS_TypeCode *sequenceTypeCode = NULL, *enumTypeCode = NULL;
+    DDS_ExceptionCode_t exception = DDS_NO_EXCEPTION_CODE;
+    string label;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            if(DDS_DynamicData_get_member_type(dynamicDataObject, (const struct DDS_TypeCode**)&sequenceTypeCode,
+                        memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+            {
+                enumTypeCode = DDS_TypeCode_content_type(sequenceTypeCode, &exception);
+
+                if(exception == DDS_NO_EXCEPTION_CODE)
+                {
+                    DDS_LongSeq_initialize(&ordinals);
+                    DDS_LongSeq_ensure_length(&ordinals, memberInfo.element_count, memberInfo.element_count);
+                    DDS_DynamicData_get_long_seq(dynamicDataObject, &ordinals, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+                    returnedValue = true;
+                    for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+                    {
+                        if(sqlite3_reset(stmt) == SQLITE_OK)
+                        {
+                            DDS_UnsignedLong ordinal = *DDS_LongSeq_get_reference(&ordinals, count);
+                            eindex = DDS_TypeCode_find_member_by_label(enumTypeCode, ordinal, &exception);
+
+                                if(exception == DDS_NO_EXCEPTION_CODE)
+                                {
+                                    label = DDS_TypeCode_member_name(enumTypeCode, eindex, &exception);
+
+                                    if(exception == DDS_NO_EXCEPTION_CODE)
+                                    {
+                                        sqlite3_bind_int(stmt, 1, ref);
+                                        sqlite3_bind_int(stmt, 2, count);
+                                        sqlite3_bind_text(stmt, 3, label.c_str(), label.length(), SQLITE_STATIC);
+
+                                        if(sqlite3_step(stmt) != SQLITE_DONE)
+                                        {
+                                            printError("Cannot step the statement");
+                                            returnedValue = false;
+                                        }
+                                    }
+                                }
+                        }
+                        else
+                        {
+                            printError("Cannot reset statement");
+                            returnedValue = false;
+                        }
+                    }
+
+                    DDS_LongSeq_finalize(&ordinals);
+                }
+            }
         }
         else
         {

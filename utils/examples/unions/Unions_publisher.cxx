@@ -198,7 +198,7 @@ extern "C" int publisher_main(int domainId, int sample_count)
                 instance->u_n_i_o_n._d = 5;
                 break;
             case 3:
-                instance->u_n_i_o_n._d = 4;
+                instance->u_n_i_o_n._d = 0;
                 break;
         }
 
