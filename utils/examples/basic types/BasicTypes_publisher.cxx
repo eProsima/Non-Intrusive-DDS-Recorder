@@ -53,9 +53,10 @@ modification history
 #include "BasicTypesSupport.h"
 #include "ndds/ndds_cpp.h"
 
+#include <stdlib.h>
 #include <string>
 
-using namespace std;
+#define MESSAGE "Hello basics!! ";
 
 /* Delete all entities */
 static int publisher_shutdown(
@@ -182,11 +183,10 @@ extern "C" int publisher_main(int domainId, int sample_count)
     instance_handle = BasicTypes_writer->register_instance(*instance);
 */
 
+    std::string message;
+    char buffer[50];
     /* Main loop */
-    for (count=0; (sample_count == 0) || (count < sample_count); ++count)
-    {
-        const char* const MESSAGE = "prueba ";
-        string message;
+    for (count=0; (sample_count == 0) || (count < sample_count); ++count) {
 
         printf("Writing BasicTypes, count %d\n", count);
 
@@ -195,13 +195,16 @@ extern "C" int publisher_main(int domainId, int sample_count)
         instance->ch = count % 255;
         instance->sh = count << 8;
         instance->ush = count << 8;
-        instance->lo = count << 16;
-        instance->ulo = count <<16;
-        instance->lolo = count << 32;
-        instance->ulolo = count << 32;
+        instance->lo = ((long)count) << 16;
+        instance->ulo = ((unsigned long)count) <<16;
+        instance->lolo = ((long long)count) << 32;
+        instance->ulolo = ((unsigned long long)count) << 32;
         message = MESSAGE;
-        message += count;
+        snprintf(buffer, 50, "%hd", count);
+        message += buffer;
         instance->st = (char*)message.c_str();
+        instance->fl = 10.53;
+        instance->dl = 1034.3453;
         
 
         retcode = BasicTypes_writer->write(*instance, instance_handle);

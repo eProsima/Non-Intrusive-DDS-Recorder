@@ -170,6 +170,12 @@ BasicTypesPluginSupport_print_data(
             sample->st, "st", indent_level + 1);                
     }
             
+    RTICdrType_printFloat(
+        &sample->fl, "fl", indent_level + 1);
+            
+    RTICdrType_printDouble(
+        &sample->dl, "dl", indent_level + 1);
+            
 
 }
 
@@ -332,6 +338,16 @@ BasicTypesPlugin_serialize(
         return RTI_FALSE;
     }
             
+    if (!RTICdrStream_serializeFloat(
+        stream, &sample->fl)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializeDouble(
+        stream, &sample->dl)) {
+        return RTI_FALSE;
+    }
+            
   }
 
 
@@ -414,6 +430,16 @@ BasicTypesPlugin_deserialize(
         return RTI_FALSE;
     }
             
+    if (!RTICdrStream_deserializeFloat(
+        stream, &sample->fl)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializeDouble(
+        stream, &sample->dl)) {
+        return RTI_FALSE;
+    }
+            
     }
 
 
@@ -484,6 +510,14 @@ RTIBool BasicTypesPlugin_skip(
         return RTI_FALSE;
     }
             
+    if (!RTICdrStream_skipFloat(stream)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipDouble(stream)) {
+        return RTI_FALSE;
+    }
+            
     }
 
 
@@ -545,6 +579,12 @@ BasicTypesPlugin_get_serialized_sample_max_size(
     current_alignment +=  RTICdrType_getStringMaxSizeSerialized(
         current_alignment, (255) + 1);
             
+    current_alignment +=  RTICdrType_getFloatMaxSizeSerialized(
+        current_alignment);
+            
+    current_alignment +=  RTICdrType_getDoubleMaxSizeSerialized(
+        current_alignment);
+            
     if (include_encapsulation) {
         current_alignment += encapsulation_size;
     }
@@ -601,6 +641,12 @@ BasicTypesPlugin_get_serialized_sample_min_size(
             
     current_alignment +=  RTICdrType_getStringMaxSizeSerialized(
         current_alignment, 1);
+            
+    current_alignment +=  RTICdrType_getFloatMaxSizeSerialized(
+        current_alignment);
+            
+    current_alignment +=  RTICdrType_getDoubleMaxSizeSerialized(
+        current_alignment);
             
     if (include_encapsulation) {
         current_alignment += encapsulation_size;

@@ -9,4 +9,6 @@ struct BasicTypes
 	long long lolo;
 	unsigned long long ulolo;
 	string st;
+	float fl;
+	double dl;
 };

@@ -49,7 +49,7 @@ DDS_TypeCode* BasicTypes_get_typecode()
 
     static DDS_TypeCode BasicTypes_g_tc_st_string = DDS_INITIALIZE_STRING_TYPECODE(255);
 
-    static DDS_TypeCode_Member BasicTypes_g_tc_members[9]=
+    static DDS_TypeCode_Member BasicTypes_g_tc_members[11]=
     {
         {
             (char *)"oc",/* Member name */
@@ -203,6 +203,40 @@ DDS_TypeCode* BasicTypes_get_typecode()
             DDS_PRIVATE_MEMBER,/* Ignored */
             0,/* Ignored */
             NULL/* Ignored */
+        },
+        {
+            (char *)"fl",/* Member name */
+            {
+                0,/* Representation ID */
+                DDS_BOOLEAN_FALSE,/* Is a pointer? */
+                -1, /* Bitfield bits */
+                NULL/* Member type code is assigned later */
+            },
+            0, /* Ignored */
+            0, /* Ignored */
+            0, /* Ignored */
+            NULL, /* Ignored */
+            DDS_BOOLEAN_FALSE, /* Is a key? */
+            DDS_PRIVATE_MEMBER,/* Ignored */
+            0,/* Ignored */
+            NULL/* Ignored */
+        },
+        {
+            (char *)"dl",/* Member name */
+            {
+                0,/* Representation ID */
+                DDS_BOOLEAN_FALSE,/* Is a pointer? */
+                -1, /* Bitfield bits */
+                NULL/* Member type code is assigned later */
+            },
+            0, /* Ignored */
+            0, /* Ignored */
+            0, /* Ignored */
+            NULL, /* Ignored */
+            DDS_BOOLEAN_FALSE, /* Is a key? */
+            DDS_PRIVATE_MEMBER,/* Ignored */
+            0,/* Ignored */
+            NULL/* Ignored */
         }
     };
 
@@ -216,7 +250,7 @@ DDS_TypeCode* BasicTypes_get_typecode()
         0, /* Ignored */
         0, /* Ignored */
         NULL, /* Ignored */
-        9, /* Number of members */
+        11, /* Number of members */
         BasicTypes_g_tc_members, /* Members */
         DDS_VM_NONE /* Ignored */
     }}; /* Type code for BasicTypes*/
@@ -235,6 +269,8 @@ DDS_TypeCode* BasicTypes_get_typecode()
     BasicTypes_g_tc_members[6]._representation._typeCode = (RTICdrTypeCode *)&DDS_g_tc_longlong;
     BasicTypes_g_tc_members[7]._representation._typeCode = (RTICdrTypeCode *)&DDS_g_tc_ulonglong;
     BasicTypes_g_tc_members[8]._representation._typeCode = (RTICdrTypeCode *)&BasicTypes_g_tc_st_string;
+    BasicTypes_g_tc_members[9]._representation._typeCode = (RTICdrTypeCode *)&DDS_g_tc_float;
+    BasicTypes_g_tc_members[10]._representation._typeCode = (RTICdrTypeCode *)&DDS_g_tc_double;
 
     is_initialized = RTI_TRUE;
 
@@ -287,6 +323,14 @@ RTIBool BasicTypes_initialize_ex(
     if (sample->st == NULL) {
         return RTI_FALSE;
     }
+            
+    if (!RTICdrType_initFloat(&sample->fl)) {
+        return RTI_FALSE;
+    }                
+            
+    if (!RTICdrType_initDouble(&sample->dl)) {
+        return RTI_FALSE;
+    }                
             
 
     return RTI_TRUE;
@@ -353,6 +397,16 @@ RTIBool BasicTypes_copy(
             
     if (!RTICdrType_copyString(
         dst->st, src->st, (255) + 1)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrType_copyFloat(
+        &dst->fl, &src->fl)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrType_copyDouble(
+        &dst->dl, &src->dl)) {
         return RTI_FALSE;
     }
             

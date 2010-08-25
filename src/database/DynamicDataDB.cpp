@@ -26,6 +26,8 @@ DynamicDataDB::writePrimitiveInitialStatementsFunctions DynamicDataDB::writePrim
     {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addUBigIntInitialStatements},
     {RTI_CDR_TK_CHAR, DynamicDataDB::addCharInitialStatements},
     {RTI_CDR_TK_STRING, DynamicDataDB::addTextInitialStatements},
+    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatInitialStatements},
+    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleInitialStatements},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -40,6 +42,8 @@ DynamicDataDB::writePrimitiveStorageFunctions DynamicDataDB::writePrimitiveStora
     {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addULongLongStorage},
     {RTI_CDR_TK_CHAR, DynamicDataDB::addCharStorage},
     {RTI_CDR_TK_STRING, DynamicDataDB::addStringStorage},
+    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatStorage},
+    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleStorage},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -832,6 +836,26 @@ bool DynamicDataDB::addTextInitialStatements(string &memberName, string &table_c
     table_create += ", ";
     table_create += memberName;
     table_create += " TEXT";
+    dynamicDataAdd += ", ?";
+    return true;
+}
+
+bool DynamicDataDB::addFloatInitialStatements(string &memberName, string &table_create,
+        string &dynamicDataAdd)
+{
+    table_create += ", ";
+    table_create += memberName;
+    table_create += " FLOAT";
+    dynamicDataAdd += ", ?";
+    return true;
+}
+
+bool DynamicDataDB::addDoubleInitialStatements(string &memberName, string &table_create,
+        string &dynamicDataAdd)
+{
+    table_create += ", ";
+    table_create += memberName;
+    table_create += " DOUBLE";
     dynamicDataAdd += ", ?";
     return true;
 }
@@ -1739,6 +1763,64 @@ bool DynamicDataDB::addStringStorage(sqlite3_stmt *stmt, struct DDS_DynamicData 
             sqlite3_bind_text(stmt, index++, value, stringLength, SQLITE_TRANSIENT);
             DDS_String_free(value);
             returnedValue = true;
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addFloatStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addFloatStorage";
+    bool returnedValue = false;
+    char buffer[50];
+    double auxValue;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Float value;
+        if(DDS_DynamicData_get_float(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_double(stmt, index++, (double)value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the float field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addDoubleStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Double value;
+        if(DDS_DynamicData_get_double(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_double(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the double field");
         }
     }
     else

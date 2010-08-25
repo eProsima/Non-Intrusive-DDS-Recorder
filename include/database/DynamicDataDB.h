@@ -125,6 +125,10 @@ namespace eProsima
                     std::string &dynamicDataAdd);
             static bool addCharInitialStatements(std::string &memberName, std::string &table_create, std::string &dynamicDataAdd);
             static bool addTextInitialStatements(std::string &memberName, std::string &table_create, std::string &dynamicDataAdd);
+            static bool addFloatInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addDoubleInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
 
             static bool addOctetStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     std::string &name, int &index);
@@ -143,6 +147,10 @@ namespace eProsima
             static bool addCharStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     std::string &name, int &index);
             static bool addStringStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    std::string &name, int &index);
+            static bool addFloatStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    std::string &name, int &index);
+            static bool addDoubleStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     std::string &name, int &index);
 
             static bool addOctetArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,

@@ -49,6 +49,8 @@ typedef struct BasicTypes
     DDS_LongLong  lolo;
     DDS_UnsignedLongLong  ulolo;
     char*  st; /* maximum length = (255) */
+    DDS_Float  fl;
+    DDS_Double  dl;
 
 } BasicTypes;
     
