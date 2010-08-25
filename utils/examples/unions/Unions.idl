@@ -1,9 +1,18 @@
+struct Inside
+{
+	unsigned long ulo;
+	octet ocar[10];
+	sequence<short, 10> sesh;
+};
+
 union Union switch (long)
 {
 	case 1:
-		short sh;
+		float fls[10];
 	case 2:
-		long lo;
+		sequence<long, 10> los;
+	case 5:
+		Inside ins;
 	default:
 		string message;
 };

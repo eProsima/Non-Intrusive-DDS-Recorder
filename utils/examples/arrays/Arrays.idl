@@ -1,11 +1,29 @@
 struct Inside
 {
 	long count;
+	octet ocarray[10][2];
 	short sharray[10][2];
+	unsigned short usharray[10][2];
+	long loarray[10][2];
+	unsigned long uloarray[10][2];
+	long long loloarray[10][2];
+	unsigned long long uloloarray[10][2];
+	char charray[10][2];
+	float flarray[10][2];
+	double dlarray[10][2];
 };
 struct Arrays
 {
 	string message;
+	octet ocarray[20];
+	short sharray[20];
+	unsigned short usharray[20];
 	long loarray[20];
+	unsigned long uloarray[20];
+	long long loloarray[20];
+	unsigned long long uloloarray[20];
+	char charray[20];
+	float flarray[20];
+	double dlarray[20];
 	Inside ins;
 };

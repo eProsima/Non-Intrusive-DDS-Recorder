@@ -52,6 +52,7 @@ modification history
 #include "Sequences.h"
 #include "SequencesSupport.h"
 #include "ndds/ndds_cpp.h"
+#include <limits.h>
 
 /* Delete all entities */
 static int publisher_shutdown(
@@ -177,25 +178,59 @@ extern "C" int publisher_main(int domainId, int sample_count)
 /*
     instance_handle = Sequences_writer->register_instance(*instance);
 */
-    DDS_LongSeq_ensure_length(&instance->selo, 4, 4);
-    DDS_ShortSeq_ensure_length(&instance->ins.sesh, 4, 4);
 
     /* Main loop */
+    DDS_OctetSeq_ensure_length(&instance->seoc, 20, 20);
+    DDS_ShortSeq_ensure_length(&instance->sesh, 20, 20);
+    DDS_UnsignedShortSeq_ensure_length(&instance->seush, 20, 20);
+    DDS_LongSeq_ensure_length(&instance->selo, 20, 20);
+    DDS_UnsignedLongSeq_ensure_length(&instance->seulo, 20, 20);
+    DDS_LongLongSeq_ensure_length(&instance->selolo, 20, 20);
+    DDS_UnsignedLongLongSeq_ensure_length(&instance->seulolo, 20, 20);
+    DDS_CharSeq_ensure_length(&instance->sech, 20, 20);
+    DDS_FloatSeq_ensure_length(&instance->sefl, 20, 20);
+    DDS_DoubleSeq_ensure_length(&instance->sedl, 20, 20);
+    DDS_OctetSeq_ensure_length(&instance->ins.seoc, 20, 20);
+    DDS_ShortSeq_ensure_length(&instance->ins.sesh, 20, 20);
+    DDS_UnsignedShortSeq_ensure_length(&instance->ins.seush, 20, 20);
+    DDS_LongSeq_ensure_length(&instance->ins.selo, 20, 20);
+    DDS_UnsignedLongSeq_ensure_length(&instance->ins.seulo, 20, 20);
+    DDS_LongLongSeq_ensure_length(&instance->ins.selolo, 20, 20);
+    DDS_UnsignedLongLongSeq_ensure_length(&instance->ins.seulolo, 20, 20);
+    DDS_CharSeq_ensure_length(&instance->ins.sech, 20, 20);
+    DDS_FloatSeq_ensure_length(&instance->ins.sefl, 20, 20);
+    DDS_DoubleSeq_ensure_length(&instance->ins.sedl, 20, 20);
     for (count=0; (sample_count == 0) || (count < sample_count); ++count) {
 
         printf("Writing Sequences, count %d\n", count);
 
         /* Modify the data to be sent here */
         instance->message = "Hello sequence!!";
-        instance->selo[0] = count;
-        instance->selo[1] = count+1;
-        instance->selo[2] = count+2;
-        instance->selo[3] = count+3;
-        instance->ins.count = count;
-        instance->ins.sesh[0] = count+1;
-        instance->ins.sesh[1] = count+2;
-        instance->ins.sesh[2] = count+3;
-        instance->ins.sesh[3] = count+4;
+        
+        for(int i = 0; i < 20; i++)
+        {
+            instance->seoc[i] = (count + i) % 255;
+            instance->sesh[i] = SHRT_MIN + count + i;
+            instance->seush[i] = count + i;
+            instance->selo[i] = INT_MIN  + count + i;
+            instance->seulo[i] = ((long)(count + i)) << 16;
+            instance->selolo[i] = LLONG_MIN  + count + i;
+            instance->seulolo[i] = ((long long)(count + i)) << 32;
+            instance->sech[i] = 'A' + count;
+            instance->sefl[i] = 10.34 + count;
+            instance->sedl[i] = 1000.3443 + count;
+            instance->ins.seoc[i] = (count + i) % 255;
+            instance->ins.sesh[i] = SHRT_MIN + count + i;
+            instance->ins.seush[i] = count + i;
+            instance->ins.selo[i] = INT_MIN  + count + i;
+            instance->ins.seulo[i] = ((long)(count + i)) << 16;
+            instance->ins.selolo[i] = LLONG_MIN  + count + i;
+            instance->ins.seulolo[i] = ((long long)(count + i)) << 32;
+            instance->ins.sech[i] = 'A' + count;
+            instance->ins.sefl[i] = 10.34 + count;
+            instance->ins.sedl[i] = 1000.3443 + count;
+            instance->ins.count = count;
+        }
         
 
         retcode = Sequences_writer->write(*instance, instance_handle);

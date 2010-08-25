@@ -142,9 +142,54 @@ InsidePluginSupport_print_data(
         &sample->count, "count", indent_level + 1);
             
     RTICdrType_printArray(
+        sample->ocarray, (10)*(2), RTI_CDR_OCTET_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printOctet,
+        "ocarray", indent_level + 1);
+            
+    RTICdrType_printArray(
         sample->sharray, (10)*(2), RTI_CDR_SHORT_SIZE,
         (RTICdrTypePrintFunction)RTICdrType_printShort,
         "sharray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->usharray, (10)*(2), RTI_CDR_UNSIGNED_SHORT_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printUnsignedShort,
+        "usharray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->loarray, (10)*(2), RTI_CDR_LONG_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printLong,
+        "loarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->uloarray, (10)*(2), RTI_CDR_UNSIGNED_LONG_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printUnsignedLong,
+        "uloarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->loloarray, (10)*(2), RTI_CDR_LONG_LONG_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printLongLong,
+        "loloarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->uloloarray, (10)*(2), RTI_CDR_UNSIGNED_LONG_LONG_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printUnsignedLongLong,
+        "uloloarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->charray, (10)*(2), RTI_CDR_CHAR_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printChar,
+        "charray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->flarray, (10)*(2), RTI_CDR_FLOAT_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printFloat,
+        "flarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->dlarray, (10)*(2), RTI_CDR_DOUBLE_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printDouble,
+        "dlarray", indent_level + 1);
             
 
 }
@@ -266,7 +311,52 @@ InsidePlugin_serialize(
     }
             
     if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->ocarray, (10)*(2), RTI_CDR_OCTET_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
         stream, (void*)sample->sharray, (10)*(2), RTI_CDR_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->usharray, (10)*(2), RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->loarray, (10)*(2), RTI_CDR_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->uloarray, (10)*(2), RTI_CDR_UNSIGNED_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->loloarray, (10)*(2), RTI_CDR_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->uloloarray, (10)*(2), RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->charray, (10)*(2), RTI_CDR_CHAR_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->flarray, (10)*(2), RTI_CDR_FLOAT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->dlarray, (10)*(2), RTI_CDR_DOUBLE_TYPE)) {
         return RTI_FALSE;
     }
             
@@ -313,7 +403,52 @@ InsidePlugin_deserialize(
     }
             
     if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->ocarray, (10)*(2), RTI_CDR_OCTET_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
         stream, (void*)sample->sharray, (10)*(2), RTI_CDR_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->usharray, (10)*(2), RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->loarray, (10)*(2), RTI_CDR_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->uloarray, (10)*(2), RTI_CDR_UNSIGNED_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->loloarray, (10)*(2), RTI_CDR_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->uloloarray, (10)*(2), RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->charray, (10)*(2), RTI_CDR_CHAR_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->flarray, (10)*(2), RTI_CDR_FLOAT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->dlarray, (10)*(2), RTI_CDR_DOUBLE_TYPE)) {
         return RTI_FALSE;
     }
             
@@ -356,7 +491,52 @@ RTIBool InsidePlugin_skip(
     }
             
     if (!RTICdrStream_skipPrimitiveArray(
+        stream, (10)*(2), RTI_CDR_OCTET_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
         stream, (10)*(2), RTI_CDR_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (10)*(2), RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (10)*(2), RTI_CDR_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (10)*(2), RTI_CDR_UNSIGNED_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (10)*(2), RTI_CDR_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (10)*(2), RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (10)*(2), RTI_CDR_CHAR_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (10)*(2), RTI_CDR_FLOAT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (10)*(2), RTI_CDR_DOUBLE_TYPE)) {
         return RTI_FALSE;
     }
             
@@ -398,7 +578,34 @@ InsidePlugin_get_serialized_sample_max_size(
         current_alignment);
             
     current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_OCTET_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
         current_alignment, (10)*(2), RTI_CDR_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_UNSIGNED_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_UNSIGNED_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_UNSIGNED_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_CHAR_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_FLOAT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_DOUBLE_TYPE);
             
     if (include_encapsulation) {
         current_alignment += encapsulation_size;
@@ -434,7 +641,34 @@ InsidePlugin_get_serialized_sample_min_size(
         current_alignment);
             
     current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_OCTET_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
         current_alignment, (10)*(2), RTI_CDR_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_UNSIGNED_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_UNSIGNED_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_UNSIGNED_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_CHAR_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_FLOAT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (10)*(2), RTI_CDR_DOUBLE_TYPE);
             
     if (include_encapsulation) {
         current_alignment += encapsulation_size;
@@ -844,9 +1078,54 @@ ArraysPluginSupport_print_data(
     }
             
     RTICdrType_printArray(
+        sample->ocarray, (20), RTI_CDR_OCTET_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printOctet,
+        "ocarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->sharray, (20), RTI_CDR_SHORT_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printShort,
+        "sharray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->usharray, (20), RTI_CDR_UNSIGNED_SHORT_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printUnsignedShort,
+        "usharray", indent_level + 1);
+            
+    RTICdrType_printArray(
         sample->loarray, (20), RTI_CDR_LONG_SIZE,
         (RTICdrTypePrintFunction)RTICdrType_printLong,
         "loarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->uloarray, (20), RTI_CDR_UNSIGNED_LONG_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printUnsignedLong,
+        "uloarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->loloarray, (20), RTI_CDR_LONG_LONG_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printLongLong,
+        "loloarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->uloloarray, (20), RTI_CDR_UNSIGNED_LONG_LONG_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printUnsignedLongLong,
+        "uloloarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->charray, (20), RTI_CDR_CHAR_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printChar,
+        "charray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->flarray, (20), RTI_CDR_FLOAT_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printFloat,
+        "flarray", indent_level + 1);
+            
+    RTICdrType_printArray(
+        sample->dlarray, (20), RTI_CDR_DOUBLE_SIZE,
+        (RTICdrTypePrintFunction)RTICdrType_printDouble,
+        "dlarray", indent_level + 1);
             
     InsidePluginSupport_print_data(
         &sample->ins, "ins", indent_level + 1);
@@ -974,7 +1253,52 @@ ArraysPlugin_serialize(
     }
             
     if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->ocarray, (20), RTI_CDR_OCTET_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->sharray, (20), RTI_CDR_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->usharray, (20), RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
         stream, (void*)sample->loarray, (20), RTI_CDR_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->uloarray, (20), RTI_CDR_UNSIGNED_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->loloarray, (20), RTI_CDR_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->uloloarray, (20), RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->charray, (20), RTI_CDR_CHAR_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->flarray, (20), RTI_CDR_FLOAT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_serializePrimitiveArray(
+        stream, (void*)sample->dlarray, (20), RTI_CDR_DOUBLE_TYPE)) {
         return RTI_FALSE;
     }
             
@@ -1030,7 +1354,52 @@ ArraysPlugin_deserialize(
     }
             
     if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->ocarray, (20), RTI_CDR_OCTET_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->sharray, (20), RTI_CDR_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->usharray, (20), RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
         stream, (void*)sample->loarray, (20), RTI_CDR_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->uloarray, (20), RTI_CDR_UNSIGNED_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->loloarray, (20), RTI_CDR_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->uloloarray, (20), RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->charray, (20), RTI_CDR_CHAR_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->flarray, (20), RTI_CDR_FLOAT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_deserializePrimitiveArray(
+        stream, (void*)sample->dlarray, (20), RTI_CDR_DOUBLE_TYPE)) {
         return RTI_FALSE;
     }
             
@@ -1082,7 +1451,52 @@ RTIBool ArraysPlugin_skip(
     }
             
     if (!RTICdrStream_skipPrimitiveArray(
+        stream, (20), RTI_CDR_OCTET_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (20), RTI_CDR_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (20), RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
         stream, (20), RTI_CDR_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (20), RTI_CDR_UNSIGNED_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (20), RTI_CDR_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (20), RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (20), RTI_CDR_CHAR_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (20), RTI_CDR_FLOAT_TYPE)) {
+        return RTI_FALSE;
+    }
+            
+    if (!RTICdrStream_skipPrimitiveArray(
+        stream, (20), RTI_CDR_DOUBLE_TYPE)) {
         return RTI_FALSE;
     }
             
@@ -1132,7 +1546,34 @@ ArraysPlugin_get_serialized_sample_max_size(
         current_alignment, (255) + 1);
             
     current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_OCTET_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_UNSIGNED_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
         current_alignment, (20), RTI_CDR_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_UNSIGNED_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_UNSIGNED_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_CHAR_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_FLOAT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_DOUBLE_TYPE);
             
     current_alignment +=  InsidePlugin_get_serialized_sample_max_size(
         endpoint_data,RTI_FALSE,current_alignment);
@@ -1171,7 +1612,34 @@ ArraysPlugin_get_serialized_sample_min_size(
         current_alignment, 1);
             
     current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_OCTET_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_UNSIGNED_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
         current_alignment, (20), RTI_CDR_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_UNSIGNED_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_UNSIGNED_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_CHAR_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_FLOAT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveArrayMaxSizeSerialized(
+        current_alignment, (20), RTI_CDR_DOUBLE_TYPE);
             
     current_alignment +=  InsidePlugin_get_serialized_sample_min_size(
         endpoint_data,RTI_FALSE,current_alignment);

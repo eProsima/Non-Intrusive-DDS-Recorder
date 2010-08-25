@@ -21,54 +21,54 @@ For more information about XML QoS Profiles see Chapter 15 in the
 RTI Data Distribution Service user manual.
 -->
 <dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:noNamespaceSchemaLocation="/opt/rti/ndds.4.4d/scripts/../resource/rtiddsgen/../qos_profiles_4.4d/schema/rti_dds_qos_profiles.xsd"
-     version="4.4d">
-    <!-- QoS Library containing the QoS profile used in the generated example.
+	xsi:noNamespaceSchemaLocation="/opt/rti/ndds.4.4d/scripts/../resource/rtiddsgen/../qos_profiles_4.4d/schema/rti_dds_qos_profiles.xsd"
+	version="4.4d">
+	<!-- QoS Library containing the QoS profile used in the generated example.
 
-        A QoS library is a named set of QoS profiles.
+	A QoS library is a named set of QoS profiles.
     -->
     <qos_library name="Sequences_Library">
 
-        <!-- QoS profile used to configure reliable communication between the DataWriter 
-             and DataReader created in the example code.
+	    <!-- QoS profile used to configure reliable communication between the DataWriter 
+	     and DataReader created in the example code.
 
-             A QoS profile groups a set of related QoS.
-        -->
-        <qos_profile name="Sequences_Profile" is_default_qos="true">
-            <!-- QoS used to configure the data writer created in the example code -->                
-            <datawriter_qos>
-                <reliability>
-                    <kind>RELIABLE_RELIABILITY_QOS</kind>
-                    <max_blocking_time>
-                        <sec>60</sec>
-                    </max_blocking_time>
-                </reliability>                
+	     A QoS profile groups a set of related QoS.
+	-->
+	<qos_profile name="Sequences_Profile" is_default_qos="true">
+		<!-- QoS used to configure the data writer created in the example code -->                
+		<datawriter_qos>
+			<reliability>
+				<kind>RELIABLE_RELIABILITY_QOS</kind>
+				<max_blocking_time>
+					<sec>60</sec>
+				</max_blocking_time>
+			</reliability>                
 
-                <history>
-                    <kind>KEEP_ALL_HISTORY_QOS</kind>
-                </history>
+			<history>
+				<kind>KEEP_ALL_HISTORY_QOS</kind>
+			</history>
 
-                <resource_limits>
-                    <max_samples>50</max_samples>
-                </resource_limits>
-            </datawriter_qos>
+			<resource_limits>
+				<max_samples>50</max_samples>
+			</resource_limits>
+		</datawriter_qos>
 
-            <!-- QoS used to configure the data reader created in the example code -->                
-            <datareader_qos>
-                <reliability>
-                    <kind>RELIABLE_RELIABILITY_QOS</kind>
-                </reliability>                
+		<!-- QoS used to configure the data reader created in the example code -->                
+		<datareader_qos>
+			<reliability>
+				<kind>RELIABLE_RELIABILITY_QOS</kind>
+			</reliability>                
 
-                <history>
-                    <kind>KEEP_ALL_HISTORY_QOS</kind>
-                </history>
-            </datareader_qos>
-	    <participant_qos>
-		    <transport_builtin>
-			    <mask>UDPv4</mask>
-		    </transport_builtin>
-	    </participant_qos>
-        </qos_profile>
+			<history>
+				<kind>KEEP_ALL_HISTORY_QOS</kind>
+			</history>
+		</datareader_qos>
+		<participant_qos>
+			<transport_builtin>
+				<mask>UDPv4</mask>
+			</transport_builtin>
+		</participant_qos>
+	</qos_profile>
 
-    </qos_library>
+</qos_library>
 </dds>

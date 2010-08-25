@@ -179,22 +179,52 @@ extern "C" int publisher_main(int domainId, int sample_count)
 */
 
     /* Main loop */
+    DDS_LongSeq_ensure_length(&instance->u_n_i_o_n._u.los, 10, 10);
+    DDS_ShortSeq_ensure_length(&instance->u_n_i_o_n._u.ins.sesh, 10, 10);
     for (count=0; (sample_count == 0) || (count < sample_count); ++count) {
 
         printf("Writing Unions, count %d\n", count);
 
         /* Modify the data to be sent here */
-        instance->u_n_i_o_n._d = count % 3;
+        switch(count % 4)
+        {
+            case 0:
+                instance->u_n_i_o_n._d = 1;
+                break;
+            case 1:
+                instance->u_n_i_o_n._d = 2;
+                break;
+            case 2:
+                instance->u_n_i_o_n._d = 5;
+                break;
+            case 3:
+                instance->u_n_i_o_n._d = 4;
+                break;
+        }
 
         switch(instance->u_n_i_o_n._d)
         {
             case 1:
-                instance->u_n_i_o_n._u.sh = count;
+                for(int i; i < 10; i++)
+                    instance->u_n_i_o_n._u.fls[i] = 10.234 + i;
+                break;
             case 2:
-                instance->u_n_i_o_n._u.lo = count;
+                for(int i; i < 10; i++)
+                    instance->u_n_i_o_n._u.los[i] = count + i;
+                break;
+            case 5:
+                instance->u_n_i_o_n._u.ins.ulo = count;
+                for(int i; i < 10; i++)
+                {
+                    instance->u_n_i_o_n._u.ins.ocar[i] = (count + i) % 255;
+                    instance->u_n_i_o_n._u.ins.sesh[i] = count + i;
+                }
+                break;
             default:
                 instance->u_n_i_o_n._u.message = "Yeahhh\n";
+                break;
         }
+        
 
         retcode = Unions_writer->write(*instance, instance_handle);
         if (retcode != DDS_RETCODE_OK) {

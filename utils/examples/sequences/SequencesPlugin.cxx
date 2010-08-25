@@ -141,6 +141,28 @@ InsidePluginSupport_print_data(
     RTICdrType_printShort(
         &sample->count, "count", indent_level + 1);
             
+    if (&sample->seoc == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("seoc: NULL\n");    
+    } else {
+    
+        if (DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc) != NULL) {
+            RTICdrType_printArray(
+                DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc),
+                DDS_OctetSeq_get_length(&sample->seoc),
+                RTI_CDR_OCTET_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printOctet,
+                "seoc", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_OctetSeq_get_discontiguous_bufferI(&sample->seoc),
+                DDS_OctetSeq_get_length(&sample->seoc),
+               (RTICdrTypePrintFunction)RTICdrType_printOctet,
+               "seoc", indent_level + 1);
+        }
+    
+    }
+            
     if (&sample->sesh == NULL) {
         RTICdrType_printIndent(indent_level+1);
         RTILog_debug("sesh: NULL\n");    
@@ -159,6 +181,182 @@ InsidePluginSupport_print_data(
                 DDS_ShortSeq_get_length(&sample->sesh),
                (RTICdrTypePrintFunction)RTICdrType_printShort,
                "sesh", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->seush == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("seush: NULL\n");    
+    } else {
+    
+        if (DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush) != NULL) {
+            RTICdrType_printArray(
+                DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush),
+                DDS_UnsignedShortSeq_get_length(&sample->seush),
+                RTI_CDR_UNSIGNED_SHORT_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printUnsignedShort,
+                "seush", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_UnsignedShortSeq_get_discontiguous_bufferI(&sample->seush),
+                DDS_UnsignedShortSeq_get_length(&sample->seush),
+               (RTICdrTypePrintFunction)RTICdrType_printUnsignedShort,
+               "seush", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->selo == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("selo: NULL\n");    
+    } else {
+    
+        if (DDS_LongSeq_get_contiguous_bufferI(&sample->selo) != NULL) {
+            RTICdrType_printArray(
+                DDS_LongSeq_get_contiguous_bufferI(&sample->selo),
+                DDS_LongSeq_get_length(&sample->selo),
+                RTI_CDR_LONG_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printLong,
+                "selo", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_LongSeq_get_discontiguous_bufferI(&sample->selo),
+                DDS_LongSeq_get_length(&sample->selo),
+               (RTICdrTypePrintFunction)RTICdrType_printLong,
+               "selo", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->seulo == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("seulo: NULL\n");    
+    } else {
+    
+        if (DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo) != NULL) {
+            RTICdrType_printArray(
+                DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo),
+                DDS_UnsignedLongSeq_get_length(&sample->seulo),
+                RTI_CDR_UNSIGNED_LONG_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printUnsignedLong,
+                "seulo", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_UnsignedLongSeq_get_discontiguous_bufferI(&sample->seulo),
+                DDS_UnsignedLongSeq_get_length(&sample->seulo),
+               (RTICdrTypePrintFunction)RTICdrType_printUnsignedLong,
+               "seulo", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->selolo == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("selolo: NULL\n");    
+    } else {
+    
+        if (DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo) != NULL) {
+            RTICdrType_printArray(
+                DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo),
+                DDS_LongLongSeq_get_length(&sample->selolo),
+                RTI_CDR_LONG_LONG_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printLongLong,
+                "selolo", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_LongLongSeq_get_discontiguous_bufferI(&sample->selolo),
+                DDS_LongLongSeq_get_length(&sample->selolo),
+               (RTICdrTypePrintFunction)RTICdrType_printLongLong,
+               "selolo", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->seulolo == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("seulolo: NULL\n");    
+    } else {
+    
+        if (DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo) != NULL) {
+            RTICdrType_printArray(
+                DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo),
+                DDS_UnsignedLongLongSeq_get_length(&sample->seulolo),
+                RTI_CDR_UNSIGNED_LONG_LONG_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printUnsignedLongLong,
+                "seulolo", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_UnsignedLongLongSeq_get_discontiguous_bufferI(&sample->seulolo),
+                DDS_UnsignedLongLongSeq_get_length(&sample->seulolo),
+               (RTICdrTypePrintFunction)RTICdrType_printUnsignedLongLong,
+               "seulolo", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->sech == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("sech: NULL\n");    
+    } else {
+    
+        if (DDS_CharSeq_get_contiguous_bufferI(&sample->sech) != NULL) {
+            RTICdrType_printArray(
+                DDS_CharSeq_get_contiguous_bufferI(&sample->sech),
+                DDS_CharSeq_get_length(&sample->sech),
+                RTI_CDR_CHAR_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printChar,
+                "sech", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_CharSeq_get_discontiguous_bufferI(&sample->sech),
+                DDS_CharSeq_get_length(&sample->sech),
+               (RTICdrTypePrintFunction)RTICdrType_printChar,
+               "sech", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->sefl == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("sefl: NULL\n");    
+    } else {
+    
+        if (DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl) != NULL) {
+            RTICdrType_printArray(
+                DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl),
+                DDS_FloatSeq_get_length(&sample->sefl),
+                RTI_CDR_FLOAT_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printFloat,
+                "sefl", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_FloatSeq_get_discontiguous_bufferI(&sample->sefl),
+                DDS_FloatSeq_get_length(&sample->sefl),
+               (RTICdrTypePrintFunction)RTICdrType_printFloat,
+               "sefl", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->sedl == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("sedl: NULL\n");    
+    } else {
+    
+        if (DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl) != NULL) {
+            RTICdrType_printArray(
+                DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl),
+                DDS_DoubleSeq_get_length(&sample->sedl),
+                RTI_CDR_DOUBLE_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printDouble,
+                "sedl", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_DoubleSeq_get_discontiguous_bufferI(&sample->sedl),
+                DDS_DoubleSeq_get_length(&sample->sedl),
+               (RTICdrTypePrintFunction)RTICdrType_printDouble,
+               "sedl", indent_level + 1);
         }
     
     }
@@ -282,6 +480,26 @@ InsidePlugin_serialize(
         return RTI_FALSE;
     }
             
+    if (DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc),
+            DDS_OctetSeq_get_length(&sample->seoc),
+            (100),
+            RTI_CDR_OCTET_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_OctetSeq_get_discontiguous_bufferI(&sample->seoc),
+            DDS_OctetSeq_get_length(&sample->seoc),
+            (100),
+            RTI_CDR_OCTET_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
     if (DDS_ShortSeq_get_contiguous_bufferI(&sample->sesh) != NULL) {
         if (!RTICdrStream_serializePrimitiveSequence(
             stream,
@@ -298,6 +516,166 @@ InsidePlugin_serialize(
             DDS_ShortSeq_get_length(&sample->sesh),
             (100),
             RTI_CDR_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush),
+            DDS_UnsignedShortSeq_get_length(&sample->seush),
+            (100),
+            RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_UnsignedShortSeq_get_discontiguous_bufferI(&sample->seush),
+            DDS_UnsignedShortSeq_get_length(&sample->seush),
+            (100),
+            RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_LongSeq_get_contiguous_bufferI(&sample->selo) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_LongSeq_get_contiguous_bufferI(&sample->selo),
+            DDS_LongSeq_get_length(&sample->selo),
+            (100),
+            RTI_CDR_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_LongSeq_get_discontiguous_bufferI(&sample->selo),
+            DDS_LongSeq_get_length(&sample->selo),
+            (100),
+            RTI_CDR_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo),
+            DDS_UnsignedLongSeq_get_length(&sample->seulo),
+            (100),
+            RTI_CDR_UNSIGNED_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_UnsignedLongSeq_get_discontiguous_bufferI(&sample->seulo),
+            DDS_UnsignedLongSeq_get_length(&sample->seulo),
+            (100),
+            RTI_CDR_UNSIGNED_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo),
+            DDS_LongLongSeq_get_length(&sample->selolo),
+            (100),
+            RTI_CDR_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_LongLongSeq_get_discontiguous_bufferI(&sample->selolo),
+            DDS_LongLongSeq_get_length(&sample->selolo),
+            (100),
+            RTI_CDR_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo),
+            DDS_UnsignedLongLongSeq_get_length(&sample->seulolo),
+            (100),
+            RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_UnsignedLongLongSeq_get_discontiguous_bufferI(&sample->seulolo),
+            DDS_UnsignedLongLongSeq_get_length(&sample->seulolo),
+            (100),
+            RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_CharSeq_get_contiguous_bufferI(&sample->sech) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_CharSeq_get_contiguous_bufferI(&sample->sech),
+            DDS_CharSeq_get_length(&sample->sech),
+            (100),
+            RTI_CDR_CHAR_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_CharSeq_get_discontiguous_bufferI(&sample->sech),
+            DDS_CharSeq_get_length(&sample->sech),
+            (100),
+            RTI_CDR_CHAR_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl),
+            DDS_FloatSeq_get_length(&sample->sefl),
+            (100),
+            RTI_CDR_FLOAT_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_FloatSeq_get_discontiguous_bufferI(&sample->sefl),
+            DDS_FloatSeq_get_length(&sample->sefl),
+            (100),
+            RTI_CDR_FLOAT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl),
+            DDS_DoubleSeq_get_length(&sample->sedl),
+            (100),
+            RTI_CDR_DOUBLE_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_DoubleSeq_get_discontiguous_bufferI(&sample->sedl),
+            DDS_DoubleSeq_get_length(&sample->sedl),
+            (100),
+            RTI_CDR_DOUBLE_TYPE)) {
             return RTI_FALSE;
         }
     }
@@ -347,6 +725,33 @@ InsidePlugin_deserialize(
     {
         RTICdrUnsignedLong sequence_length;
 
+        if (DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc),
+                &sequence_length,
+                DDS_OctetSeq_get_maximum(&sample->seoc),
+                RTI_CDR_OCTET_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_OctetSeq_get_discontiguous_bufferI(&sample->seoc),
+                &sequence_length,
+                DDS_OctetSeq_get_maximum(&sample->seoc),
+                RTI_CDR_OCTET_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_OctetSeq_set_length(&sample->seoc, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
         if (DDS_ShortSeq_get_contiguous_bufferI(&sample->sesh) != NULL) {
             if (!RTICdrStream_deserializePrimitiveSequence(
                 stream,
@@ -367,6 +772,222 @@ InsidePlugin_deserialize(
             }
         }
         if (!DDS_ShortSeq_set_length(&sample->sesh, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush),
+                &sequence_length,
+                DDS_UnsignedShortSeq_get_maximum(&sample->seush),
+                RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_UnsignedShortSeq_get_discontiguous_bufferI(&sample->seush),
+                &sequence_length,
+                DDS_UnsignedShortSeq_get_maximum(&sample->seush),
+                RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_UnsignedShortSeq_set_length(&sample->seush, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_LongSeq_get_contiguous_bufferI(&sample->selo) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_LongSeq_get_contiguous_bufferI(&sample->selo),
+                &sequence_length,
+                DDS_LongSeq_get_maximum(&sample->selo),
+                RTI_CDR_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_LongSeq_get_discontiguous_bufferI(&sample->selo),
+                &sequence_length,
+                DDS_LongSeq_get_maximum(&sample->selo),
+                RTI_CDR_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_LongSeq_set_length(&sample->selo, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo),
+                &sequence_length,
+                DDS_UnsignedLongSeq_get_maximum(&sample->seulo),
+                RTI_CDR_UNSIGNED_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_UnsignedLongSeq_get_discontiguous_bufferI(&sample->seulo),
+                &sequence_length,
+                DDS_UnsignedLongSeq_get_maximum(&sample->seulo),
+                RTI_CDR_UNSIGNED_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_UnsignedLongSeq_set_length(&sample->seulo, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo),
+                &sequence_length,
+                DDS_LongLongSeq_get_maximum(&sample->selolo),
+                RTI_CDR_LONG_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_LongLongSeq_get_discontiguous_bufferI(&sample->selolo),
+                &sequence_length,
+                DDS_LongLongSeq_get_maximum(&sample->selolo),
+                RTI_CDR_LONG_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_LongLongSeq_set_length(&sample->selolo, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo),
+                &sequence_length,
+                DDS_UnsignedLongLongSeq_get_maximum(&sample->seulolo),
+                RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_UnsignedLongLongSeq_get_discontiguous_bufferI(&sample->seulolo),
+                &sequence_length,
+                DDS_UnsignedLongLongSeq_get_maximum(&sample->seulolo),
+                RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_UnsignedLongLongSeq_set_length(&sample->seulolo, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_CharSeq_get_contiguous_bufferI(&sample->sech) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_CharSeq_get_contiguous_bufferI(&sample->sech),
+                &sequence_length,
+                DDS_CharSeq_get_maximum(&sample->sech),
+                RTI_CDR_CHAR_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_CharSeq_get_discontiguous_bufferI(&sample->sech),
+                &sequence_length,
+                DDS_CharSeq_get_maximum(&sample->sech),
+                RTI_CDR_CHAR_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_CharSeq_set_length(&sample->sech, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl),
+                &sequence_length,
+                DDS_FloatSeq_get_maximum(&sample->sefl),
+                RTI_CDR_FLOAT_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_FloatSeq_get_discontiguous_bufferI(&sample->sefl),
+                &sequence_length,
+                DDS_FloatSeq_get_maximum(&sample->sefl),
+                RTI_CDR_FLOAT_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_FloatSeq_set_length(&sample->sefl, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl),
+                &sequence_length,
+                DDS_DoubleSeq_get_maximum(&sample->sedl),
+                RTI_CDR_DOUBLE_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_DoubleSeq_get_discontiguous_bufferI(&sample->sedl),
+                &sequence_length,
+                DDS_DoubleSeq_get_maximum(&sample->sedl),
+                RTI_CDR_DOUBLE_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_DoubleSeq_set_length(&sample->sedl, sequence_length)) {
             return RTI_FALSE;
         }
     }
@@ -415,7 +1036,106 @@ RTIBool InsidePlugin_skip(
         if (!RTICdrStream_skipPrimitiveSequence(
             stream,
             &sequence_length,
+            RTI_CDR_OCTET_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
             RTI_CDR_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_UNSIGNED_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_CHAR_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_FLOAT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_DOUBLE_TYPE)) {
             return RTI_FALSE;
         }
     }
@@ -458,7 +1178,34 @@ InsidePlugin_get_serialized_sample_max_size(
         current_alignment);
             
     current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_OCTET_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
         current_alignment, (100), RTI_CDR_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_UNSIGNED_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_UNSIGNED_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_UNSIGNED_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_CHAR_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_FLOAT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_DOUBLE_TYPE);
             
     if (include_encapsulation) {
         current_alignment += encapsulation_size;
@@ -494,7 +1241,34 @@ InsidePlugin_get_serialized_sample_min_size(
         current_alignment);
             
     current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_OCTET_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
         current_alignment, 0, RTI_CDR_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_UNSIGNED_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_UNSIGNED_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_UNSIGNED_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_CHAR_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_FLOAT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_DOUBLE_TYPE);
             
     if (include_encapsulation) {
         current_alignment += encapsulation_size;
@@ -903,6 +1677,72 @@ SequencesPluginSupport_print_data(
             sample->message, "message", indent_level + 1);                
     }
             
+    if (&sample->seoc == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("seoc: NULL\n");    
+    } else {
+    
+        if (DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc) != NULL) {
+            RTICdrType_printArray(
+                DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc),
+                DDS_OctetSeq_get_length(&sample->seoc),
+                RTI_CDR_OCTET_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printOctet,
+                "seoc", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_OctetSeq_get_discontiguous_bufferI(&sample->seoc),
+                DDS_OctetSeq_get_length(&sample->seoc),
+               (RTICdrTypePrintFunction)RTICdrType_printOctet,
+               "seoc", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->sesh == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("sesh: NULL\n");    
+    } else {
+    
+        if (DDS_ShortSeq_get_contiguous_bufferI(&sample->sesh) != NULL) {
+            RTICdrType_printArray(
+                DDS_ShortSeq_get_contiguous_bufferI(&sample->sesh),
+                DDS_ShortSeq_get_length(&sample->sesh),
+                RTI_CDR_SHORT_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printShort,
+                "sesh", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_ShortSeq_get_discontiguous_bufferI(&sample->sesh),
+                DDS_ShortSeq_get_length(&sample->sesh),
+               (RTICdrTypePrintFunction)RTICdrType_printShort,
+               "sesh", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->seush == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("seush: NULL\n");    
+    } else {
+    
+        if (DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush) != NULL) {
+            RTICdrType_printArray(
+                DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush),
+                DDS_UnsignedShortSeq_get_length(&sample->seush),
+                RTI_CDR_UNSIGNED_SHORT_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printUnsignedShort,
+                "seush", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_UnsignedShortSeq_get_discontiguous_bufferI(&sample->seush),
+                DDS_UnsignedShortSeq_get_length(&sample->seush),
+               (RTICdrTypePrintFunction)RTICdrType_printUnsignedShort,
+               "seush", indent_level + 1);
+        }
+    
+    }
+            
     if (&sample->selo == NULL) {
         RTICdrType_printIndent(indent_level+1);
         RTILog_debug("selo: NULL\n");    
@@ -921,6 +1761,138 @@ SequencesPluginSupport_print_data(
                 DDS_LongSeq_get_length(&sample->selo),
                (RTICdrTypePrintFunction)RTICdrType_printLong,
                "selo", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->seulo == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("seulo: NULL\n");    
+    } else {
+    
+        if (DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo) != NULL) {
+            RTICdrType_printArray(
+                DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo),
+                DDS_UnsignedLongSeq_get_length(&sample->seulo),
+                RTI_CDR_UNSIGNED_LONG_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printUnsignedLong,
+                "seulo", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_UnsignedLongSeq_get_discontiguous_bufferI(&sample->seulo),
+                DDS_UnsignedLongSeq_get_length(&sample->seulo),
+               (RTICdrTypePrintFunction)RTICdrType_printUnsignedLong,
+               "seulo", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->selolo == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("selolo: NULL\n");    
+    } else {
+    
+        if (DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo) != NULL) {
+            RTICdrType_printArray(
+                DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo),
+                DDS_LongLongSeq_get_length(&sample->selolo),
+                RTI_CDR_LONG_LONG_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printLongLong,
+                "selolo", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_LongLongSeq_get_discontiguous_bufferI(&sample->selolo),
+                DDS_LongLongSeq_get_length(&sample->selolo),
+               (RTICdrTypePrintFunction)RTICdrType_printLongLong,
+               "selolo", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->seulolo == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("seulolo: NULL\n");    
+    } else {
+    
+        if (DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo) != NULL) {
+            RTICdrType_printArray(
+                DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo),
+                DDS_UnsignedLongLongSeq_get_length(&sample->seulolo),
+                RTI_CDR_UNSIGNED_LONG_LONG_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printUnsignedLongLong,
+                "seulolo", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_UnsignedLongLongSeq_get_discontiguous_bufferI(&sample->seulolo),
+                DDS_UnsignedLongLongSeq_get_length(&sample->seulolo),
+               (RTICdrTypePrintFunction)RTICdrType_printUnsignedLongLong,
+               "seulolo", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->sech == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("sech: NULL\n");    
+    } else {
+    
+        if (DDS_CharSeq_get_contiguous_bufferI(&sample->sech) != NULL) {
+            RTICdrType_printArray(
+                DDS_CharSeq_get_contiguous_bufferI(&sample->sech),
+                DDS_CharSeq_get_length(&sample->sech),
+                RTI_CDR_CHAR_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printChar,
+                "sech", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_CharSeq_get_discontiguous_bufferI(&sample->sech),
+                DDS_CharSeq_get_length(&sample->sech),
+               (RTICdrTypePrintFunction)RTICdrType_printChar,
+               "sech", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->sefl == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("sefl: NULL\n");    
+    } else {
+    
+        if (DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl) != NULL) {
+            RTICdrType_printArray(
+                DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl),
+                DDS_FloatSeq_get_length(&sample->sefl),
+                RTI_CDR_FLOAT_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printFloat,
+                "sefl", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_FloatSeq_get_discontiguous_bufferI(&sample->sefl),
+                DDS_FloatSeq_get_length(&sample->sefl),
+               (RTICdrTypePrintFunction)RTICdrType_printFloat,
+               "sefl", indent_level + 1);
+        }
+    
+    }
+            
+    if (&sample->sedl == NULL) {
+        RTICdrType_printIndent(indent_level+1);
+        RTILog_debug("sedl: NULL\n");    
+    } else {
+    
+        if (DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl) != NULL) {
+            RTICdrType_printArray(
+                DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl),
+                DDS_DoubleSeq_get_length(&sample->sedl),
+                RTI_CDR_DOUBLE_SIZE,
+                (RTICdrTypePrintFunction)RTICdrType_printDouble,
+                "sedl", indent_level + 1);
+        } else {
+            RTICdrType_printPointerArray(
+                DDS_DoubleSeq_get_discontiguous_bufferI(&sample->sedl),
+                DDS_DoubleSeq_get_length(&sample->sedl),
+               (RTICdrTypePrintFunction)RTICdrType_printDouble,
+               "sedl", indent_level + 1);
         }
     
     }
@@ -1050,6 +2022,66 @@ SequencesPlugin_serialize(
         return RTI_FALSE;
     }
             
+    if (DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc),
+            DDS_OctetSeq_get_length(&sample->seoc),
+            (100),
+            RTI_CDR_OCTET_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_OctetSeq_get_discontiguous_bufferI(&sample->seoc),
+            DDS_OctetSeq_get_length(&sample->seoc),
+            (100),
+            RTI_CDR_OCTET_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_ShortSeq_get_contiguous_bufferI(&sample->sesh) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_ShortSeq_get_contiguous_bufferI(&sample->sesh),
+            DDS_ShortSeq_get_length(&sample->sesh),
+            (100),
+            RTI_CDR_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_ShortSeq_get_discontiguous_bufferI(&sample->sesh),
+            DDS_ShortSeq_get_length(&sample->sesh),
+            (100),
+            RTI_CDR_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush),
+            DDS_UnsignedShortSeq_get_length(&sample->seush),
+            (100),
+            RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_UnsignedShortSeq_get_discontiguous_bufferI(&sample->seush),
+            DDS_UnsignedShortSeq_get_length(&sample->seush),
+            (100),
+            RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
     if (DDS_LongSeq_get_contiguous_bufferI(&sample->selo) != NULL) {
         if (!RTICdrStream_serializePrimitiveSequence(
             stream,
@@ -1066,6 +2098,126 @@ SequencesPlugin_serialize(
             DDS_LongSeq_get_length(&sample->selo),
             (100),
             RTI_CDR_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo),
+            DDS_UnsignedLongSeq_get_length(&sample->seulo),
+            (100),
+            RTI_CDR_UNSIGNED_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_UnsignedLongSeq_get_discontiguous_bufferI(&sample->seulo),
+            DDS_UnsignedLongSeq_get_length(&sample->seulo),
+            (100),
+            RTI_CDR_UNSIGNED_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo),
+            DDS_LongLongSeq_get_length(&sample->selolo),
+            (100),
+            RTI_CDR_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_LongLongSeq_get_discontiguous_bufferI(&sample->selolo),
+            DDS_LongLongSeq_get_length(&sample->selolo),
+            (100),
+            RTI_CDR_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo),
+            DDS_UnsignedLongLongSeq_get_length(&sample->seulolo),
+            (100),
+            RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_UnsignedLongLongSeq_get_discontiguous_bufferI(&sample->seulolo),
+            DDS_UnsignedLongLongSeq_get_length(&sample->seulolo),
+            (100),
+            RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_CharSeq_get_contiguous_bufferI(&sample->sech) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_CharSeq_get_contiguous_bufferI(&sample->sech),
+            DDS_CharSeq_get_length(&sample->sech),
+            (100),
+            RTI_CDR_CHAR_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_CharSeq_get_discontiguous_bufferI(&sample->sech),
+            DDS_CharSeq_get_length(&sample->sech),
+            (100),
+            RTI_CDR_CHAR_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl),
+            DDS_FloatSeq_get_length(&sample->sefl),
+            (100),
+            RTI_CDR_FLOAT_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_FloatSeq_get_discontiguous_bufferI(&sample->sefl),
+            DDS_FloatSeq_get_length(&sample->sefl),
+            (100),
+            RTI_CDR_FLOAT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    if (DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl) != NULL) {
+        if (!RTICdrStream_serializePrimitiveSequence(
+            stream,
+            DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl),
+            DDS_DoubleSeq_get_length(&sample->sedl),
+            (100),
+            RTI_CDR_DOUBLE_TYPE)) {
+            return RTI_FALSE;
+        }
+    } else {
+        if (!RTICdrStream_serializePrimitivePointerSequence(
+            stream,
+            (const void **)DDS_DoubleSeq_get_discontiguous_bufferI(&sample->sedl),
+            DDS_DoubleSeq_get_length(&sample->sedl),
+            (100),
+            RTI_CDR_DOUBLE_TYPE)) {
             return RTI_FALSE;
         }
     }
@@ -1124,6 +2276,87 @@ SequencesPlugin_deserialize(
     {
         RTICdrUnsignedLong sequence_length;
 
+        if (DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_OctetSeq_get_contiguous_bufferI(&sample->seoc),
+                &sequence_length,
+                DDS_OctetSeq_get_maximum(&sample->seoc),
+                RTI_CDR_OCTET_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_OctetSeq_get_discontiguous_bufferI(&sample->seoc),
+                &sequence_length,
+                DDS_OctetSeq_get_maximum(&sample->seoc),
+                RTI_CDR_OCTET_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_OctetSeq_set_length(&sample->seoc, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_ShortSeq_get_contiguous_bufferI(&sample->sesh) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_ShortSeq_get_contiguous_bufferI(&sample->sesh),
+                &sequence_length,
+                DDS_ShortSeq_get_maximum(&sample->sesh),
+                RTI_CDR_SHORT_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_ShortSeq_get_discontiguous_bufferI(&sample->sesh),
+                &sequence_length,
+                DDS_ShortSeq_get_maximum(&sample->sesh),
+                RTI_CDR_SHORT_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_ShortSeq_set_length(&sample->sesh, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_UnsignedShortSeq_get_contiguous_bufferI(&sample->seush),
+                &sequence_length,
+                DDS_UnsignedShortSeq_get_maximum(&sample->seush),
+                RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_UnsignedShortSeq_get_discontiguous_bufferI(&sample->seush),
+                &sequence_length,
+                DDS_UnsignedShortSeq_get_maximum(&sample->seush),
+                RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_UnsignedShortSeq_set_length(&sample->seush, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
         if (DDS_LongSeq_get_contiguous_bufferI(&sample->selo) != NULL) {
             if (!RTICdrStream_deserializePrimitiveSequence(
                 stream,
@@ -1144,6 +2377,168 @@ SequencesPlugin_deserialize(
             }
         }
         if (!DDS_LongSeq_set_length(&sample->selo, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_UnsignedLongSeq_get_contiguous_bufferI(&sample->seulo),
+                &sequence_length,
+                DDS_UnsignedLongSeq_get_maximum(&sample->seulo),
+                RTI_CDR_UNSIGNED_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_UnsignedLongSeq_get_discontiguous_bufferI(&sample->seulo),
+                &sequence_length,
+                DDS_UnsignedLongSeq_get_maximum(&sample->seulo),
+                RTI_CDR_UNSIGNED_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_UnsignedLongSeq_set_length(&sample->seulo, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_LongLongSeq_get_contiguous_bufferI(&sample->selolo),
+                &sequence_length,
+                DDS_LongLongSeq_get_maximum(&sample->selolo),
+                RTI_CDR_LONG_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_LongLongSeq_get_discontiguous_bufferI(&sample->selolo),
+                &sequence_length,
+                DDS_LongLongSeq_get_maximum(&sample->selolo),
+                RTI_CDR_LONG_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_LongLongSeq_set_length(&sample->selolo, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_UnsignedLongLongSeq_get_contiguous_bufferI(&sample->seulolo),
+                &sequence_length,
+                DDS_UnsignedLongLongSeq_get_maximum(&sample->seulolo),
+                RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_UnsignedLongLongSeq_get_discontiguous_bufferI(&sample->seulolo),
+                &sequence_length,
+                DDS_UnsignedLongLongSeq_get_maximum(&sample->seulolo),
+                RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_UnsignedLongLongSeq_set_length(&sample->seulolo, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_CharSeq_get_contiguous_bufferI(&sample->sech) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_CharSeq_get_contiguous_bufferI(&sample->sech),
+                &sequence_length,
+                DDS_CharSeq_get_maximum(&sample->sech),
+                RTI_CDR_CHAR_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_CharSeq_get_discontiguous_bufferI(&sample->sech),
+                &sequence_length,
+                DDS_CharSeq_get_maximum(&sample->sech),
+                RTI_CDR_CHAR_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_CharSeq_set_length(&sample->sech, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_FloatSeq_get_contiguous_bufferI(&sample->sefl),
+                &sequence_length,
+                DDS_FloatSeq_get_maximum(&sample->sefl),
+                RTI_CDR_FLOAT_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_FloatSeq_get_discontiguous_bufferI(&sample->sefl),
+                &sequence_length,
+                DDS_FloatSeq_get_maximum(&sample->sefl),
+                RTI_CDR_FLOAT_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_FloatSeq_set_length(&sample->sefl, sequence_length)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl) != NULL) {
+            if (!RTICdrStream_deserializePrimitiveSequence(
+                stream,
+                DDS_DoubleSeq_get_contiguous_bufferI(&sample->sedl),
+                &sequence_length,
+                DDS_DoubleSeq_get_maximum(&sample->sedl),
+                RTI_CDR_DOUBLE_TYPE)) {
+                return RTI_FALSE;
+            }
+        } else {
+            if (!RTICdrStream_deserializePrimitivePointerSequence(
+                stream,
+                (void **)DDS_DoubleSeq_get_discontiguous_bufferI(&sample->sedl),
+                &sequence_length,
+                DDS_DoubleSeq_get_maximum(&sample->sedl),
+                RTI_CDR_DOUBLE_TYPE)) {
+                return RTI_FALSE;
+            }
+        }
+        if (!DDS_DoubleSeq_set_length(&sample->sedl, sequence_length)) {
             return RTI_FALSE;
         }
     }
@@ -1201,7 +2596,106 @@ RTIBool SequencesPlugin_skip(
         if (!RTICdrStream_skipPrimitiveSequence(
             stream,
             &sequence_length,
+            RTI_CDR_OCTET_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_UNSIGNED_SHORT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
             RTI_CDR_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_UNSIGNED_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_UNSIGNED_LONG_LONG_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_CHAR_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_FLOAT_TYPE)) {
+            return RTI_FALSE;
+        }
+    }
+            
+    {
+        RTICdrUnsignedLong sequence_length;
+
+        if (!RTICdrStream_skipPrimitiveSequence(
+            stream,
+            &sequence_length,
+            RTI_CDR_DOUBLE_TYPE)) {
             return RTI_FALSE;
         }
     }
@@ -1252,7 +2746,34 @@ SequencesPlugin_get_serialized_sample_max_size(
         current_alignment, (255) + 1);
             
     current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_OCTET_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_UNSIGNED_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
         current_alignment, (100), RTI_CDR_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_UNSIGNED_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_UNSIGNED_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_CHAR_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_FLOAT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, (100), RTI_CDR_DOUBLE_TYPE);
             
     current_alignment +=  InsidePlugin_get_serialized_sample_max_size(
         endpoint_data,RTI_FALSE,current_alignment);
@@ -1291,7 +2812,34 @@ SequencesPlugin_get_serialized_sample_min_size(
         current_alignment, 1);
             
     current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_OCTET_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_UNSIGNED_SHORT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
         current_alignment, 0, RTI_CDR_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_UNSIGNED_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_UNSIGNED_LONG_LONG_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_CHAR_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_FLOAT_TYPE);
+            
+    current_alignment +=  RTICdrType_getPrimitiveSequenceMaxSizeSerialized(
+        current_alignment, 0, RTI_CDR_DOUBLE_TYPE);
             
     current_alignment +=  InsidePlugin_get_serialized_sample_min_size(
         endpoint_data,RTI_FALSE,current_alignment);

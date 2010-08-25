@@ -30,6 +30,69 @@
 extern "C" {
 #endif
 
+        
+extern const char *InsideTYPENAME;
+        
+
+#ifdef __cplusplus
+}
+#endif
+
+typedef struct Inside
+{
+    DDS_UnsignedLong  ulo;
+    DDS_Octet  ocar[10];
+     DDS_ShortSeq  sesh;
+
+} Inside;
+    
+                            
+#if (defined(RTI_WIN32) || defined (RTI_WINCE)) && defined(NDDS_USER_DLL_EXPORT)
+  /* If the code is building on Windows, start exporting symbols.
+   */
+  #undef NDDSUSERDllExport
+  #define NDDSUSERDllExport __declspec(dllexport)
+#endif
+
+    
+NDDSUSERDllExport DDS_TypeCode* Inside_get_typecode(); /* Type code */
+    
+
+DDS_SEQUENCE(InsideSeq, Inside);
+        
+NDDSUSERDllExport
+RTIBool Inside_initialize(
+        Inside* self);
+        
+NDDSUSERDllExport
+RTIBool Inside_initialize_ex(
+        Inside* self,RTIBool allocatePointers);
+
+NDDSUSERDllExport
+void Inside_finalize(
+        Inside* self);
+                        
+NDDSUSERDllExport
+void Inside_finalize_ex(
+        Inside* self,RTIBool deletePointers);
+        
+NDDSUSERDllExport
+RTIBool Inside_copy(
+        Inside* dst,
+        const Inside* src);
+
+#if (defined(RTI_WIN32) || defined (RTI_WINCE)) && defined(NDDS_USER_DLL_EXPORT)
+  /* If the code is building on Windows, stop exporting symbols.
+   */
+  #undef NDDSUSERDllExport
+  #define NDDSUSERDllExport
+#endif
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
                 
 extern const char *UnionTYPENAME;
 
@@ -44,8 +107,9 @@ typedef struct Union {
     DDS_Long _d;
     struct Union_u
     {
-    DDS_Short  sh;
-    DDS_Long  lo;
+    DDS_Float  fls[10];
+     DDS_LongSeq  los;
+    Inside  ins;
     char*  message; /* maximum length = (255) */
 
     } _u;

@@ -187,13 +187,35 @@ extern "C" int publisher_main(int domainId, int sample_count)
         instance->message = "Hello arrays!!";
 
         for(int i = 0; i < 20; i++)
-            instance->loarray[i] = count + i;
+        {
+            instance->ocarray[i] = (count + i) % 255;
+            instance->sharray[i] = count + i;
+            instance->usharray[i] = count + i;
+            instance->loarray[i] = ((long)(count + i)) << 16;
+            instance->uloarray[i] = ((long)(count + i)) << 16;
+            instance->loloarray[i] = ((long long)(count + i)) << 32;
+            instance->uloloarray[i] = ((long long)(count + i)) << 32;
+            instance->charray[i] = 'A' + i;
+            instance->flarray[i] = 0.100 + count + i;
+            instance->dlarray[i] = 1000.332 + count + i;
+        }
 
         instance->ins.count = count;
 
         for(int j = 0; j < 10; j++)
             for(int k = 0; k < 2; k++)
+            {
+                instance->ins.ocarray[j][k] = (count + j + k) % 255;
                 instance->ins.sharray[j][k] = count + j + k;
+                instance->ins.usharray[j][k] = count + j + k;
+                instance->ins.loarray[j][k] = ((long)(count + j + k)) << 16;
+                instance->ins.uloarray[j][k] = ((long)(count + j + k)) << 16;
+                instance->ins.loloarray[j][k] = ((long long)(count + j + k)) << 32;
+                instance->ins.uloloarray[j][k] = ((long long)(count + j + k)) << 32;
+                instance->ins.charray[j][k] = 'A' + j + k;
+                instance->ins.flarray[j][k] = 0.100 + count + j + k;
+                instance->ins.dlarray[j][k] = 1000.332 + count + j + k;
+            }
         
 
         retcode = Arrays_writer->write(*instance, instance_handle);

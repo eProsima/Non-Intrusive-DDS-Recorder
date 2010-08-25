@@ -41,7 +41,16 @@ extern const char *InsideTYPENAME;
 typedef struct Inside
 {
     DDS_Long  count;
+    DDS_Octet  ocarray[10][2];
     DDS_Short  sharray[10][2];
+    DDS_UnsignedShort  usharray[10][2];
+    DDS_Long  loarray[10][2];
+    DDS_UnsignedLong  uloarray[10][2];
+    DDS_LongLong  loloarray[10][2];
+    DDS_UnsignedLongLong  uloloarray[10][2];
+    DDS_Char  charray[10][2];
+    DDS_Float  flarray[10][2];
+    DDS_Double  dlarray[10][2];
 
 } Inside;
     
@@ -103,7 +112,16 @@ extern const char *ArraysTYPENAME;
 typedef struct Arrays
 {
     char*  message; /* maximum length = (255) */
+    DDS_Octet  ocarray[20];
+    DDS_Short  sharray[20];
+    DDS_UnsignedShort  usharray[20];
     DDS_Long  loarray[20];
+    DDS_UnsignedLong  uloarray[20];
+    DDS_LongLong  loloarray[20];
+    DDS_UnsignedLongLong  uloloarray[20];
+    DDS_Char  charray[20];
+    DDS_Float  flarray[20];
+    DDS_Double  dlarray[20];
     Inside  ins;
 
 } Arrays;

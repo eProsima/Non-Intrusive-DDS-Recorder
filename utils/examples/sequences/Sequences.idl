@@ -1,12 +1,30 @@
 struct Inside
 {
 	short count;
+	sequence<octet> seoc;
 	sequence<short> sesh;
+	sequence<unsigned short> seush;
+	sequence<long> selo;
+	sequence<unsigned long> seulo;
+	sequence<long long> selolo;
+	sequence<unsigned long long> seulolo;
+	sequence<char> sech;
+	sequence<float> sefl;
+	sequence<double> sedl;
 };
 
 struct Sequences
 {
 	string message;
+	sequence<octet> seoc;
+	sequence<short> sesh;
+	sequence<unsigned short> seush;
 	sequence<long> selo;
+	sequence<unsigned long> seulo;
+	sequence<long long> selolo;
+	sequence<unsigned long long> seulolo;
+	sequence<char> sech;
+	sequence<float> sefl;
+	sequence<double> sedl;
 	Inside ins;
 };

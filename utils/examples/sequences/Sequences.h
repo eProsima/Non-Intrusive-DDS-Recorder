@@ -41,7 +41,16 @@ extern const char *InsideTYPENAME;
 typedef struct Inside
 {
     DDS_Short  count;
+     DDS_OctetSeq  seoc;
      DDS_ShortSeq  sesh;
+     DDS_UnsignedShortSeq  seush;
+     DDS_LongSeq  selo;
+     DDS_UnsignedLongSeq  seulo;
+     DDS_LongLongSeq  selolo;
+     DDS_UnsignedLongLongSeq  seulolo;
+     DDS_CharSeq  sech;
+     DDS_FloatSeq  sefl;
+     DDS_DoubleSeq  sedl;
 
 } Inside;
     
@@ -103,7 +112,16 @@ extern const char *SequencesTYPENAME;
 typedef struct Sequences
 {
     char*  message; /* maximum length = (255) */
+     DDS_OctetSeq  seoc;
+     DDS_ShortSeq  sesh;
+     DDS_UnsignedShortSeq  seush;
      DDS_LongSeq  selo;
+     DDS_UnsignedLongSeq  seulo;
+     DDS_LongLongSeq  selolo;
+     DDS_UnsignedLongLongSeq  seulolo;
+     DDS_CharSeq  sech;
+     DDS_FloatSeq  sefl;
+     DDS_DoubleSeq  sedl;
     Inside  ins;
 
 } Sequences;
