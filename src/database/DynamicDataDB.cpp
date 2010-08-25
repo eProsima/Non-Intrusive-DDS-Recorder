@@ -8,7 +8,10 @@
 
 #include <string.h>
 #include <stdlib.h>
+
+#ifndef RTI_WIN32
 #include <sys/time.h>
+#endif
 
 static const char* const CLASS_NAME = "DynamicDataDB";
 

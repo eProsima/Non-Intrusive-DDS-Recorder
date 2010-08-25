@@ -10,7 +10,9 @@
 #include "dds_c/dds_c_typecode.h"
 #include "dds_c/dds_c_dynamicdata.h"
 
+#ifndef RTI_WIN32
 #include <sys/time.h>
+#endif
 
 #define ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER 0x000100c2
 #define ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER 0x000003c7
