@@ -1,0 +1,15 @@
+enum Enumerado
+{
+  VALOR1,
+  VALOR2,
+  VALOR3,
+  VALORZ
+};
+
+struct Enums
+{
+   long count;
+   Enumerado en;
+   Enumerado aren[10];
+   sequence<Enumerado> seen;
+};
