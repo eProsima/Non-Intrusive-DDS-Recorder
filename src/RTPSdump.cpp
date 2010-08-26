@@ -115,14 +115,14 @@ void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip
         struct DDS_Time_t &sourceTmp, const char *serializedData, unsigned int serializedDataLen)
 {
     // Data(w)
-    if(readerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER &&
-            writerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_WRITER)
+    if(writerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_WRITER ||
+            readerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER)
     {
         processDataW(serializedData, serializedDataLen);
     }
     // Data(r)
-    else if(readerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER &&
-            writerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_WRITER)
+    else if(writerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_WRITER ||
+            readerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER)
     {
         processDataR(serializedData, serializedDataLen);
     }
