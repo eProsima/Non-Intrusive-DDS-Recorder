@@ -32,6 +32,7 @@ DynamicDataDB::writePrimitiveInitialStatementsFunctions DynamicDataDB::writePrim
     {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatInitialStatements},
     {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleInitialStatements},
     {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumInitialStatements},
+    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addTinyIntInitialStatements},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -49,6 +50,7 @@ DynamicDataDB::writePrimitiveStorageFunctions DynamicDataDB::writePrimitiveStora
     {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatStorage},
     {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleStorage},
     {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumStorage},
+    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addBoolStorage},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -65,6 +67,7 @@ DynamicDataDB::writeArrayPrimitiveFunctions DynamicDataDB::writeArrayPrimitiveFu
     {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatArrayStorage},
     {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleArrayStorage},
     {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumArrayStorage},
+    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addBoolArrayStorage},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -81,6 +84,7 @@ DynamicDataDB::writeSequencePrimitiveFunctions DynamicDataDB::writeSequencePrimi
     {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatSequenceStorage},
     {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleSequenceStorage},
     {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumSequenceStorage},
+    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addBoolSequenceStorage},
     {RTI_CDR_TK_NULL, NULL}
 };
 
@@ -933,7 +937,6 @@ bool DynamicDataDB::addEnumInitialStatements(string &memberName, string &table_c
     dynamicDataAdd += ", ?";
     return true;
 }
-
 
 bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, string &ip_dst,
         unsigned int hostId, unsigned int appId, unsigned int instanceId,
@@ -1946,6 +1949,35 @@ bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *d
     return returnedValue;
 }
 
+bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addBoolStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Boolean value;
+
+        if(DDS_DynamicData_get_boolean(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the boolean field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
 bool DynamicDataDB::addOctetArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
         arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
 {
@@ -2586,6 +2618,64 @@ bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicDa
     return returnedValue;
 }
 
+bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addBoolArrayStorage";
+    bool returnedValue = false;
+    DDS_Boolean *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Boolean*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Boolean)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Boolean));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_boolean_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName,
+                        DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
 bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
         struct DDS_DynamicData *dynamicDataObject)
 {
@@ -3190,6 +3280,60 @@ bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, string &
                     DDS_LongSeq_finalize(&ordinals);
                 }
             }
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addBoolSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_BooleanSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_BooleanSeq_initialize(&values);
+            DDS_BooleanSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_boolean_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, *DDS_BooleanSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_BooleanSeq_finalize(&values);
         }
         else
         {
