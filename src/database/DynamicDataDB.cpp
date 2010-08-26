@@ -7,6 +7,7 @@
 #include "osapi/osapi_heap.h"
 
 #include <string.h>
+#include <algorithm>
 #include <stdlib.h>
 
 #ifndef RTI_WIN32
@@ -100,6 +101,13 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
     int ret = SQLITE_ERROR;
     string TABLE_CHECK, TABLE_DROP, TABLE_CREATE, DYNAMICDATA_ADD;
 
+	// Erase '::' from m_tableName.
+	std::replace(m_tableName.begin(), m_tableName.end(), ':', '_');
+	// Erase '.' from m_tableName;
+	std::replace(m_tableName.begin(), m_tableName.end(), '.', '_');
+	// Erase '-' from m_tableName;
+	std::replace(m_tableName.begin(), m_tableName.end(), '-', '_');
+
     TABLE_CHECK = TABLE_CHECK_INIT;
     TABLE_CHECK += m_tableName;
     TABLE_CHECK += "'";
@@ -140,8 +148,8 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
             }
         }
 
-        printf("%s\n", TABLE_CREATE.c_str());
-        printf("%s\n", DYNAMICDATA_ADD.c_str());
+        //printf("%s\n", TABLE_CREATE.c_str());
+        //printf("%s\n", DYNAMICDATA_ADD.c_str());
 
         if(m_ready)
         {
@@ -374,8 +382,8 @@ bool DynamicDataDB::processArraysInitialStatements(string &table_create, string 
                 TABLE_CREATE += ")";
                 TABLE_INSERT += ")";
 
-                printf("%s\n", TABLE_CREATE.c_str());
-                printf("%s\n", TABLE_INSERT.c_str());
+                //printf("%s\n", TABLE_CREATE.c_str());
+                //printf("%s\n", TABLE_INSERT.c_str());
 
                 if(sqlite3_prepare_v2(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
                 {
@@ -471,8 +479,8 @@ bool DynamicDataDB::processSequencesInitialStatements(string &table_create, stri
             TABLE_CREATE += ")";
             TABLE_INSERT += ")";
 
-            printf("%s\n", TABLE_CREATE.c_str());
-            printf("%s\n", TABLE_INSERT.c_str());
+            //printf("%s\n", TABLE_CREATE.c_str());
+            //printf("%s\n", TABLE_INSERT.c_str());
 
             if(sqlite3_prepare_v2(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
             {
