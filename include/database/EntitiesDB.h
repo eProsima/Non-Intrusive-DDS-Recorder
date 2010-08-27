@@ -21,7 +21,8 @@ namespace eProsima
 
             eEntity(unsigned int hostId, unsigned int appId,
                     unsigned int instanceId, unsigned int entityId,
-                    const char *topicName, const char *typeName);
+                    const char *topicName, const char *typeName,
+                    bool existsTypecode);
 
             /**
              * \brief This function returns if the entity is the same.
@@ -35,6 +36,8 @@ namespace eProsima
 
             std::string& getTopicName();
             std::string& getTypeName();
+            bool getExistsTypecode();
+            void setExistsTypecode(bool e);
 
         private:
 
@@ -44,6 +47,7 @@ namespace eProsima
             unsigned int m_entityId;
             std::string m_topicName;
             std::string m_typeName;
+            bool m_existsTypecode;
     };
 
     class EntitiesDB
@@ -60,7 +64,7 @@ namespace eProsima
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
                     unsigned int destAppId, unsigned int destInstanceId,const unsigned int entity_hostId, const unsigned int entity_appId,
                     const unsigned int entity_instanceId, const unsigned int entityId, int type,
-                    const char *topicName, const char *typeName);
+                    const char *topicName, const char *typeName, bool existsTypecode);
 
             eEntity* findEntity(const unsigned int hostId, const unsigned int appId,
                     const unsigned int instanceId, const unsigned int entityId);
@@ -68,6 +72,8 @@ namespace eProsima
         private:
 
             std::list<eEntity*> m_entities;
+
+            std::list<eEntity*> m_entities_without;
 
             eProsimaLog &m_log;
 

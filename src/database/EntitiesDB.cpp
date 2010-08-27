@@ -11,23 +11,25 @@
 #endif
 
 #define ENTITIES_TABLE "entities"
-#define MESSAGES_TABLE "entitiesTopic"
+#define MESSAGES_TABLE "entities_topic_messages"
 #define READER_TEXT "reader"
 #define WRITER_TEXT "writer"
 
 static const char* const CLASS_NAME = "EntitiesDB";
-static const char* const ENTITY_ADD = "INSERT INTO " ENTITIES_TABLE " VALUES(?, ?, ?, ?, ?, ?, ?)";
+static const char* const ENTITY_ADD = "INSERT INTO " ENTITIES_TABLE " VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
 static const char* const MESSAGES_ADD = "INSERT INTO " MESSAGES_TABLE " VALUES(?, ?, ?, ?, ?, ?, ?, ?, "\
-                                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 using namespace eProsima;
 using namespace std;
 
 eEntity::eEntity(unsigned int hostId, unsigned int appId,
         unsigned int instanceId, unsigned int entityId,
-        const char *topicName, const char *typeName) : m_hostId(hostId),
+        const char *topicName, const char *typeName,
+        bool existsTypecode) : m_hostId(hostId),
     m_appId(appId), m_instanceId(instanceId),
-    m_entityId(entityId), m_topicName(topicName), m_typeName(typeName)
+    m_entityId(entityId), m_topicName(topicName), m_typeName(typeName),
+    m_existsTypecode(existsTypecode)
 {
 }
 
@@ -55,6 +57,16 @@ std::string& eEntity::getTypeName()
     return m_typeName;
 }
 
+bool eEntity::getExistsTypecode()
+{
+    return m_existsTypecode;
+}
+
+void eEntity::setExistsTypecode(bool e)
+{
+    m_existsTypecode = e;
+}
+
 EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_ready(false),
     m_databaseH(databaseH), m_addStmt(NULL), m_addMsgStmt(NULL)
 {
@@ -63,7 +75,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     const char* const TABLE_TRUNCATE = "DELETE FROM " ENTITIES_TABLE;
     const char* const TABLE_CREATE = "CREATE TABLE " ENTITIES_TABLE " (host_id BIGINT UNSIGNED," \
                                       "app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, entity_id BIGINT UNSIGNED," \
-                                      "type TEXT, topic_name TEXT, type_name TEXT," \
+                                      "type TEXT, topic_name TEXT, type_name TEXT, exists_typecode TINYINT UNSIGNED," \
                                       "PRIMARY KEY(host_id, app_id, instance_id, entity_id))";
     const char* const TABLE_MESSAGES_CHECK = "SELECT name FROM sqlite_master WHERE name='" MESSAGES_TABLE "'";
     const char* const TABLE_MESSAGES_TRUNCATE = "DELETE FROM " MESSAGES_TABLE;
@@ -75,7 +87,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
         "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED, " \
         "dest_host_Id BIGINT UNSIGNED, dest_app_id BIGINT UNSIGNED, dest_instance_id BIGINT UNSIGNED, " \
         "entity_host_id BIGINT UNSIGNED, entity_app_id BIGINT UNSIGNED, entity_instance_id BIGINT UNSIGNED," \
-        "entity_id BIGINT UNSIGNED, type TEXT, topic_name TEXT, type_name TEXT)";
+        "entity_id BIGINT UNSIGNED, type TEXT, topic_name TEXT, type_name TEXT, exists_typecode TINYINT UNSIGNED)";
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
 
@@ -95,6 +107,8 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
 
                 sqlite3_finalize(stmt);
             }
+            else
+                logError(m_log, "Cannot prepare statement to delete entities table");
         }
         else if(ret == SQLITE_DONE)
         {
@@ -107,6 +121,8 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
 
                 sqlite3_finalize(stmt);
             }
+            else
+                logError(m_log, "Cannot prepare statement to create entities table");
         }
         else
         {
@@ -135,6 +151,8 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
 
                             sqlite3_finalize(stmt);
                         }
+                        else
+                            logError(m_log, "Cannot prepare statement to delete entities table");
                     }
                     else if(ret == SQLITE_DONE)
                     {
@@ -147,6 +165,8 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
 
                             sqlite3_finalize(stmt);
                         }
+                        else
+                            logError(m_log, "Cannot prepare statement to create entities table");
                     }
                     else
                     {
@@ -168,7 +188,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
                 }
                 else
                 {
-                    logError(m_log, "Cannot check the entities table");
+                    logError(m_log, "Cannot check the entities message table");
                 }
             }
             else
@@ -191,6 +211,11 @@ EntitiesDB::~EntitiesDB()
         delete *it;
     }
 
+    for(it = m_entities_without.begin(); it != m_entities_without.end(); it++)
+    {
+        delete *it;
+    }
+
     if(m_addStmt != NULL)
     {
         sqlite3_finalize(m_addStmt);
@@ -208,14 +233,15 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
         unsigned int destAppId, unsigned int destInstanceId,const unsigned int entity_hostId, const unsigned int entity_appId,
         const unsigned int entity_instanceId, const unsigned int entityId, int type,
-        const char *topicName, const char *typeName)
+        const char *topicName, const char *typeName, bool existsTypecode)
 {
-    const char* const METHOD_NAME = "addTypeCode";
+    const char* const METHOD_NAME = "addEntity";
     bool returnedValue = false;
+    eEntity *entity = NULL;
 
     if(m_ready)
     {
-        if(findEntity(entity_hostId, entity_appId, entity_instanceId, entityId) == NULL)
+        if((entity = findEntity(entity_hostId, entity_appId, entity_instanceId, entityId)) == NULL)
         {
             if(sqlite3_reset(m_addStmt) == SQLITE_OK)
             {
@@ -229,11 +255,15 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
                     sqlite3_bind_text(m_addStmt, 5, WRITER_TEXT, strlen(WRITER_TEXT), SQLITE_STATIC);
                 sqlite3_bind_text(m_addStmt, 6, topicName, strlen(topicName), SQLITE_STATIC);
                 sqlite3_bind_text(m_addStmt, 7, typeName, strlen(typeName), SQLITE_STATIC);
+                if(existsTypecode)
+                    sqlite3_bind_int(m_addStmt, 8, 1);
+                else
+                    sqlite3_bind_int(m_addStmt, 8, 0);
 
                 if(sqlite3_step(m_addStmt) == SQLITE_DONE)
                 {
                     m_entities.push_back(new eEntity(entity_hostId, entity_appId,
-                                entity_instanceId, entityId, topicName, typeName));
+                                entity_instanceId, entityId, topicName, typeName, existsTypecode));
                     returnedValue = true;
                 }
             }
@@ -243,7 +273,14 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
             }
         }
         else
+        {
+            if(existsTypecode && ! entity->getExistsTypecode())
+            {
+                entity->setExistsTypecode(true);
+                logInfo(m_log, "the datawriter of topic %s sends the typecode", topicName);
+            }
             returnedValue = true;
+        }
 
         if(returnedValue)
         {
@@ -287,6 +324,10 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
                     sqlite3_bind_text(m_addMsgStmt, 20, WRITER_TEXT, strlen(WRITER_TEXT), SQLITE_STATIC);
                 sqlite3_bind_text(m_addMsgStmt, 21, topicName, strlen(topicName), SQLITE_STATIC);
                 sqlite3_bind_text(m_addMsgStmt, 22, typeName, strlen(typeName), SQLITE_STATIC);
+                if(existsTypecode)
+                    sqlite3_bind_int(m_addMsgStmt, 23, 1);
+                else
+                    sqlite3_bind_int(m_addMsgStmt, 23, 0);
 
                 if(sqlite3_step(m_addMsgStmt) == SQLITE_DONE)
                 {

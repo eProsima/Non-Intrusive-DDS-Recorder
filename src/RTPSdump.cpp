@@ -219,7 +219,7 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
                                                     appId, instanceId, readerId, writerId, writerSeqNum,
                                                     sourceTmp, destHostId, destAppId, destInstanceId, topic.guid.prefix.hostId,
                                                     topic.guid.prefix.appId, topic.guid.prefix.instanceId,
-                                                    topic.guid.objectId, 1, topic.parameter->topic, topic.parameter->typeName);
+                                                    topic.guid.objectId, 1, topic.parameter->topic, topic.parameter->typeName, true);
                                     }
                                     else
                                     {
@@ -234,7 +234,14 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
                             }
                             else
                             {
-                                logError(m_log, "the datawriter of topic %s doesn't send the typecode", topic.parameter->topic);
+                                logInfo(m_log, "the datawriter of topic %s doesn't send the typecode", topic.parameter->topic);
+
+                                if(m_entitiesDB != NULL)
+                                    m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                                            appId, instanceId, readerId, writerId, writerSeqNum,
+                                            sourceTmp, destHostId, destAppId, destInstanceId, topic.guid.prefix.hostId,
+                                            topic.guid.prefix.appId, topic.guid.prefix.instanceId,
+                                            topic.guid.objectId, 1, topic.parameter->topic, topic.parameter->typeName, false);
                             }
                         }
                         else
@@ -351,7 +358,7 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
                                                     appId, instanceId, readerId, writerId, writerSeqNum,
                                                     sourceTmp, destHostId, destAppId, destInstanceId, topic.guid.prefix.hostId,
                                                     topic.guid.prefix.appId, topic.guid.prefix.instanceId,
-                                                    topic.guid.objectId, 0, topic.parameter->topic, topic.parameter->typeName);
+                                                    topic.guid.objectId, 0, topic.parameter->topic, topic.parameter->typeName, true);
                                     }
                                     else
                                     {
@@ -366,7 +373,14 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
                             }
                             else
                             {
-                                logError(m_log, "the datawriter of topic %s doesn't send the typecode", topic.parameter->topic);
+                                logInfo(m_log, "the datawriter of topic %s doesn't send the typecode", topic.parameter->topic);
+
+                                if(m_entitiesDB != NULL)
+                                    m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                                            appId, instanceId, readerId, writerId, writerSeqNum,
+                                            sourceTmp, destHostId, destAppId, destInstanceId, topic.guid.prefix.hostId,
+                                            topic.guid.prefix.appId, topic.guid.prefix.instanceId,
+                                            topic.guid.objectId, 0, topic.parameter->topic, topic.parameter->typeName, false);
                             }
                         }
                         else
@@ -480,11 +494,15 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
                 logError(m_log, "Cannot create the DynamicDataTypeSupport");
             }
         }
+        else
+        {
+            logError(m_log, "Cannot find the typecode from topic %s", entity->getTopicName().c_str());
+        }
     }
     else
     {
-        logError(m_log, "Cannot find entity in database: (0x%X, 0x%X, 0x%X, 0x%X) or " \
-                "(0x%X, 0x%X, 0x%X, 0x%X)", hostId, appId, instanceId, writerId,
+        logError(m_log, "Cannot find entity in database: (%u, %u, %u, %u) or " \
+                "(%u, %u, %u, %u)", hostId, appId, instanceId, writerId,
                 hostId, appId, instanceId, readerId);
     }
 
