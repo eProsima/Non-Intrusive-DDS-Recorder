@@ -10,6 +10,7 @@
 namespace eProsima
 {
     class eProsimaLog;
+    class ipDefragmenter;
 
     typedef void (*processRTPSPacketCallback)(void *user, const struct timeval &wts,
             std::string &ip_src, std::string &ip_dst,
@@ -95,6 +96,8 @@ namespace eProsima
 
             /// Pcap error buffer.
             char m_pcapErrorBuf[PCAP_ERRBUF_SIZE];
+
+            ipDefragmenter  *m_ipDefragmenter;
     };
 
 }

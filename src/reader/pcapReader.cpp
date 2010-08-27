@@ -1,7 +1,9 @@
 #include "reader/pcapReader.h"
+#include "reader/ipDefragmenter.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
 #include <string.h>
+#include <malloc.h>
 
 #ifdef RTI_WIN32
 #include <winsock.h>
@@ -19,9 +21,13 @@ struct ip
 {
 	u_char	ver_ihl;		// Version (4 bits) + Internet header length (4 bits)
 	u_char	tos;			// Type of service 
-	u_short tlen;			// Total length 
-	u_short identification; // Identification
-	u_short flags_fo;		// Flags (3 bits) + Fragment offset (13 bits)
+	u_short ip_len;			// Total length 
+	u_short ip_id; // Identification
+	u_short ip_off;		// Flags (3 bits) + Fragment offset (13 bits)
+#define	IP_RF 0x8000			/* reserved fragment flag */
+#define	IP_DF 0x4000			/* dont fragment flag */
+#define	IP_MF 0x2000			/* more fragments flag */
+#define	IP_OFFMASK 0x1fff		/* mask for fragmenting bits */
 	u_char	ttl;			// Time to live
 	u_char	ip_p;			// Protocol
 	u_short crc;			// Header checksum
@@ -59,13 +65,17 @@ using namespace eProsima;
 static const char* const CLASS_NAME = "pcapReader";
 
 pcapReader::pcapReader(string &filename, eProsimaLog &log) : m_filename(filename), m_log(log), m_pcap(NULL),
-    m_npackets(0), m_callback(NULL)
+    m_npackets(0), m_callback(NULL), m_ipDefragmenter(NULL)
 {
     const char* const METHOD_NAME = "pcapReader";
 
     m_pcap = pcap_open_offline(m_filename.c_str(), m_pcapErrorBuf);
 
-    if(m_pcap == NULL)
+    if(m_pcap != NULL)
+    {
+        m_ipDefragmenter = new ipDefragmenter(log);
+    }
+    else
     {
         logError(m_log, "Cannot open file %s in read mode: %s", m_filename.c_str(), m_pcapErrorBuf);
     }
@@ -77,6 +87,9 @@ pcapReader::~pcapReader()
     {
         pcap_close(m_pcap);
     }
+
+    if(m_ipDefragmenter != NULL)
+        delete m_ipDefragmenter;
 }
 
 bool pcapReader::isOpen()
@@ -145,41 +158,67 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
     struct udphdr *udpc = NULL;
     u_char *rtpsPayload = NULL;
     string ip_src, ip_dst;
+    bool fragmented = false;
 
     if(hdr != NULL && data != NULL)
     {
-        eptr = (struct ether_header*)data;
-
-        if(ntohs(eptr->ether_type) == ETHERTYPE_IP) // IP type.
+        if(hdr->caplen == hdr->len)
         {
-            ipc = (struct ip*)(data + sizeof(struct ether_header));
+            eptr = (struct ether_header*)data;
 
-            if(ipc->ip_p == 17) // UDP type.
+            if(ntohs(eptr->ether_type) == ETHERTYPE_IP) // IP type.
             {
-                udpc = (struct udphdr*)(((u_char*)ipc) + IP_HEADER_LEN(ipc));
-                rtpsPayload = (u_char*)((u_char*)udpc) + sizeof(struct udphdr);
+                ipc = (struct ip*)(data + sizeof(struct ether_header));
 
-                if(rtpsPayload[0] == 'R' &&
-                        rtpsPayload[1] == 'T' &&
-                        rtpsPayload[2] == 'P' &&
-                        rtpsPayload[3] == 'S')
+                if(ipc->ip_p == 17) // UDP type.
                 {
-                    // Get IPs in strings.
-                    ip_src = inet_ntoa(ipc->ip_src);
-                    ip_dst = inet_ntoa(ipc->ip_dst);
-                    
-                    m_npackets++;
+                    if((ntohs(ipc->ip_off) & IP_MF) ||
+                            ((ntohs(ipc->ip_off) & IP_OFFMASK) > 0))
+                    {
+                        fragmented = true;
+                        udpc = (struct udphdr*)m_ipDefragmenter->addIpPacket(ntohs(ipc->ip_id), (unsigned int)(ntohs(ipc->ip_off) & IP_OFFMASK) * 8,
+                                ((char*)ipc) + IP_HEADER_LEN(ipc), ntohs(ipc->ip_len) - IP_HEADER_LEN(ipc),
+                                (ntohs(ipc->ip_off) & IP_MF) ? false : true);
+                    }
+                    else
+                    {
+                        udpc = (struct udphdr*)(((u_char*)ipc) + IP_HEADER_LEN(ipc));
+                    }
 
-                    if(m_callback != NULL)
-                        m_callback(m_user, hdr->ts, ip_src, ip_dst,
-                                (char*)rtpsPayload, ntohs(udpc->len) - sizeof(struct udphdr));
+                    if(udpc != NULL)
+                    {
+                        rtpsPayload = (u_char*)((u_char*)udpc) + sizeof(struct udphdr);
+
+                        if(rtpsPayload[0] == 'R' &&
+                                rtpsPayload[1] == 'T' &&
+                                rtpsPayload[2] == 'P' &&
+                                rtpsPayload[3] == 'S')
+                        {
+                            // Get IPs in strings.
+                            ip_src = inet_ntoa(ipc->ip_src);
+                            ip_dst = inet_ntoa(ipc->ip_dst);
+
+                            m_npackets++;
+
+                            if(m_callback != NULL)
+                                m_callback(m_user, hdr->ts, ip_src, ip_dst,
+                                        (char*)rtpsPayload, ntohs(udpc->len) - sizeof(struct udphdr));
+                        }
+
+                        if(fragmented)
+                            free(udpc);
+                    }
                 }
             }
+        }
+        else
+        {
+            logError(m_log, "Packet with different capture length than off wire length\n");
         }
     }
     else
     {
-        printError("Bad parameters.");
+        logError(m_log, "Bad parameters.");
     }
 }
 

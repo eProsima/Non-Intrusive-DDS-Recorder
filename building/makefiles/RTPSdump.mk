@@ -21,6 +21,7 @@ RTPSDUMP_SRC_CFILES= $(EPROSIMADIR)/code/eProsima_c/eProsimaLog.c
 
 RTPSDUMP_SRC_CPPFILES= $(EPROSIMADIR)/code/eProsima_cpp/eProsimaLog.cpp \
 		       $(BASEDIR)/src/reader/pcapReader.cpp \
+		       $(BASEDIR)/src/reader/ipDefragmenter.cpp \
 		       $(BASEDIR)/src/RTPSPacketAnalyzer.cpp \
 		       $(BASEDIR)/src/RTPSdump.cpp \
 		       $(BASEDIR)/src/database/TypeCodeDB.cpp \
