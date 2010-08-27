@@ -181,37 +181,44 @@ void RTPSdump::processDataW(const char *serializedData,
                         if(DISCBuiltinTopicPublicationDataPlugin_deserialize(epd, &topic, &stream,
                                     RTI_TRUE, RTI_TRUE, NULL) == RTI_TRUE)
                         {
-                            RTIOsapiHeap_allocateBufferNotAligned((char**)&typeCode, RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
-
-                            if(typeCode != NULL)
+                            if(topic.parameter->typeCode != NULL)
                             {
-                                RTICdrTypeCode_initialize_stream(typeCode,
-                                        RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
-                                if(RTICdrTypeCode_copy_stream(typeCode, topic.parameter->typeCode) == RTI_TRUE)
+                                RTIOsapiHeap_allocateBufferNotAligned((char**)&typeCode, RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
+
+                                if(typeCode != NULL)
                                 {
-                                    // Add typecode.
-                                    if(m_typecodeDB == NULL ||
-                                            m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
-                                                typeCode) == false)
+                                    RTICdrTypeCode_initialize_stream(typeCode,
+                                            RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
+                                    if(RTICdrTypeCode_copy_stream(typeCode, topic.parameter->typeCode) == RTI_TRUE)
+                                    {
+                                        // Add typecode.
+                                        if(m_typecodeDB == NULL ||
+                                                m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
+                                                    typeCode) == false)
+                                        {
+                                            RTIOsapiHeap_freeBufferNotAligned(typeCode);
+                                        }
+
+                                        // Add entity.
+                                        if(m_entitiesDB != NULL)
+                                            m_entitiesDB->addEntity(topic.guid.prefix.hostId,
+                                                    topic.guid.prefix.appId, topic.guid.prefix.instanceId,
+                                                    topic.guid.objectId, 1, topic.parameter->topic, topic.parameter->typeName);
+                                    }
+                                    else
                                     {
                                         RTIOsapiHeap_freeBufferNotAligned(typeCode);
+                                        logError(m_log, "Cannot copy typecode");
                                     }
-
-                                    // Add entity.
-                                    if(m_entitiesDB != NULL)
-                                        m_entitiesDB->addEntity(topic.guid.prefix.hostId,
-                                                topic.guid.prefix.appId, topic.guid.prefix.instanceId,
-                                                topic.guid.objectId, 1, topic.parameter->topic, topic.parameter->typeName);
                                 }
                                 else
                                 {
-                                    RTIOsapiHeap_freeBufferNotAligned(typeCode);
-                                    logError(m_log, "Cannot copy typecode");
+                                    logError(m_log, "Cannot allocate DDS_TypeCode");
                                 }
                             }
                             else
                             {
-                                logError(m_log, "Cannot allocate DDS_TypeCode");
+                                logError(m_log, "the datawriter of topic %s doesn't send the typecode", topic.parameter->topic);
                             }
                         }
                         else
@@ -300,37 +307,44 @@ void RTPSdump::processDataR(const char *serializedData,
                         if(DISCBuiltinTopicSubscriptionDataPlugin_deserialize(epd, &topic, &stream,
                                     RTI_TRUE, RTI_TRUE, NULL) == RTI_TRUE)
                         {
-                            RTIOsapiHeap_allocateBufferNotAligned((char**)&typeCode, RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
-
-                            if(typeCode != NULL)
+                            if(topic.parameter->typeCode != NULL)
                             {
-                                RTICdrTypeCode_initialize_stream(typeCode,
-                                        RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
-                                if(RTICdrTypeCode_copy_stream(typeCode, topic.parameter->typeCode) == RTI_TRUE)
+                                RTIOsapiHeap_allocateBufferNotAligned((char**)&typeCode, RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
+
+                                if(typeCode != NULL)
                                 {
-                                    // Add typecode.
-                                    if(m_typecodeDB == NULL ||
-                                            m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
-                                                typeCode) == false)
+                                    RTICdrTypeCode_initialize_stream(typeCode,
+                                            RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
+                                    if(RTICdrTypeCode_copy_stream(typeCode, topic.parameter->typeCode) == RTI_TRUE)
+                                    {
+                                        // Add typecode.
+                                        if(m_typecodeDB == NULL ||
+                                                m_typecodeDB->addTypecode(topic.parameter->topic, topic.parameter->typeName,
+                                                    typeCode) == false)
+                                        {
+                                            RTIOsapiHeap_freeBufferNotAligned(typeCode);
+                                        }
+
+                                        // Add entity.
+                                        if(m_entitiesDB != NULL)
+                                            m_entitiesDB->addEntity(topic.guid.prefix.hostId,
+                                                    topic.guid.prefix.appId, topic.guid.prefix.instanceId,
+                                                    topic.guid.objectId, 0, topic.parameter->topic, topic.parameter->typeName);
+                                    }
+                                    else
                                     {
                                         RTIOsapiHeap_freeBufferNotAligned(typeCode);
+                                        logError(m_log, "Cannot copy typecode");
                                     }
-
-                                    // Add entity.
-                                    if(m_entitiesDB != NULL)
-                                        m_entitiesDB->addEntity(topic.guid.prefix.hostId,
-                                                topic.guid.prefix.appId, topic.guid.prefix.instanceId,
-                                                topic.guid.objectId, 0, topic.parameter->topic, topic.parameter->typeName);
                                 }
                                 else
                                 {
-                                    RTIOsapiHeap_freeBufferNotAligned(typeCode);
-                                    logError(m_log, "Cannot copy typecode");
+                                    logError(m_log, "Cannot allocate DDS_TypeCode");
                                 }
                             }
                             else
                             {
-                                logError(m_log, "Cannot allocate DDS_TypeCode");
+                                logError(m_log, "the datawriter of topic %s doesn't send the typecode", topic.parameter->topic);
                             }
                         }
                         else
