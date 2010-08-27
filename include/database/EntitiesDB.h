@@ -1,6 +1,9 @@
 #ifndef _ENTITIESDB_H_
 #define _ENTITIESDB_H_
 
+struct DDS_Time_t;
+struct timeval;
+
 #ifdef __cplusplus
 
 #include <string>
@@ -51,9 +54,13 @@ namespace eProsima
 
             ~EntitiesDB();
 
-            bool addEntity(const unsigned int hostId, const unsigned int appId,
-                    const unsigned int instanceId, const unsigned int entityId,
-                    int type, const char *topicName, const char *typeName);
+            bool addEntity(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId,const unsigned int entity_hostId, const unsigned int entity_appId,
+                    const unsigned int entity_instanceId, const unsigned int entityId, int type,
+                    const char *topicName, const char *typeName);
 
             eEntity* findEntity(const unsigned int hostId, const unsigned int appId,
                     const unsigned int instanceId, const unsigned int entityId);
@@ -71,6 +78,7 @@ namespace eProsima
 
             /// Sqlite3 statement used to add typecodes.
             sqlite3_stmt *m_addStmt;
+            sqlite3_stmt *m_addMsgStmt;
     };
 }
 

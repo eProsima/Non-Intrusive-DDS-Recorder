@@ -41,10 +41,18 @@ namespace eProsima
 
         private:
 
-            void processDataW(const char *serializedData,
+            void processDataW(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
                     unsigned int serializedDataLen);
 
-            void processDataR(const char *serializedData,
+            void processDataR(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
                     unsigned int serializedDataLen);
 
             void processDataNormal(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,

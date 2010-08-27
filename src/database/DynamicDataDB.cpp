@@ -222,9 +222,9 @@ bool DynamicDataDB::createInitialStatements(string &table_create, string &dynami
     table_create += " (wireshark_sourcetimestamp_sec BIGINT, wireshark_sourcetimestamp_msec BIGINT UNSIGNED, " \
                      "ip_src TEXT, ip_dst TEXT, " \
                      "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
-                     "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED," \
-                     "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED," \
-                     "destinationHostId BIGINT UNSIGNED, destinationAppId BIGINT UNSIGNED, destinationInstaceId BIGINT UNSIGNED";
+                     "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED, " \
+                     "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED, " \
+                     "dest_host_id BIGINT UNSIGNED, dest_app_id BIGINT UNSIGNED, dest_instance_id BIGINT UNSIGNED";
 
     dynamicDataAdd = "INSERT INTO ";
     dynamicDataAdd += m_tableName;

@@ -123,13 +123,17 @@ void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip
     if(writerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_WRITER ||
             readerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER)
     {
-        processDataW(serializedData, serializedDataLen);
+        processDataW(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
+                writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId,
+                serializedData, serializedDataLen);
     }
     // Data(r)
     else if(writerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_WRITER ||
             readerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER)
     {
-        processDataR(serializedData, serializedDataLen);
+        processDataR(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
+                writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId,
+                serializedData, serializedDataLen);
     }
     // It's not a Data(p)
     else if(writerId != ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER)
@@ -140,8 +144,12 @@ void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip
     }
 }
 
-void RTPSdump::processDataW(const char *serializedData,
-        unsigned int serializedDataLen)
+void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
+                    unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataW";
     struct DISCBuiltinTopicPublicationData topic = DISC_BUILTIN_TOPIC_PUBLICATION_DATA_INITIALIZE;
@@ -207,7 +215,9 @@ void RTPSdump::processDataW(const char *serializedData,
 
                                         // Add entity.
                                         if(m_entitiesDB != NULL)
-                                            m_entitiesDB->addEntity(topic.guid.prefix.hostId,
+                                            m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                                                    appId, instanceId, readerId, writerId, writerSeqNum,
+                                                    sourceTmp, destHostId, destAppId, destInstanceId, topic.guid.prefix.hostId,
                                                     topic.guid.prefix.appId, topic.guid.prefix.instanceId,
                                                     topic.guid.objectId, 1, topic.parameter->topic, topic.parameter->typeName);
                                     }
@@ -267,8 +277,12 @@ void RTPSdump::processDataW(const char *serializedData,
     }
 }
 
-void RTPSdump::processDataR(const char *serializedData,
-        unsigned int serializedDataLen)
+void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
+                    unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataR";
     struct DISCBuiltinTopicSubscriptionData topic = DISC_BUILTIN_TOPIC_SUBSCRIPTION_DATA_INITIALIZE;
@@ -333,7 +347,9 @@ void RTPSdump::processDataR(const char *serializedData,
 
                                         // Add entity.
                                         if(m_entitiesDB != NULL)
-                                            m_entitiesDB->addEntity(topic.guid.prefix.hostId,
+                                            m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                                                    appId, instanceId, readerId, writerId, writerSeqNum,
+                                                    sourceTmp, destHostId, destAppId, destInstanceId, topic.guid.prefix.hostId,
                                                     topic.guid.prefix.appId, topic.guid.prefix.instanceId,
                                                     topic.guid.objectId, 0, topic.parameter->topic, topic.parameter->typeName);
                                     }
