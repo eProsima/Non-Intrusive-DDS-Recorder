@@ -28,13 +28,15 @@ namespace eProsima
                     std::string &ip_src, std::string &ip_dst, unsigned int hostId,
                     unsigned int appId, unsigned int instanceId, unsigned int readerId,
                     unsigned int writerId, unsigned long long writerSequenceNum, 
-                    struct DDS_Time_t &sourceTmp, const char *serializedData,
-                    unsigned int serializedDataLen);
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId,
+                    const char *serializedData, unsigned int serializedDataLen);
 
             void processData(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum, 
-                    struct DDS_Time_t &sourceTmp, const char *serializedData,
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
                     unsigned int serializedDataLen);
 
         private:
@@ -48,7 +50,8 @@ namespace eProsima
             void processDataNormal(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-                    struct DDS_Time_t &sourceTmp, const char *serializedData,
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
                     unsigned int serializedDataLen);
 
             eProsimaLog &m_log;

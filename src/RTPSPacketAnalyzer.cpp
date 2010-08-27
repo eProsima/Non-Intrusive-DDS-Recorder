@@ -50,6 +50,7 @@ ntohl(((unsigned int*)(buffer))[0])
 enum RtpsSubmessageId
 {
     RTPS_INFOTS_ID = 0x9,
+    RTPS_INFODST_ID = 0xe,
     RTPS_DATA_ID = 0x15
 };
 
@@ -98,6 +99,9 @@ void RTPSPacketAnalyzer::initialize()
     m_guidPrefix[0] = 0;
     m_guidPrefix[1] = 0;
     m_guidPrefix[2] = 0;
+    m_guidDestinationPrefix[0] = 0;
+    m_guidDestinationPrefix[1] = 0;
+    m_guidDestinationPrefix[2] = 0;
 }
 
 void RTPSPacketAnalyzer::processRTPSPacket(const struct timeval &wts, string &ip_src,
@@ -147,6 +151,10 @@ void RTPSPacketAnalyzer::processRTPSPacket(const struct timeval &wts, string &ip
                 auxPointerLen -= submessageLen;
             }
         }
+
+        m_guidDestinationPrefix[0] = 0;
+        m_guidDestinationPrefix[1] = 0;
+        m_guidDestinationPrefix[2] = 0;
     }
     else
     {
@@ -182,6 +190,10 @@ unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const struct timeval &w
         {
             processINFOTSSubmessage(auxPointer, endianess);
         }
+        else if(submessageId == RTPS_INFODST_ID)
+        {
+            processINFODSTSubmessage(auxPointer, endianess);
+        }
         else if(submessageId == RTPS_DATA_ID && m_getDataCallback != NULL)
         {
             processDATASubmessage(wts, ip_src, ip_dst, auxPointer,
@@ -211,6 +223,24 @@ void RTPSPacketAnalyzer::processINFOTSSubmessage(const char *dataSubmessage, boo
         JUMP(auxPointer, SUBMESSAGE_INFOTS_SEC);
         m_lastSourceTmp.nanosec = GET_UINT_ENDIAN(endianess, auxPointer);
         JUMP(auxPointer, SUBMESSAGE_INFOTS_NANOSEC);
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+}
+
+void RTPSPacketAnalyzer::processINFODSTSubmessage(const char *dataSubmessage, bool endianess)
+{
+    const char* const METHOD_NAME = "processINFODTSSubmessage";
+    const char *auxPointer = dataSubmessage;
+
+    if(dataSubmessage != NULL)
+    {
+        m_guidDestinationPrefix[0] = GET_UINT(auxPointer);
+        m_guidDestinationPrefix[1] = GET_UINT(&((unsigned int*)auxPointer)[1]);
+        m_guidDestinationPrefix[2] = GET_UINT(&((unsigned int*)auxPointer)[2]);
+        JUMP(auxPointer, RTPS_HEADER_GUIDPREFIX_SIZE);
     }
     else
     {
@@ -254,8 +284,8 @@ void RTPSPacketAnalyzer::processDATASubmessage(const struct timeval &wts,
 
         if(m_getDataCallback != NULL)
             m_getDataCallback(m_getDataUser, wts, ip_src, ip_dst, m_guidPrefix[0], m_guidPrefix[1],
-                    m_guidPrefix[2], readerId, writerId, sequencenum, m_lastSourceTmp,
-                    serializedData, serializedDataLen);
+                    m_guidPrefix[2], readerId, writerId, sequencenum, m_lastSourceTmp, m_guidDestinationPrefix[0],
+                    m_guidDestinationPrefix[1], m_guidDestinationPrefix[2], serializedData, serializedDataLen);
     }
     else
     {

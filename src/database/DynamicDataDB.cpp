@@ -223,11 +223,12 @@ bool DynamicDataDB::createInitialStatements(string &table_create, string &dynami
                      "ip_src TEXT, ip_dst TEXT, " \
                      "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
                      "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED," \
-                     "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED";
+                     "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED," \
+                     "destinationHostId BIGINT UNSIGNED, destinationAppId BIGINT UNSIGNED, destinationInstaceId BIGINT UNSIGNED";
 
     dynamicDataAdd = "INSERT INTO ";
     dynamicDataAdd += m_tableName;
-    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
     returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, typeCode, suffix);
 
@@ -949,7 +950,9 @@ bool DynamicDataDB::addEnumInitialStatements(string &memberName, string &table_c
 bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, string &ip_dst,
         unsigned int hostId, unsigned int appId, unsigned int instanceId,
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-        struct DDS_Time_t &sourceTmp, struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData)
+        struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+        unsigned int destAppId, unsigned int destInstanceId,
+        struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData)
 {
     const char* const METHOD_NAME = "storeDynamicData";
     bool returnedValue = false;
@@ -975,6 +978,20 @@ bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, 
                 sqlite3_bind_int64(m_addStmt, index++, writerSeqNum);
                 sqlite3_bind_int64(m_addStmt, index++, sourceTmp.sec);
                 sqlite3_bind_int64(m_addStmt, index++, sourceTmp.nanosec);
+
+                if(destHostId != 0 || destAppId != 0 ||
+                        destInstanceId != 0)
+                {
+                    sqlite3_bind_int64(m_addStmt, index++, destHostId);
+                    sqlite3_bind_int64(m_addStmt, index++, destAppId);
+                    sqlite3_bind_int64(m_addStmt, index++, destInstanceId);
+                }
+                else
+                {
+                    sqlite3_bind_null(m_addStmt, index++);
+                    sqlite3_bind_null(m_addStmt, index++);
+                    sqlite3_bind_null(m_addStmt, index++);
+                }
 
                 returnedValue = processStructsStorage(typeCode, dynamicData, suffix, index, false);
 

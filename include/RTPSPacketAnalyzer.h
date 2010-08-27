@@ -15,6 +15,7 @@ namespace eProsima
             std::string &ip_src, std::string &ip_dst, unsigned int hostId,
             unsigned int appId, unsigned int instanceId, unsigned int readerId, unsigned int writerId,
             unsigned long long writerSequenceNum, struct DDS_Time_t &sourceTmp,
+            unsigned int destHostId, unsigned int destAppId, unsigned int destInstanceId,
             const char *serializedData, unsigned int serializedDataLen);
 
     class RTPSPacketAnalyzer
@@ -81,6 +82,8 @@ namespace eProsima
 
             void processINFOTSSubmessage(const char *dataSubmessage, bool endianess);
 
+            void processINFODSTSubmessage(const char *dataSubmessage, bool endianess);
+
             eProsimaLog &m_log;
 
             /// Stores the RTPS protocol version
@@ -90,6 +93,8 @@ namespace eProsima
             unsigned char m_vendorId[2];
 
             unsigned int m_guidPrefix[3];
+
+            unsigned int m_guidDestinationPrefix[3];
 
             /// Stores callback that is called when DATA submessage was found.
             void *m_getDataUser;

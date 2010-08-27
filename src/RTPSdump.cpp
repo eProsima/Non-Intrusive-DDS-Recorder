@@ -91,7 +91,9 @@ void RTPSdump::processDataCallback(void *user, const struct timeval &wts,
         string &ip_src, string &ip_dst, unsigned int hostId,
         unsigned int appId, unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSequenceNum,
-        struct DDS_Time_t &sourceTmp, const char *serializedData, unsigned int serializedDataLen)
+        struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+        unsigned int destAppId, unsigned int destInstanceId,
+        const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataCallback";
     RTPSdump *rtpsdumper = (RTPSdump*)user;
@@ -100,6 +102,7 @@ void RTPSdump::processDataCallback(void *user, const struct timeval &wts,
     {
         rtpsdumper->processData(wts, ip_src, ip_dst, hostId, appId, instanceId,
                 readerId, writerId, writerSequenceNum, sourceTmp,
+                destHostId, destAppId, destInstanceId,
                 serializedData, serializedDataLen);
     }
     else
@@ -112,7 +115,9 @@ void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip
         unsigned int hostId, unsigned int appId,
         unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSeqNum,
-        struct DDS_Time_t &sourceTmp, const char *serializedData, unsigned int serializedDataLen)
+        struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+        unsigned int destAppId, unsigned int destInstanceId, 
+        const char *serializedData, unsigned int serializedDataLen)
 {
     // Data(w)
     if(writerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_WRITER ||
@@ -130,7 +135,8 @@ void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip
     else if(writerId != ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER)
     {
         processDataNormal(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
-                writerSeqNum, sourceTmp, serializedData, serializedDataLen);
+                writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId,
+                serializedData, serializedDataLen);
     }
 }
 
@@ -390,7 +396,9 @@ void RTPSdump::processDataR(const char *serializedData,
 void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, string &ip_dst,
         unsigned int hostId, unsigned int appId, unsigned int instanceId,
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-        struct DDS_Time_t &sourceTmp, const char *serializedData, unsigned int serializedDataLen)
+        struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+        unsigned int destAppId, unsigned int destInstanceId,
+        const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataNormal";
     eEntity *entity = NULL;
@@ -430,7 +438,8 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
                         {
                             if(!dynamicDB->storeDynamicData(wts, ip_src, ip_dst, hostId,
                                         appId, instanceId, readerId, writerId, writerSeqNum,
-                                        sourceTmp, typecode->getCdrTypecode(), dynamicData))
+                                        sourceTmp, destHostId, destAppId, destInstanceId,
+                                        typecode->getCdrTypecode(), dynamicData))
                             {
                                 logError(m_log, "Cannot stores the dynamic data in database");
                             }
