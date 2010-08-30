@@ -227,6 +227,10 @@
 				Name="reader"
 				>
 				<File
+					RelativePath="..\..\..\src\reader\ipDefragmenter.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\src\reader\pcapReader.cpp"
 					>
 				</File>
@@ -272,6 +276,10 @@
 			<Filter
 				Name="reader"
 				>
+				<File
+					RelativePath="..\..\..\include\reader\ipDefragmenter.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\..\include\reader\pcapReader.h"
 					>
