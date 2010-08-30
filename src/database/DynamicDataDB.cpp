@@ -219,7 +219,7 @@ bool DynamicDataDB::createInitialStatements(string &table_create, string &dynami
 
     table_create = "CREATE TABLE ";
     table_create += m_tableName;
-    table_create += " (wireshark_sourcetimestamp_sec BIGINT, wireshark_sourcetimestamp_msec BIGINT UNSIGNED, " \
+    table_create += " (wireshark_timestamp_sec BIGINT, wireshark_timestamp_usec BIGINT UNSIGNED, " \
                      "ip_src TEXT, ip_dst TEXT, " \
                      "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
                      "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED, " \

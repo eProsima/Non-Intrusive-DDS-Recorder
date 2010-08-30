@@ -80,7 +80,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     const char* const TABLE_MESSAGES_CHECK = "SELECT name FROM sqlite_master WHERE name='" MESSAGES_TABLE "'";
     const char* const TABLE_MESSAGES_TRUNCATE = "DELETE FROM " MESSAGES_TABLE;
     const char* const TABLE_MESSAGES_CREATE = "CREATE TABLE " MESSAGES_TABLE \
-        " (wireshark_sourcetimestamp_sec BIGINT, wireshark_sourcetimestamp_msec BIGINT UNSIGNED, " \
+        " (wireshark_timestamp_sec BIGINT, wireshark_timestamp_usec BIGINT UNSIGNED, " \
         "ip_src TEXT, ip_dst TEXT, " \
         "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
         "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED, " \
