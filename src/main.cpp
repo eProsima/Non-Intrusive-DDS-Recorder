@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         else if(strcmp(argv[i], "--db") == 0)
         {
             if(i+1 < argc)
-                db = argv[i++];
+                db = argv[++i];
             else
             {
                 printHelp();
