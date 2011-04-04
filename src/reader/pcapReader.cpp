@@ -198,7 +198,7 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
                             ip_src = inet_ntoa(ipc->ip_src);
                             ip_dst = inet_ntoa(ipc->ip_dst);
 
-                            m_npackets++;
+                            ++m_npackets;
 
                             if(m_callback != NULL)
                                 m_callback(m_user, hdr->ts, ip_src, ip_dst,
