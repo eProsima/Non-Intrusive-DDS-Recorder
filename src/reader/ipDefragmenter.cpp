@@ -40,8 +40,9 @@ ipFragment::ipFragment(unsigned short id, unsigned int offset,
             {
                 ipHold *hold = new ipHold(m_nextOffset, offset - m_nextOffset);
                 m_holds.push_back(hold);
-                m_nextOffset = offset += bufferLength;
             }
+
+            m_nextOffset = offset += bufferLength;
         }
     }
     else
