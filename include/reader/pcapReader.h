@@ -87,6 +87,7 @@ namespace eProsima
 
             /// Count the number of RTPS packet that were processed.
             unsigned int m_npackets;
+            unsigned int m_nrtpspackets;
 
             /// Stores the callback that it must be called.
             processRTPSPacketCallback m_callback;

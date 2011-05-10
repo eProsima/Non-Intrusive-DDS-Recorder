@@ -385,7 +385,7 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
                         }
                         else
                         {
-                            logError(m_log, "Cannot deserialized DataW");
+                            logError(m_log, "Cannot deserialized DataR");
                         }
 
                         REDAFastBufferPool_delete(pool->_typeCodePool);

@@ -65,7 +65,7 @@ using namespace eProsima;
 static const char* const CLASS_NAME = "pcapReader";
 
 pcapReader::pcapReader(string &filename, eProsimaLog &log) : m_filename(filename), m_log(log), m_pcap(NULL),
-    m_npackets(0), m_callback(NULL), m_ipDefragmenter(NULL)
+    m_npackets(0), m_nrtpspackets(0), m_callback(NULL), m_ipDefragmenter(NULL)
 {
     const char* const METHOD_NAME = "pcapReader";
 
@@ -111,8 +111,8 @@ unsigned int pcapReader::processRTPSPackets(void *user, processRTPSPacketCallbac
 
             if(pcap_dispatch(m_pcap, 0, pcapReader::processPacketCallback, (u_char*)this) >= 0)
             {
-                returnedValue = m_npackets;
-                m_npackets = 0;
+                returnedValue = m_nrtpspackets;
+                m_nrtpspackets = 0;
                 m_callback = NULL;
                 m_user = NULL;
             }
@@ -162,6 +162,8 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
 
     if(hdr != NULL && data != NULL)
     {
+        ++m_npackets;
+
         if(hdr->caplen == hdr->len)
         {
             eptr = (struct ether_header*)data;
@@ -198,7 +200,7 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
                             ip_src = inet_ntoa(ipc->ip_src);
                             ip_dst = inet_ntoa(ipc->ip_dst);
 
-                            ++m_npackets;
+                            ++m_nrtpspackets;
 
                             if(m_callback != NULL)
                                 m_callback(m_user, hdr->ts, ip_src, ip_dst,
