@@ -171,7 +171,7 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
             if(ntohs(eptr->ether_type) == ETHERTYPE_IP) // IP type.
             {
                 ipc = (struct ip*)(data + sizeof(struct ether_header));
-
+ 
                 if(ipc->ip_p == 17) // UDP type.
                 {
                     if((ntohs(ipc->ip_off) & IP_MF) ||
@@ -187,7 +187,7 @@ void pcapReader::processPacket(const struct pcap_pkthdr *hdr, const u_char *data
                         udpc = (struct udphdr*)(((u_char*)ipc) + IP_HEADER_LEN(ipc));
                     }
 
-                    if(udpc != NULL)
+                    if(udpc != NULL) 
                     {
                         rtpsPayload = (u_char*)((u_char*)udpc) + sizeof(struct udphdr);
 

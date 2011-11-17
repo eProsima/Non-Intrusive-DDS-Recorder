@@ -8,14 +8,18 @@
 #include <stdio.h>
 #include <string.h>
 
+
+#define TYPECODE_MAX_SERIALIZED_LENGTH 2048
+
 using namespace std;
 using namespace eProsima;
 
 void printHelp()
 {
-    printf("RTPSdump usage: RTPSdump.exe [--db database] [pcap file]\n");
+    printf("RTPSdump usage: RTPSdump.exe [--db database] [--tcMaxSize size] [pcap file]\n");
     printf("Options:\n");
     printf("    --db file: Database file where information will be dumped (Default: dump.db).\n");
+    printf("    --tcMaxSize size: Maximum size of typecode that is supported (Default: 2048).\n");
     printf("    --help: Print help information.\n");
 }
 
@@ -24,6 +28,7 @@ int main(int argc, char *argv[])
     int returnedValue = -1;
     string filename;
     string db = "dump.db";
+    int tcMaxSize = TYPECODE_MAX_SERIALIZED_LENGTH;
     eProsimaLog *log = NULL;
     pcapReader *reader = NULL;
     RTPSPacketAnalyzer *analyzer = NULL;
@@ -42,6 +47,22 @@ int main(int argc, char *argv[])
         {
             if(i+1 < argc)
                 db = argv[++i];
+            else
+            {
+                printHelp();
+                return returnedValue;
+            }
+        }
+        else if(strcmp(argv[i], "--tcMaxSize") == 0)
+        {
+            if(i+1 < argc)
+            {
+                if(sscanf(argv[++i], "%d", &tcMaxSize) != 1)
+                {
+                    printHelp();
+                    return returnedValue;
+                }
+            }
             else
             {
                 printHelp();
@@ -74,7 +95,7 @@ int main(int argc, char *argv[])
 
                     if(analyzer != NULL)
                     {
-                        rtpsdumper = new RTPSdump(*log, db);
+                        rtpsdumper = new RTPSdump(*log, db, tcMaxSize);
 
                         if(rtpsdumper != NULL)
                         {

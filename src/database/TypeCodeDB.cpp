@@ -26,8 +26,13 @@
 #define FILENO fileno
 #endif
 
+#ifdef SQLITE_PREPARE_V2
+#define SQLITE_PREPARE sqlite3_prepare_v2
+#else
+#define SQLITE_PREPARE sqlite3_prepare
+#endif
+
 #define TYPECODE_TABLE "typecodes"
-#define BUFFER_LENGTH 2048
 
 using namespace eProsima;
 using namespace std;
@@ -79,8 +84,8 @@ DynamicDataDB* eTypeCode::getDynamicDataDB()
     return m_dynamicDB;
 }
 
-TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_ready(false),
-    m_databaseH(databaseH), m_addStmt(NULL), m_buffer(NULL)
+TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH, int tcMaxSize) : m_log(log), m_ready(false),
+    m_databaseH(databaseH), m_addStmt(NULL), m_buffer(NULL), m_tcMaxSize(tcMaxSize)
 {
     const char* const METHOD_NAME = "TypeCodeDB";
     const char* const TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='" TYPECODE_TABLE "'";
@@ -90,14 +95,14 @@ TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
 
-    if(sqlite3_prepare_v2(m_databaseH, TABLE_CHECK, strlen(TABLE_CHECK), &stmt, NULL) == SQLITE_OK)
+    if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK, strlen(TABLE_CHECK), &stmt, NULL) == SQLITE_OK)
     {
         ret = sqlite3_step(stmt);
         sqlite3_finalize(stmt);
 
         if(ret == SQLITE_ROW)
         {
-            if(sqlite3_prepare_v2(m_databaseH, TABLE_TRUNCATE, strlen(TABLE_TRUNCATE), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_TRUNCATE, strlen(TABLE_TRUNCATE), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) == SQLITE_DONE)
                     m_ready = true;
@@ -109,7 +114,7 @@ TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
         }
         else if(ret == SQLITE_DONE)
         {
-            if(sqlite3_prepare_v2(m_databaseH, TABLE_CREATE, strlen(TABLE_CREATE), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE, strlen(TABLE_CREATE), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) == SQLITE_DONE)
                     m_ready = true;
@@ -128,9 +133,9 @@ TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
         {
             m_ready = false;
 
-            if(sqlite3_prepare_v2(m_databaseH, TYPECODE_ADD, strlen(TYPECODE_ADD), &m_addStmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TYPECODE_ADD, strlen(TYPECODE_ADD), &m_addStmt, NULL) == SQLITE_OK)
             {
-                m_buffer = (char*)calloc(BUFFER_LENGTH, sizeof(char));
+                m_buffer = (char*)calloc(m_tcMaxSize, sizeof(char));
 
                 if(m_buffer != NULL)
                     m_ready = true;
@@ -290,7 +295,7 @@ char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
 						{
 							RTICdrTypeCode_print_IDL(typeCode, 0);
 							fflush(stdout);
-							if(ReadFile(pipefds[0], m_buffer, BUFFER_LENGTH, &readLen, NULL)
+							if(ReadFile(pipefds[0], m_buffer, m_tcMaxSize, &readLen, NULL)
 								&& readLen)
 							{
 								returnedValue = m_buffer;
@@ -318,7 +323,7 @@ char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
 
         // Redirect to pipe.       
 #ifdef RTI_WIN32
-		_pipe(pipefds, BUFFER_LENGTH, O_TEXT);
+		_pipe(pipefds, m_tcMaxSize, O_TEXT);
 #else
 		pipe(pipefds);
         
@@ -329,7 +334,7 @@ char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
         fflush(stdout);
 
         // TODO Mejorar usando select o poll para comprobar.
-		if((readLen = READ(pipefds[0], m_buffer, BUFFER_LENGTH)) > 0)
+		if((readLen = READ(pipefds[0], m_buffer, m_tcMaxSize)) > 0)
         {
            returnedValue = m_buffer;
         }

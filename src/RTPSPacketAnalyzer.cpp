@@ -278,14 +278,17 @@ void RTPSPacketAnalyzer::processDATASubmessage(const struct timeval &wts,
         
         // TODO: Detect inlineQos
 
-        // Get serialized data.
-        serializedData = auxPointer;
-        serializedDataLen = auxPointerLen;
+        if(dataInside)
+        {
+            // Get serialized data.
+            serializedData = auxPointer;
+            serializedDataLen = auxPointerLen;
 
-        if(m_getDataCallback != NULL)
-            m_getDataCallback(m_getDataUser, wts, ip_src, ip_dst, m_guidPrefix[0], m_guidPrefix[1],
-                    m_guidPrefix[2], readerId, writerId, sequencenum, m_lastSourceTmp, m_guidDestinationPrefix[0],
-                    m_guidDestinationPrefix[1], m_guidDestinationPrefix[2], serializedData, serializedDataLen);
+            if(m_getDataCallback != NULL)
+                m_getDataCallback(m_getDataUser, wts, ip_src, ip_dst, m_guidPrefix[0], m_guidPrefix[1],
+                        m_guidPrefix[2], readerId, writerId, sequencenum, m_lastSourceTmp, m_guidDestinationPrefix[0],
+                        m_guidDestinationPrefix[1], m_guidDestinationPrefix[2], serializedData, serializedDataLen);
+        }
     }
     else
     {

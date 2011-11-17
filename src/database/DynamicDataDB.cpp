@@ -14,6 +14,12 @@
 #include <sys/time.h>
 #endif
 
+#ifdef SQLITE_PREPARE_V2
+#define SQLITE_PREPARE sqlite3_prepare_v2
+#else
+#define SQLITE_PREPARE sqlite3_prepare
+#endif
+
 static const char* const CLASS_NAME = "DynamicDataDB";
 
 using namespace eProsima;
@@ -115,14 +121,14 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
     TABLE_DROP = TABLE_DROP_INIT;
     TABLE_DROP += m_tableName;
 
-    if(sqlite3_prepare_v2(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
+    if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
     {
         ret = sqlite3_step(stmt);
         sqlite3_finalize(stmt);
 
         if(ret == SQLITE_ROW)
         {
-            if(sqlite3_prepare_v2(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) != SQLITE_DONE)
                     logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
@@ -133,7 +139,7 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
 
         if(createInitialStatements(TABLE_CREATE, DYNAMICDATA_ADD, typeCode))
         {
-            if(sqlite3_prepare_v2(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) == SQLITE_DONE)
                     m_ready = true;
@@ -155,7 +161,7 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
         {
             m_ready = false;
 
-            if(sqlite3_prepare_v2(m_databaseH, DYNAMICDATA_ADD.c_str(), strlen(DYNAMICDATA_ADD.c_str()), &m_addStmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, DYNAMICDATA_ADD.c_str(), strlen(DYNAMICDATA_ADD.c_str()), &m_addStmt, NULL) == SQLITE_OK)
             {
                     m_ready = true;
             }
@@ -386,14 +392,14 @@ bool DynamicDataDB::processArraysInitialStatements(string &table_create, string 
                 //printf("%s\n", TABLE_CREATE.c_str());
                 //printf("%s\n", TABLE_INSERT.c_str());
 
-                if(sqlite3_prepare_v2(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
+                if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
                 {
                     ret = sqlite3_step(stmt);
                     sqlite3_finalize(stmt);
 
                     if(ret == SQLITE_ROW)
                     {
-                        if(sqlite3_prepare_v2(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
                         {
                             if(sqlite3_step(stmt) != SQLITE_DONE)
                                 logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
@@ -402,13 +408,13 @@ bool DynamicDataDB::processArraysInitialStatements(string &table_create, string 
                         }
                     }
 
-                    if(sqlite3_prepare_v2(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
+                    if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
                     {
                         if(sqlite3_step(stmt) == SQLITE_DONE)
                         {
                             sqlite3_finalize(stmt);
 
-                            if(sqlite3_prepare_v2(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
+                            if(SQLITE_PREPARE(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
                             {
                                 m_arrays.push_back(new arrayNode(suffix, stmt));
                                 returnedValue = true;
@@ -483,14 +489,14 @@ bool DynamicDataDB::processSequencesInitialStatements(string &table_create, stri
             //printf("%s\n", TABLE_CREATE.c_str());
             //printf("%s\n", TABLE_INSERT.c_str());
 
-            if(sqlite3_prepare_v2(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
             {
                 ret = sqlite3_step(stmt);
                 sqlite3_finalize(stmt);
 
                 if(ret == SQLITE_ROW)
                 {
-                    if(sqlite3_prepare_v2(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
+                    if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
                     {
                         if(sqlite3_step(stmt) != SQLITE_DONE)
                             logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
@@ -499,13 +505,13 @@ bool DynamicDataDB::processSequencesInitialStatements(string &table_create, stri
                     }
                 }
 
-                if(sqlite3_prepare_v2(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
+                if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
                 {
                     if(sqlite3_step(stmt) == SQLITE_DONE)
                     {
                         sqlite3_finalize(stmt);
 
-                        if(sqlite3_prepare_v2(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
                         {
                             m_sequences.push_back(new arrayNode(suffix, stmt));
                             returnedValue = true;

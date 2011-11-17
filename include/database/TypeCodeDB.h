@@ -55,7 +55,7 @@ namespace eProsima
     {
         public:
 
-            TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH);
+            TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH, int tcMaxSize);
 
             ~TypeCodeDB();
 
@@ -99,6 +99,8 @@ namespace eProsima
 
             /// Buffer used in function getPrintID()
             char *m_buffer;
+
+            int m_tcMaxSize;
     };
 }
 

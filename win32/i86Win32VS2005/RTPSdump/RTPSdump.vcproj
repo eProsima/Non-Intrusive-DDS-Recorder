@@ -39,8 +39,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(NDDSHOME)\include&quot;;&quot;$(NDDSHOME)\include\ndds&quot;;&quot;$(ProjectDir)..\..\..\include&quot;;&quot;$(EPROSIMADIR)\code&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Include&quot;;&quot;D:\richi\programas\sqlite-3.7.0&quot;"
-				PreprocessorDefinitions="__LITTLE_ENDIAN__;RTI_ENDIAN_LITTLE;NDDS_DLL_VARIABLE;WIN32;RTI_WIN32;_DEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="&quot;$(NDDSHOME)\include&quot;;&quot;$(NDDSHOME)\include\ndds&quot;;&quot;$(ProjectDir)..\..\..\include&quot;;&quot;$(EPROSIMADIR)\code&quot;;&quot;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include&quot;;&quot;$(HOME)\programas\sqlite-3.7.0&quot;"
+				PreprocessorDefinitions="__LITTLE_ENDIAN__;RTI_ENDIAN_LITTLE;NDDS_DLL_VARIABLE;SQLITE_PREPARE_V2;WIN32;RTI_WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -64,7 +64,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="nddsczd.lib nddscorezd.lib wpcap.lib sqlite3.lib WS2_32.lib"
 				OutputFile="$(ProjectDir)..\..\..\lib\i86Win32VS2005\RTPSdumpd.exe"
-				AdditionalLibraryDirectories="&quot;$(NDDSHOME)\lib\i86Win32VS2005&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Lib&quot;;&quot;D:\richi\programas\sqlite-3.7.0\lib\i86win32vs2005&quot;"
+				AdditionalLibraryDirectories="&quot;$(NDDSHOME)\lib\i86Win32VS2005&quot;;&quot;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Lib&quot;;&quot;$(HOME)\programas\sqlite-3.7.0\lib\i86win32vs2005&quot;"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -118,8 +118,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(NDDSHOME)\include&quot;;&quot;$(NDDSHOME)\include\ndds&quot;;&quot;$(ProjectDir)..\..\..\include&quot;;&quot;$(EPROSIMADIR)\code&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Include&quot;;&quot;D:\richi\programas\sqlite-3.7.0&quot;"
-				PreprocessorDefinitions="__LITTLE_ENDIAN__;RTI_ENDIAN_LITTLE;NDDS_DLL_VARIABLE;WIN32;RTI_WIN32;NDEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="&quot;$(NDDSHOME)\include&quot;;&quot;$(NDDSHOME)\include\ndds&quot;;&quot;$(ProjectDir)..\..\..\include&quot;;&quot;$(EPROSIMADIR)\code&quot;;&quot;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include&quot;;&quot;$(HOME)\programas\sqlite-3.7.0&quot;"
+				PreprocessorDefinitions="__LITTLE_ENDIAN__;RTI_ENDIAN_LITTLE;NDDS_DLL_VARIABLE;SQLITE_PREPARE_V2;WIN32;RTI_WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				AssemblerListingLocation=".\objs\Release\"
 				ObjectFile=".\objs\Release\"
@@ -141,7 +141,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="nddscz.lib nddscorez.lib wpcap.lib sqlite3.lib WS2_32.lib"
 				OutputFile="$(ProjectDir)..\..\..\lib\i86Win32VS2005\RTPSdump.exe"
-				AdditionalLibraryDirectories="&quot;$(NDDSHOME)\lib\i86Win32VS2005&quot;;&quot;D:\richi\programas\WinPcap\WpdPack-4.1.1\Lib&quot;;&quot;D:\richi\programas\sqlite-3.7.0\lib\i86win32vs2005&quot;"
+				AdditionalLibraryDirectories="&quot;$(NDDSHOME)\lib\i86Win32VS2005&quot;;&quot;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Lib&quot;;&quot;$(HOME)\programas\sqlite-3.7.0\lib\i86win32vs2005&quot;"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -307,6 +307,26 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath="..\..\..\src\RTPSdump.rc"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						PreprocessorDefinitions="EPROSIMA_C_DLL_EXPORT;RTI_WIN32;_DEBUG"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						PreprocessorDefinitions="EPROSIMA_C_DLL_EXPORT;RTI_WIN32"
+					/>
+				</FileConfiguration>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

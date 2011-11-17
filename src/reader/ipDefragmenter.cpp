@@ -9,8 +9,17 @@ static const char* const CLASS_NAME = "ipDefragmenter";
 using namespace eProsima;
 using namespace std;
 
-ipHold::ipHold(unsigned int offset, unsigned int length) : m_offset(offset), m_length(length)
+ipHold::ipHold(unsigned int offset, unsigned int length, bool filled, bool last) : m_offset(offset), m_length(length),
+    m_filled(filled), m_last(last)
 {
+}
+
+bool ipHold::compare(const ipHold *hold1, const ipHold *hold2)
+{
+    if(hold1->m_offset < hold2->m_offset)
+        return true;
+
+    return false;
 }
 
 unsigned int ipHold::getOffset()
@@ -23,9 +32,29 @@ unsigned int ipHold::getLength()
     return m_length;
 }
 
+bool ipHold::getIsFilled()
+{
+	return m_filled;
+}
+
+void ipHold::setIsFilled(bool filled)
+{
+	m_filled = filled;
+}
+
+bool ipHold::getIsLast()
+{
+	return m_last;
+}
+
+void ipHold::setIsLast(bool last)
+{
+    m_last = last;
+}
+
 ipFragment::ipFragment(unsigned short id, unsigned int offset,
-        const char *buffer, unsigned short bufferLength) : m_id(id),
-    m_nextOffset(0), m_buffer(NULL)
+        const char *buffer, unsigned short bufferLength, bool last) : m_id(id),
+    m_buffer(NULL)
 {
     const char* const METHOD_NAME = "ipFragment";
     m_buffer = (char*)calloc(offset + bufferLength, sizeof(char));
@@ -34,15 +63,16 @@ ipFragment::ipFragment(unsigned short id, unsigned int offset,
     {
         if(buffer != NULL)
         {
-            memcpy(&m_buffer[offset], buffer, bufferLength);
-
-            if(offset > m_nextOffset)
+            // If not first fragment, create empty hold.
+            if(offset > 0)
             {
-                ipHold *hold = new ipHold(m_nextOffset, offset - m_nextOffset);
-                m_holds.push_back(hold);
+                ipHold *prev_hold = new ipHold(0, offset, false, false);
+                m_holds.push_back(prev_hold);
             }
 
-            m_nextOffset = offset += bufferLength;
+            memcpy(&m_buffer[offset], buffer, bufferLength);
+            ipHold *hold = new ipHold(offset, bufferLength, true, last);
+            m_holds.push_back(hold);
         }
     }
     else
@@ -72,61 +102,86 @@ unsigned short ipFragment::getId()
 }
 
 void ipFragment::addFragment(unsigned int offset, const char *buffer,
-        unsigned short bufferLength)
+        unsigned short bufferLength, bool last)
 {
     const char* const METHOD_NAME = "addFragment";
+    list<ipHold*>::iterator it;
 
-    if(offset >= m_nextOffset)
+    // Sort holds list.
+    m_holds.sort(ipHold::compare);
+
+    // Find place from new fragment in holds list.
+    it = m_holds.begin();
+
+    for(; it != m_holds.end(); ++it)
     {
-        if(offset != m_nextOffset)
-        {
-            ipHold *hold = new ipHold(m_nextOffset, offset - m_nextOffset);
-            m_holds.push_back(hold);
-        }
-
-        m_buffer = (char*)realloc(m_buffer, (offset + bufferLength)*sizeof(char));
-        m_nextOffset = offset + bufferLength;
+        if(((*it)->getOffset() <= offset) &&
+                (offset < (*it)->getOffset() + (*it)->getLength()))
+            break;
     }
-    else
+
+    if(it != m_holds.end())
     {
-        list<ipHold*>::iterator it = m_holds.begin();
-
-        for(; it != m_holds.end(); it++)
-        {
-            if(((*it)->getOffset() <= offset) &&
-                    (offset < (*it)->getOffset() + (*it)->getLength()))
-                break;
-        }
-
-        if(it != m_holds.end())
-        {
             ipHold *hold = (*it);
-            m_holds.erase(it);
 
             if(hold->getOffset() == offset)
             {
                 if(hold->getLength() != bufferLength)
                 {
-                    ipHold *newhold = new ipHold(offset + bufferLength, hold->getLength() - bufferLength);
-                    m_holds.push_back(newhold);
+                    m_holds.erase(it);
+
+                    ipHold *new_hold = new ipHold(offset, bufferLength, true, last);
+                    m_holds.push_back(new_hold);
+                    ipHold *post_hold = new ipHold(offset + bufferLength, hold->getLength() - bufferLength, false, false);
+                    m_holds.push_back(post_hold);
+                   
+                    free(hold);
+                }
+                else
+                {
+                    hold->setIsFilled(true);
+                    hold->setIsLast(last);
                 }
             }
             else
             {
-                ipHold *newhold = new ipHold(hold->getOffset(), offset - hold->getOffset());
-                m_holds.push_back(newhold);
+                m_holds.erase(it);
+
+                ipHold *prev_hold = new ipHold(hold->getOffset(), offset - hold->getOffset(), false, false);
+                m_holds.push_back(prev_hold);
+                ipHold *new_hold = new ipHold(offset, bufferLength, true, last);
+                m_holds.push_back(new_hold);
 
                 if(offset + bufferLength != hold->getOffset() + hold->getLength())
                 {
-                    newhold = new ipHold(offset + bufferLength, (hold->getOffset() + hold->getLength()) - (offset + bufferLength));
-                    m_holds.push_back(newhold);
+                    ipHold *post_hold = new ipHold(offset + bufferLength, (hold->getOffset() + hold->getLength()) - (offset + bufferLength), false, false);
+                    m_holds.push_back(post_hold);
                 }
-            }
 
-            free(hold);
+                free(hold);
+            }
+    }
+    else
+    {
+        
+        // Check if between last fragment and new there is a empty hold.
+        // In true case, then create empty hold in holds list.
+        --it;
+        if(offset > (*it)->getOffset() + (*it)->getLength())
+        {
+            ipHold *prev_hold = new ipHold((*it)->getOffset() + (*it)->getLength(), offset - ((*it)->getOffset() + (*it)->getLength()), false, false);
+            m_holds.push_back(prev_hold);
         }
+        
+        // Reallocate buffer for future copy of new fragment.
+        m_buffer = (char*)realloc(m_buffer, (offset + bufferLength)*sizeof(char));
+
+        // Create new filled hold to new fragment
+        ipHold *hold = new ipHold(offset, bufferLength, true, last);
+        m_holds.push_back(hold);
     }
 
+    // Copy new fragment.
     if(m_buffer != NULL)
     {
         memcpy(&m_buffer[offset], buffer, bufferLength);
@@ -140,15 +195,20 @@ void ipFragment::addFragment(unsigned int offset, const char *buffer,
 char* ipFragment::returnBuffer()
 {
     char *returnedValue = NULL;
+    list<ipHold*>::iterator it = m_holds.begin();
+    bool allFilled = true, last = false;
 
-    if(m_holds.empty())
+    for(; it != m_holds.end(); ++it)
+    {
+        allFilled &= (*it)->getIsFilled();
+        if((*it)->getIsLast())
+            last = true;
+    }
+
+    if(allFilled && last)
     {
         returnedValue = m_buffer;
         m_buffer = NULL;
-    }
-    else
-    {
-        printf("INFO<ipFragment::returnBuffer>: Descartado paquete IP 0x%hX porque tiene huecos\n", m_id);
     }
 
     return returnedValue;
@@ -182,7 +242,7 @@ char* ipDefragmenter::addIpPacket(unsigned short id, unsigned int offset,
 
     if(it == m_packets.end())
     {
-        packet = new ipFragment(id, offset, buffer, bufferLength);
+        packet = new ipFragment(id, offset, buffer, bufferLength, last);
 
         if(packet != NULL)
             m_packets.push_back(packet);
@@ -190,16 +250,20 @@ char* ipDefragmenter::addIpPacket(unsigned short id, unsigned int offset,
     else
     {
         packet = (*it);
-        packet->addFragment(offset, buffer, bufferLength);
+        packet->addFragment(offset, buffer, bufferLength, last);
 
-        // TODO Se pueden perder datos si llega uno más tarde que el último fragmento.
-        if(last)
+         // Check if the IP packet is complete;
+        returnedValue = packet->returnBuffer();
+
+        if(returnedValue != NULL)
         {
-            m_packets.erase(it);
-            returnedValue = packet->returnBuffer();
+            m_packets.erase(it);           
             delete packet;
         }
     }
+
+
+
 
     return returnedValue;
 }

@@ -12,35 +12,42 @@ namespace eProsima
     class ipHold
     {
         public:
-            ipHold(unsigned int offset, unsigned int length);
+            ipHold(unsigned int offset, unsigned int length, bool filled, bool last);
+
+            static bool compare(const ipHold *hold1, const ipHold *hold2);
 
             unsigned int getOffset();
             unsigned int getLength();
+			bool getIsFilled();
+			void setIsFilled(bool filled);
+			bool getIsLast();
+            void setIsLast(bool last);
 
         private:
             unsigned int m_offset;
             unsigned int m_length;
+			bool m_filled;
+			bool m_last;
     };
 
     class ipFragment
     {
         public:
             ipFragment(unsigned short id, unsigned int offset,
-                    const char *buffer, unsigned short bufferLength);
+                    const char *buffer, unsigned short bufferLength, bool last);
 
             ~ipFragment();
 
             unsigned short getId();
 
             void addFragment(unsigned int offset, const char *buffer,
-                    unsigned short bufferLength);
+                    unsigned short bufferLength, bool last);
 
             char* returnBuffer();
 
         private:
 
             unsigned short m_id;
-            unsigned int m_nextOffset;
             char *m_buffer;
             std::list<ipHold*> m_holds;
     };

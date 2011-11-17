@@ -20,8 +20,6 @@
 #define ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER 0x000004c7
 #define ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_WRITER 0x000004c2
 
-#define TYPECODE_MAX_SERIALIZED_LENGTH 2048
-
 /* RTI types */
 struct DISCBuiltinTopicPublicationDataPluginEndpointData
 {
@@ -46,14 +44,14 @@ using namespace std;
 
 static const char* const CLASS_NAME = "RTPSdump";
 
-RTPSdump::RTPSdump(eProsimaLog &log, string &database) : m_log(log), m_databaseH(NULL),
-    m_typecodeDB(NULL), m_entitiesDB(NULL)
+RTPSdump::RTPSdump(eProsimaLog &log, string &database, int tcMaxSize) : m_log(log), m_databaseH(NULL),
+    m_typecodeDB(NULL), m_entitiesDB(NULL), m_tcMaxSize(tcMaxSize)
 {
     const char* const METHOD_NAME = "RTPSdump";
 
     if(sqlite3_open(database.c_str(), &m_databaseH) == SQLITE_OK)
     {
-        m_typecodeDB = new TypeCodeDB(m_log, m_databaseH);
+        m_typecodeDB = new TypeCodeDB(m_log, m_databaseH, tcMaxSize);
 
         if(m_typecodeDB != NULL)
         {
@@ -179,12 +177,12 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
                     pool->_partitionMaximumNameCount = 0;
                     pool->_partitionMaximumCumulativeLength = 0;
                     pool->_propertyMaximumSerializedLength = 0;
-                    pool->_typeCodeMaximumSerializedLength = TYPECODE_MAX_SERIALIZED_LENGTH;
+                    pool->_typeCodeMaximumSerializedLength = m_tcMaxSize;
                     pool->_locatorFilterSeqMaximumLength = 0;
                     pool->_locatorFilterExpMaximumLength = 0;
 
                     pool->_typeCodePool = REDAFastBufferPool_new(
-                            (TYPECODE_MAX_SERIALIZED_LENGTH * RTI_CDR_CHAR_SIZE),
+                            (m_tcMaxSize * RTI_CDR_CHAR_SIZE),
                             RTI_CDR_LONG_ALIGN, &poolProperty);
 
                     if(pool->_typeCodePool != NULL)
@@ -314,7 +312,7 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
                     pool->_propertyListMaximumLength = 0;
                     pool->_propertyStringMaximumLength = 0;
                     pool->_propertyMaximumSerializedLength = 0;
-                    pool->_typeCodeMaximumSerializedLength = TYPECODE_MAX_SERIALIZED_LENGTH;
+                    pool->_typeCodeMaximumSerializedLength = m_tcMaxSize;
                     pool->_userDataMaximumLength = 0;
                     pool->_groupDataMaximumLength = 0;
                     pool->_topicDataMaximumLength = 0;
@@ -323,7 +321,7 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
                     pool->_contentFilterPropertyMaxSerializedLength = 0;
 
                     pool->_typeCodePool = REDAFastBufferPool_new(
-                            (TYPECODE_MAX_SERIALIZED_LENGTH * RTI_CDR_CHAR_SIZE),
+                            (m_tcMaxSize * RTI_CDR_CHAR_SIZE),
                             RTI_CDR_LONG_ALIGN, &poolProperty);
 
                     if(pool->_typeCodePool != NULL)
@@ -373,7 +371,7 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
                             }
                             else
                             {
-                                logInfo(m_log, "the datawriter of topic %s doesn't send the typecode", topic.parameter->topic);
+                                logInfo(m_log, "the datareader of topic %s doesn't send the typecode", topic.parameter->topic);
 
                                 if(m_entitiesDB != NULL)
                                     m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,

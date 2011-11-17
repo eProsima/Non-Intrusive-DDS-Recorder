@@ -20,7 +20,7 @@ namespace eProsima
     {
         public:
 
-            RTPSdump(eProsimaLog &log, std::string &dabase);
+            RTPSdump(eProsimaLog &log, std::string &dabase, int tcMaxSize);
 
             ~RTPSdump();
 
@@ -70,6 +70,8 @@ namespace eProsima
             TypeCodeDB *m_typecodeDB;
 
             EntitiesDB *m_entitiesDB;
+
+            int m_tcMaxSize;
     };
 }
 

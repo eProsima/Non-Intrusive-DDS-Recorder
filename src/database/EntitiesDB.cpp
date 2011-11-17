@@ -10,6 +10,12 @@
 #include <sys/time.h>
 #endif
 
+#ifdef SQLITE_PREPARE_V2
+#define SQLITE_PREPARE sqlite3_prepare_v2
+#else
+#define SQLITE_PREPARE sqlite3_prepare
+#endif
+
 #define ENTITIES_TABLE "entities"
 #define MESSAGES_TABLE "entities_topic_messages"
 #define READER_TEXT "reader"
@@ -91,14 +97,14 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
 
-    if(sqlite3_prepare_v2(m_databaseH, TABLE_CHECK, strlen(TABLE_CHECK), &stmt, NULL) == SQLITE_OK)
+    if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK, strlen(TABLE_CHECK), &stmt, NULL) == SQLITE_OK)
     {
         ret = sqlite3_step(stmt);
         sqlite3_finalize(stmt);
 
         if(ret == SQLITE_ROW)
         {
-            if(sqlite3_prepare_v2(m_databaseH, TABLE_TRUNCATE, strlen(TABLE_TRUNCATE), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_TRUNCATE, strlen(TABLE_TRUNCATE), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) == SQLITE_DONE)
                     m_ready = true;
@@ -112,7 +118,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
         }
         else if(ret == SQLITE_DONE)
         {
-            if(sqlite3_prepare_v2(m_databaseH, TABLE_CREATE, strlen(TABLE_CREATE), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE, strlen(TABLE_CREATE), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) == SQLITE_DONE)
                     m_ready = true;
@@ -133,16 +139,16 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
         {
             m_ready = false;
 
-            if(sqlite3_prepare_v2(m_databaseH, ENTITY_ADD, strlen(ENTITY_ADD), &m_addStmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, ENTITY_ADD, strlen(ENTITY_ADD), &m_addStmt, NULL) == SQLITE_OK)
             {
-                if(sqlite3_prepare_v2(m_databaseH, TABLE_MESSAGES_CHECK, strlen(TABLE_MESSAGES_CHECK), &stmt, NULL) == SQLITE_OK)
+                if(SQLITE_PREPARE(m_databaseH, TABLE_MESSAGES_CHECK, strlen(TABLE_MESSAGES_CHECK), &stmt, NULL) == SQLITE_OK)
                 {
                     ret = sqlite3_step(stmt);
                     sqlite3_finalize(stmt);
 
                     if(ret == SQLITE_ROW)
                     {
-                        if(sqlite3_prepare_v2(m_databaseH, TABLE_MESSAGES_TRUNCATE, strlen(TABLE_MESSAGES_TRUNCATE), &stmt, NULL) == SQLITE_OK)
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_MESSAGES_TRUNCATE, strlen(TABLE_MESSAGES_TRUNCATE), &stmt, NULL) == SQLITE_OK)
                         {
                             if(sqlite3_step(stmt) == SQLITE_DONE)
                                 m_ready = true;
@@ -156,7 +162,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
                     }
                     else if(ret == SQLITE_DONE)
                     {
-                        if(sqlite3_prepare_v2(m_databaseH, TABLE_MESSAGES_CREATE, strlen(TABLE_MESSAGES_CREATE), &stmt, NULL) == SQLITE_OK)
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_MESSAGES_CREATE, strlen(TABLE_MESSAGES_CREATE), &stmt, NULL) == SQLITE_OK)
                         {
                             if(sqlite3_step(stmt) == SQLITE_DONE)
                                 m_ready = true;
@@ -177,7 +183,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
                     {
                         m_ready = false;
 
-                        if(sqlite3_prepare_v2(m_databaseH, MESSAGES_ADD, strlen(MESSAGES_ADD), &m_addMsgStmt, NULL) == SQLITE_OK)
+                        if(SQLITE_PREPARE(m_databaseH, MESSAGES_ADD, strlen(MESSAGES_ADD), &m_addMsgStmt, NULL) == SQLITE_OK)
                         {
                             m_ready = true;
                         }
