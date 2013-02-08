@@ -350,3 +350,8 @@ char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
 
     return returnedValue;
 }
+
+/*char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
+{
+
+}*/

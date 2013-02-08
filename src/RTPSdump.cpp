@@ -9,16 +9,26 @@
 #include "pres/pres_typePlugin.h"
 #include "dds_c/dds_c_typecode.h"
 #include "dds_c/dds_c_dynamicdata.h"
+#include "CdrBuffer.h"
+#include "Cdr.h"
 
 #ifndef RTI_WIN32
 #include <sys/time.h>
 #endif
 
-#define ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER 0x000100c2
-#define ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER 0x000003c7
-#define ENTITYID_SEDP_BUILTIN_PUBLICATIONS_WRITER 0x000003c2
-#define ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER 0x000004c7
-#define ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_WRITER 0x000004c2
+using namespace eProsima;
+
+#define ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER (0x000100c2)
+#define ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER (0x000003c7)
+#define ENTITYID_SEDP_BUILTIN_PUBLICATIONS_WRITER (0x000003c2)
+#define ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER (0x000004c7)
+#define ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_WRITER (0x000004c2)
+
+#define RTPS_PID_END (0x0001)
+#define RTPS_PID_TOPIC_NAME (0x0005)
+#define RTPS_PID_TYPE_NAME (0x0007)
+#define RTPS_PID_TYPECODE (0x0047)
+#define RTPS_PID_GUID (0x005A)
 
 /* RTI types */
 struct DISCBuiltinTopicPublicationDataPluginEndpointData
@@ -159,7 +169,10 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
 
     if(serializedData != NULL)
     {
-        if(DISCBuiltinTopicPublicationDataPluginSupport_initializeData_ex(&topic, RTI_TRUE) == RTI_TRUE)
+        PublicationBuiltinTopic pubtopic;
+        deserializePublicationBuiltinTopic((char*)serializedData, serializedDataLen, pubtopic);
+        
+        /*if(DISCBuiltinTopicPublicationDataPluginSupport_initializeData_ex(&topic, RTI_TRUE) == RTI_TRUE)
         {
             RTIOsapiHeap_allocateStructure(&epd, struct DISCBuiltinTopicPublicationDataPluginEndpointData);
 
@@ -195,6 +208,10 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
                         {
                             if(topic.parameter->typeCode != NULL)
                             {
+                                CDRBuffer buffer((char*)topic.parameter->typeCode, RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
+                                CDR cdr(buffer, CDR::DDS_CDR);
+
+                                //
                                 RTIOsapiHeap_allocateBufferNotAligned((char**)&typeCode, RTICdrTypeCode_get_stream_length(topic.parameter->typeCode));
 
                                 if(typeCode != NULL)
@@ -229,6 +246,8 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
                                 {
                                     logError(m_log, "Cannot allocate DDS_TypeCode");
                                 }
+
+                                //
                             }
                             else
                             {
@@ -274,7 +293,7 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
         else
         {
             logError(m_log, "Cannot initialized DISCBuiltinTopicPublicationData");
-        }
+        }*/
     }
     else
     {
@@ -299,7 +318,9 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
 
     if(serializedData != NULL)
     {
-        if(DISCBuiltinTopicSubscriptionDataPluginSupport_initializeData_ex(&topic, RTI_TRUE) == RTI_TRUE)
+        SubscriptionBuiltinTopic subtopic;
+        deserializeSubscriptionBuiltinTopic((char*)serializedData, serializedDataLen, subtopic);
+        /*if(DISCBuiltinTopicSubscriptionDataPluginSupport_initializeData_ex(&topic, RTI_TRUE) == RTI_TRUE)
         {
             RTIOsapiHeap_allocateStructure(&epd, struct DISCBuiltinTopicSubscriptionDataPluginEndpointData);
 
@@ -413,7 +434,7 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
         else
         {
             logError(m_log, "Cannot initialized DISCBuiltinTopicSubscriptionData");
-        }
+        }*/
     }
     else
     {
@@ -504,4 +525,123 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
                 hostId, appId, instanceId, readerId);
     }
 
+}
+
+
+bool RTPSdump::deserializePublicationBuiltinTopic(char* serializedData, unsigned int serializedDataLength, RTPSdump::PublicationBuiltinTopic &pubtopic)
+{
+    const char* const METHOD_NAME = "deserializePublicationBuiltinTopic";
+    bool returnedValue = false;
+
+    if(serializedData != NULL)
+    { 
+        CDRBuffer buffer((char*)serializedData, serializedDataLength);
+        CDR cdr(buffer, CDR::DDS_CDR);
+
+        if(cdr.read_encapsulation() && cdr.getDDSCdrPlFlag() == CDR::DDS_CDR_WITH_PL)
+        {
+            uint16_t parameterId, parameterLength;
+
+            returnedValue = cdr >> parameterId;
+            returnedValue &= cdr >> parameterLength;
+
+            while(returnedValue && parameterId != RTPS_PID_END)
+            {
+                CDRBuffer::State currentState = cdr.getState();
+
+                switch(parameterId)
+                {
+                case RTPS_PID_GUID:
+                    returnedValue &= cdr.deserialize(pubtopic.guid.hostId, CDRBuffer::BIG_ENDIAN);
+                    returnedValue &= cdr.deserialize(pubtopic.guid.appId, CDRBuffer::BIG_ENDIAN);
+                    returnedValue &= cdr.deserialize(pubtopic.guid.instanceId, CDRBuffer::BIG_ENDIAN);
+                    returnedValue &= cdr.deserialize(pubtopic.guid.objectId, CDRBuffer::BIG_ENDIAN);
+                    break;
+                case RTPS_PID_TOPIC_NAME:
+                    returnedValue &= cdr >> pubtopic.topic_name;
+                    break;
+                case RTPS_PID_TYPE_NAME:
+                    returnedValue &= cdr >> pubtopic.type_name;
+                    break;
+                case RTPS_PID_TYPECODE:
+                    pubtopic.typeCode = cdr.getCurrentPosition();
+                    pubtopic.typeCodeLength = parameterLength;
+                    break;
+                default:
+                    break;
+                }
+
+                cdr.setState(currentState);
+                returnedValue &= cdr.jump(parameterLength);
+
+                returnedValue &= cdr >> parameterId;
+                returnedValue &= cdr >> parameterLength;
+            }
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool RTPSdump::deserializeSubscriptionBuiltinTopic(char* serializedData, unsigned int serializedDataLength, RTPSdump::SubscriptionBuiltinTopic &subtopic)
+{
+    const char* const METHOD_NAME = "deserializeSubscriptionBuiltinTopic";
+    bool returnedValue = false;
+
+    if(serializedData != NULL)
+    { 
+        CDRBuffer buffer((char*)serializedData, serializedDataLength);
+        CDR cdr(buffer, CDR::DDS_CDR);
+
+        if(cdr.read_encapsulation() && cdr.getDDSCdrPlFlag() == CDR::DDS_CDR_WITH_PL)
+        {
+            uint16_t parameterId, parameterLength;
+
+            returnedValue = cdr >> parameterId;
+            returnedValue &= cdr >> parameterLength;
+
+            while(returnedValue && parameterId != RTPS_PID_END)
+            {
+                CDRBuffer::State currentState = cdr.getState();
+
+                switch(parameterId)
+                {
+                case RTPS_PID_GUID:
+                    returnedValue &= cdr.deserialize(subtopic.guid.hostId, CDRBuffer::BIG_ENDIAN);
+                    returnedValue &= cdr.deserialize(subtopic.guid.appId, CDRBuffer::BIG_ENDIAN);
+                    returnedValue &= cdr.deserialize(subtopic.guid.instanceId, CDRBuffer::BIG_ENDIAN);
+                    returnedValue &= cdr.deserialize(subtopic.guid.objectId, CDRBuffer::BIG_ENDIAN);
+                    break;
+                case RTPS_PID_TOPIC_NAME:
+                    returnedValue &= cdr >> subtopic.topic_name;
+                    break;
+                case RTPS_PID_TYPE_NAME:
+                    returnedValue &= cdr >> subtopic.type_name;
+                    break;
+                case RTPS_PID_TYPECODE:
+                    subtopic.typeCode = cdr.getCurrentPosition();
+                    subtopic.typeCodeLength = parameterLength;
+                    break;
+                default:
+                    break;
+                }
+
+                cdr.setState(currentState);
+                returnedValue &= cdr.jump(parameterLength);
+
+                returnedValue &= cdr >> parameterId;
+                returnedValue &= cdr >> parameterLength;
+            }
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
 }
