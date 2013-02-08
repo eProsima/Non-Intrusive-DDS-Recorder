@@ -3,6 +3,7 @@
 #include "database/TypeCodeDB.h"
 #include "database/EntitiesDB.h"
 #include "database/DynamicDataDB.h"
+#include "cdr/TypeCode.h"
 
 #include "disc/disc_builtin.h"
 #include "cdr/cdr_stream.h"
@@ -320,6 +321,11 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
     {
         SubscriptionBuiltinTopic subtopic;
         deserializeSubscriptionBuiltinTopic((char*)serializedData, serializedDataLen, subtopic);
+
+        if(subtopic.typeCode != NULL)
+        {
+            TypeCode typeCode(subtopic.typeCode, subtopic.typeCodeLength);
+        }
         /*if(DISCBuiltinTopicSubscriptionDataPluginSupport_initializeData_ex(&topic, RTI_TRUE) == RTI_TRUE)
         {
             RTIOsapiHeap_allocateStructure(&epd, struct DISCBuiltinTopicSubscriptionDataPluginEndpointData);

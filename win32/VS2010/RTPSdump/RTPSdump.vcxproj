@@ -92,6 +92,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\cdr\TypeCode.cpp" />
     <ClCompile Include="..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\src\RTPSdump.cpp" />
     <ClCompile Include="..\..\..\src\RTPSPacketAnalyzer.cpp" />
@@ -109,6 +110,7 @@
     <ClCompile Include="..\..\..\src\database\TypeCodeDB.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\cdr\TypeCode.h" />
     <ClInclude Include="..\..\..\include\RTPSdump.h" />
     <ClInclude Include="..\..\..\include\RTPSPacketAnalyzer.h" />
     <ClInclude Include="..\..\..\..\..\..\eProsima\code\eProsima_cpp\eProsimaLog.h" />
