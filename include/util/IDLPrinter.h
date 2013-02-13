@@ -2,8 +2,7 @@
 #define _UTIL_IDLPRINTER_H_
 
 #include <sstream>
-#include <map>
-#include <vector>
+#include <unordered_map>
 
 namespace eProsima
 {
@@ -15,14 +14,13 @@ namespace eProsima
 
         IDLPrinter(IDLPrinter &&printer);
 
-        bool addTypeName(std::string &&typeName);
+        bool isTypePrinter(std::string &typeName);
 
         std::string str();
 
     private:
 
-        std::vector<IDLPrinter> m_typePriters;
-        std::map<std::string, std::vector<IDLPrinter>::iterator> m_typeNames;
+        std::unordered_map<std::string, IDLPrinter> m_typePrinters;
     };
 };
 

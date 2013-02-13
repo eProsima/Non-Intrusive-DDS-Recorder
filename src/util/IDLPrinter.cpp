@@ -8,7 +8,7 @@ IDLPrinter::IDLPrinter(IDLPrinter &&printer) : m_typeNames(std::move(printer.m_t
     ++i;
 }
 
-bool IDLPrinter::addTypeName(std::string &&typeName)
+bool IDLPrinter::isTypePrinter(std::string &typeName)
 {
     /*std::pair<std::map<std::string, std::vector<IDLPrinter>::iterator>::iterator, bool> ret = m_typeNames.insert(std::move(typeName));
 
