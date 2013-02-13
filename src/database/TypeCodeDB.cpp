@@ -1,12 +1,15 @@
 #include "database/TypeCodeDB.h"
 #include "database/DynamicDataDB.h"
+#include "util/IDLPrinter.h"
+#include "cdr/StructTypeCode.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
+#ifndef RICARDO
 #include "cdr/cdr_stream.h"
 #include "cdr/cdr_typeCode.h"
 #include "osapi/osapi_heap.h"
 
-#ifdef RTI_WIN32
+#ifdef EPROSIMA_WIN32
 #include <windows.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -25,6 +28,7 @@
 #define READ read
 #define FILENO fileno
 #endif
+#endif
 
 #ifdef SQLITE_PREPARE_V2
 #define SQLITE_PREPARE sqlite3_prepare_v2
@@ -40,19 +44,42 @@ using namespace std;
 static const char* const CLASS_NAME = "TypeCodeDB";
 static const char* const TYPECODE_ADD = "INSERT INTO " TYPECODE_TABLE " VALUES(?, ?, ?)";
 
+#ifdef RICARDO
+eTypeCode::eTypeCode(std::string &topicName, std::string &typeName,
+        TypeCode *typeCode, DynamicDataDB *dynamicDB) :
+    m_topicName(topicName), m_typeName(typeName), m_typeCode(typeCode),
+    m_dynamicDB(dynamicDB)
+{
+}
+#else
 eTypeCode::eTypeCode(const char *topicName, const char *typeName,
         struct RTICdrTypeCode *typeCode, DynamicDataDB *dynamicDB) :
     m_topicName(topicName), m_typeName(typeName), m_typeCode(typeCode),
     m_dynamicDB(dynamicDB)
 {
 }
+#endif
 
 eTypeCode::~eTypeCode()
 {
+#ifdef RICARDO
+    delete m_typeCode;
+#else
     RTIOsapiHeap_freeBufferNotAligned(m_typeCode);
+#endif
 
     if(m_dynamicDB != NULL)
         delete m_dynamicDB;
+}
+
+bool eTypeCode::equal(std::string &topicName, std::string &typeName)
+{
+    bool returnedValue = false;
+
+    if(m_topicName == topicName && m_typeName == typeName)
+            returnedValue = true;
+
+    return returnedValue;
 }
 
 bool eTypeCode::equal(const char *topicName, const char *typeName)
@@ -74,10 +101,17 @@ bool eTypeCode::equal(const char *topicName, const char *typeName)
     return returnedValue;
 }
 
+#ifdef RICARDO
+TypeCode* eTypeCode::getCdrTypecode()
+{
+    return m_typeCode;
+}
+#else
 RTICdrTypeCode* eTypeCode::getCdrTypecode()
 {
     return m_typeCode;
 }
+#endif
 
 DynamicDataDB* eTypeCode::getDynamicDataDB()
 {
@@ -171,6 +205,61 @@ TypeCodeDB::~TypeCodeDB()
     }
 }
 
+#ifdef RICARDO
+bool TypeCodeDB::addTypecode(std::string &topicName, std::string &typeName, TypeCode *typeCode)
+{
+    const char* const METHOD_NAME = "addTypeCode";
+    char *buffer = NULL;
+    DynamicDataDB *dynamicDB;
+    string dynamicTableName;
+
+    if(m_ready)
+    {
+        if(findTypecode(topicName, typeName) == NULL)
+        {
+            // Create the dynamic data database.
+            dynamicTableName = topicName;
+            dynamicTableName += "__";
+            dynamicTableName += typeName;
+            DynamicDataDB::eraseSpacesInTableName(dynamicTableName);
+            dynamicDB = new DynamicDataDB(m_log, m_databaseH, dynamicTableName, typeCode);
+
+            if(dynamicDB != NULL)
+            {
+                if(sqlite3_reset(m_addStmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_text(m_addStmt, 1, topicName.c_str(), topicName.length(), SQLITE_STATIC);
+                    sqlite3_bind_text(m_addStmt, 2, typeName.c_str(), typeName.length(), SQLITE_STATIC);
+                    string txtTypeCode = getPrintIDL(typeCode);
+                    sqlite3_bind_text(m_addStmt, 3, txtTypeCode.c_str(), txtTypeCode.length(), SQLITE_STATIC);
+
+                    if(sqlite3_step(m_addStmt) == SQLITE_DONE)
+                    {
+                        m_typecodes.push_back(new eTypeCode(topicName, typeName, typeCode, dynamicDB));
+                        return true;
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot step the add statement");
+                    }
+                }
+                else
+                {
+                    logError(m_log, "Cannot reset the add statement");
+                }
+
+                delete dynamicDB;
+            }
+            else
+            {
+                logError(m_log, "Cannot create the DynamicDataDB to topic %s", topicName);
+            }
+        }
+    }
+
+    return false;
+}
+#else
 bool TypeCodeDB::addTypecode(const char *topicName, const char *typeName,
                     struct RTICdrTypeCode *typeCode)
 {
@@ -226,8 +315,13 @@ bool TypeCodeDB::addTypecode(const char *topicName, const char *typeName,
 
     return false;
 }
+#endif
 
+#ifdef RICARDO
+eTypeCode* TypeCodeDB::findTypecode(std::string &topicName, std::string &typeName)
+#else
 eTypeCode* TypeCodeDB::findTypecode(const char *topicName, const char *typeName)
+#endif
 {
     eTypeCode *returnedValue = NULL;
     list<eTypeCode*>::iterator it;
@@ -244,7 +338,18 @@ eTypeCode* TypeCodeDB::findTypecode(const char *topicName, const char *typeName)
     return returnedValue;
 }
 
+#ifdef RICARDO
+std::string TypeCodeDB::getPrintIDL(const TypeCode *typeCode)
+{
+    IDLPrinter txtStream;
+
+    txtStream << typeCode;
+
+    return txtStream.str();
+}
+#else
 char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
+
 {
 /* Win32 example
 	HANDLE oldStdout;
@@ -350,8 +455,4 @@ char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
 
     return returnedValue;
 }
-
-/*char* TypeCodeDB::getPrintIDL(RTICdrTypeCode *typeCode)
-{
-
-}*/
+#endif

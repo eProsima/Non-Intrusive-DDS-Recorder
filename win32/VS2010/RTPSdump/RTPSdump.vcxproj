@@ -52,7 +52,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(NDDSHOME)\include;$(NDDSHOME)\include\ndds;$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include\cpp;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;__LITTLE_ENDIAN__;RTI_ENDIAN_LITTLE;NDDS_DLL_VARIABLE;SQLITE_PREPARE_V2;WIN32;RTI_WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>EPROSIMA_WIN32;__LITTLE_ENDIAN__;RTI_ENDIAN_LITTLE;NDDS_DLL_VARIABLE;SQLITE_PREPARE_V2;WIN32;RTI_WIN32;_DEBUG;_CONSOLE;RICARDO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -92,6 +92,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\cdr\EnumTypeCode.cpp" />
+    <ClCompile Include="..\..\..\src\cdr\MemberedTypeCode.cpp" />
+    <ClCompile Include="..\..\..\src\cdr\PrimitiveTypeCode.cpp" />
+    <ClCompile Include="..\..\..\src\cdr\StringTypeCode.cpp" />
+    <ClCompile Include="..\..\..\src\cdr\StructTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\TypeCode.cpp" />
     <ClCompile Include="..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\src\RTPSdump.cpp" />
@@ -108,8 +113,14 @@
     <ClCompile Include="..\..\..\src\database\DynamicDataDB.cpp" />
     <ClCompile Include="..\..\..\src\database\EntitiesDB.cpp" />
     <ClCompile Include="..\..\..\src\database\TypeCodeDB.cpp" />
+    <ClCompile Include="..\..\..\src\util\IDLPrinter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\cdr\EnumTypeCode.h" />
+    <ClInclude Include="..\..\..\include\cdr\MemberedTypeCode.h" />
+    <ClInclude Include="..\..\..\include\cdr\PrimitiveTypeCode.h" />
+    <ClInclude Include="..\..\..\include\cdr\StringTypeCode.h" />
+    <ClInclude Include="..\..\..\include\cdr\StructTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\TypeCode.h" />
     <ClInclude Include="..\..\..\include\RTPSdump.h" />
     <ClInclude Include="..\..\..\include\RTPSPacketAnalyzer.h" />
@@ -119,6 +130,7 @@
     <ClInclude Include="..\..\..\include\database\DynamicDataDB.h" />
     <ClInclude Include="..\..\..\include\database\EntitiesDB.h" />
     <ClInclude Include="..\..\..\include\database\TypeCodeDB.h" />
+    <ClInclude Include="..\..\..\include\util\IDLPrinter.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\..\src\RTPSdump.rc">

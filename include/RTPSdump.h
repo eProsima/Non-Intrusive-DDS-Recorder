@@ -30,15 +30,15 @@ namespace eProsima
                     unsigned int appId, unsigned int instanceId, unsigned int readerId,
                     unsigned int writerId, unsigned long long writerSequenceNum, 
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId,
+                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
                     const char *serializedData, unsigned int serializedDataLen);
 
             void processData(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum, 
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
-                    unsigned int serializedDataLen);
+                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
+                    const char *serializedData, unsigned int serializedDataLen);
 
         private:
 
@@ -82,26 +82,26 @@ namespace eProsima
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
-                    unsigned int serializedDataLen);
+                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
+                    const char *serializedData, unsigned int serializedDataLen);
 
             void processDataR(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
-                    unsigned int serializedDataLen);
+                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
+                    const char *serializedData, unsigned int serializedDataLen);
 
             void processDataNormal(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
-                    unsigned int serializedDataLen);
+                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
+                    const char *serializedData, unsigned int serializedDataLen);
 
-            bool deserializePublicationBuiltinTopic(char* serializedData, unsigned int serializedDataLength, PublicationBuiltinTopic &pubtopic);
+            bool deserializePublicationBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, PublicationBuiltinTopic &pubtopic);
 
-            bool deserializeSubscriptionBuiltinTopic(char* serializedData, unsigned int serializedDataLength, SubscriptionBuiltinTopic &subtopic);
+            bool deserializeSubscriptionBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, SubscriptionBuiltinTopic &subtopic);
 
             eProsimaLog &m_log;
             

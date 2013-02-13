@@ -15,7 +15,7 @@ namespace eProsima
             std::string &ip_src, std::string &ip_dst, unsigned int hostId,
             unsigned int appId, unsigned int instanceId, unsigned int readerId, unsigned int writerId,
             unsigned long long writerSequenceNum, struct DDS_Time_t &sourceTmp,
-            unsigned int destHostId, unsigned int destAppId, unsigned int destInstanceId,
+            unsigned int destHostId, unsigned int destAppId, unsigned int destInstanceId, bool endianess,
             const char *serializedData, unsigned int serializedDataLen);
 
     class RTPSPacketAnalyzer

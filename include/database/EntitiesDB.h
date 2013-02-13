@@ -21,7 +21,7 @@ namespace eProsima
 
             eEntity(unsigned int hostId, unsigned int appId,
                     unsigned int instanceId, unsigned int entityId,
-                    const char *topicName, const char *typeName,
+                    std::string &topicName, std::string &typeName,
                     bool existsTypecode);
 
             /**
@@ -64,7 +64,7 @@ namespace eProsima
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
                     unsigned int destAppId, unsigned int destInstanceId,const unsigned int entity_hostId, const unsigned int entity_appId,
                     const unsigned int entity_instanceId, const unsigned int entityId, int type,
-                    const char *topicName, const char *typeName, bool existsTypecode);
+                    std::string &topicName, std::string &typeName, bool existsTypecode);
 
             eEntity* findEntity(const unsigned int hostId, const unsigned int appId,
                     const unsigned int instanceId, const unsigned int entityId);

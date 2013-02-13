@@ -11,6 +11,7 @@
 
 #define JUMP(buffer, length) buffer = &buffer[length]
 
+// TODO Detect platform endianess.
 #define GET_USHORT_ENDIAN(endian, buffer) \
     endian ? ((unsigned short*)(buffer))[0] : \
 ntohs(((unsigned short*)(buffer))[0])
@@ -287,7 +288,7 @@ void RTPSPacketAnalyzer::processDATASubmessage(const struct timeval &wts,
             if(m_getDataCallback != NULL)
                 m_getDataCallback(m_getDataUser, wts, ip_src, ip_dst, m_guidPrefix[0], m_guidPrefix[1],
                         m_guidPrefix[2], readerId, writerId, sequencenum, m_lastSourceTmp, m_guidDestinationPrefix[0],
-                        m_guidDestinationPrefix[1], m_guidDestinationPrefix[2], serializedData, serializedDataLen);
+                        m_guidDestinationPrefix[1], m_guidDestinationPrefix[2], endianess, serializedData, serializedDataLen);
         }
     }
     else

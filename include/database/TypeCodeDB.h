@@ -1,7 +1,9 @@
 #ifndef _TYPECODEDB_H_
 #define _TYPECODEDB_H_
 
+#ifndef RICARDO
 struct RTICdrTypeCode;
+#endif
 
 #ifdef __cplusplus
 
@@ -14,13 +16,18 @@ namespace eProsima
 {
     class eProsimaLog;
     class DynamicDataDB;
+    class TypeCode;
 
     class eTypeCode
     {
         public:
-
+#ifdef RICARDO
+            eTypeCode(std::string &topicName, std::string &typeName,
+                    TypeCode *typeCode, DynamicDataDB *dynamicDB);
+#else
             eTypeCode(const char *topicName, const char *typeName,
                     struct RTICdrTypeCode *typeCode, DynamicDataDB *dynamicDB);
+#endif
 
             ~eTypeCode();
 
@@ -32,6 +39,8 @@ namespace eProsima
              * \param typeName The type's name. Cannot be NULL.
              * \return True if they're equal or false in other case.
              */
+            bool equal(std::string &topicName, std::string &typeName);
+            // TODO Quitar.
             bool equal(const char *topicName, const char *typeName);
 
             /**
@@ -39,7 +48,11 @@ namespace eProsima
              *
              * \return Return the CdrTypeCode. Don't free this pointer.
              */
+#ifdef RICARDO
+            TypeCode* getCdrTypecode();
+#else
             RTICdrTypeCode* getCdrTypecode();
+#endif
 
             DynamicDataDB* getDynamicDataDB();
 
@@ -47,7 +60,11 @@ namespace eProsima
 
             std::string m_topicName;
             std::string m_typeName;
+#ifdef RICARDO
+            TypeCode *m_typeCode;
+#else
             struct RTICdrTypeCode *m_typeCode;
+#endif
             DynamicDataDB *m_dynamicDB;
     };
 
@@ -68,8 +85,13 @@ namespace eProsima
              * \return True value is returned if the typecode was added. False is returned
              * if the typecode is already in the database and it wasn't added.
              */
+#ifdef RICARDO
+            bool addTypecode(std::string &topicName, std::string &typeName,
+                    TypeCode *typeCode);
+#else
             bool addTypecode(const char *topicName, const char *typeName,
                     struct RTICdrTypeCode *typeCode);
+#endif
 
             /**
              * \brief This function searchs a typecode in the database.
@@ -79,11 +101,19 @@ namespace eProsima
              * \return Return the pointer to the eTypeCode structure if this was found.
              * In other case NULL pointer is returned. Don't free this pointer.
              */
+#ifdef RICARDO
+            eTypeCode* findTypecode(std::string &topicName, std::string &typeName);
+#else
             eTypeCode* findTypecode(const char *topicName, const char *typeName);
+#endif
 
         private:
 
+#ifdef RICARDO
+            std::string getPrintIDL(const TypeCode *typeCode);
+#else
             char *getPrintIDL(RTICdrTypeCode *typeCode);
+#endif
 
             std::list<eTypeCode*> m_typecodes;
 

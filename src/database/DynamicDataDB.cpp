@@ -1,6 +1,9 @@
 #include "database/DynamicDataDB.h"
 #include "eProsima_c/eProsimaMacros.h"
 #include "eProsima_cpp/eProsimaLog.h"
+#include "cdr/StructTypeCode.h"
+#include "cdr/EnumTypeCode.h"
+#include "cdr/PrimitiveTypeCode.h"
 
 #include "dds_c/dds_c_common.h"
 #include "dds_c/dds_c_dynamicdata.h"
@@ -9,6 +12,7 @@
 #include <string.h>
 #include <algorithm>
 #include <stdlib.h>
+#include <stdint.h>
 
 #ifndef RTI_WIN32
 #include <sys/time.h>
@@ -25,80 +29,15 @@ static const char* const CLASS_NAME = "DynamicDataDB";
 using namespace eProsima;
 using namespace std;
 
-DynamicDataDB::writePrimitiveInitialStatementsFunctions DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap[] =
-{
-    {RTI_CDR_TK_OCTET, DynamicDataDB::addTinyIntInitialStatements},
-    {RTI_CDR_TK_SHORT, DynamicDataDB::addShortInitialStatements},
-    {RTI_CDR_TK_USHORT, DynamicDataDB::addUShortInitialStatements},
-    {RTI_CDR_TK_LONG, DynamicDataDB::addIntInitialStatements},
-    {RTI_CDR_TK_ULONG, DynamicDataDB::addUIntInitialStatements},
-    {RTI_CDR_TK_LONGLONG, DynamicDataDB::addBigIntInitialStatements},
-    {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addUBigIntInitialStatements},
-    {RTI_CDR_TK_CHAR, DynamicDataDB::addCharInitialStatements},
-    {RTI_CDR_TK_STRING, DynamicDataDB::addTextInitialStatements},
-    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatInitialStatements},
-    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleInitialStatements},
-    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumInitialStatements},
-    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addTinyIntInitialStatements},
-    {RTI_CDR_TK_NULL, NULL}
-};
-
-DynamicDataDB::writePrimitiveStorageFunctions DynamicDataDB::writePrimitiveStorageFunctionsMap[] =
-{
-    {RTI_CDR_TK_OCTET, DynamicDataDB::addOctetStorage},
-    {RTI_CDR_TK_SHORT, DynamicDataDB::addShortStorage},
-    {RTI_CDR_TK_USHORT, DynamicDataDB::addUShortStorage},
-    {RTI_CDR_TK_LONG, DynamicDataDB::addLongStorage},
-    {RTI_CDR_TK_ULONG, DynamicDataDB::addULongStorage},
-    {RTI_CDR_TK_LONGLONG, DynamicDataDB::addLongLongStorage},
-    {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addULongLongStorage},
-    {RTI_CDR_TK_CHAR, DynamicDataDB::addCharStorage},
-    {RTI_CDR_TK_STRING, DynamicDataDB::addStringStorage},
-    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatStorage},
-    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleStorage},
-    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumStorage},
-    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addBoolStorage},
-    {RTI_CDR_TK_NULL, NULL}
-};
-
-DynamicDataDB::writeArrayPrimitiveFunctions DynamicDataDB::writeArrayPrimitiveFunctionsMap[] =
-{
-    {RTI_CDR_TK_OCTET, DynamicDataDB::addOctetArrayStorage},
-    {RTI_CDR_TK_SHORT, DynamicDataDB::addShortArrayStorage},
-    {RTI_CDR_TK_USHORT, DynamicDataDB::addUShortArrayStorage},
-    {RTI_CDR_TK_LONG, DynamicDataDB::addLongArrayStorage},
-    {RTI_CDR_TK_ULONG, DynamicDataDB::addULongArrayStorage},
-    {RTI_CDR_TK_LONGLONG, DynamicDataDB::addLongLongArrayStorage},
-    {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addULongLongArrayStorage},
-    {RTI_CDR_TK_CHAR, DynamicDataDB::addCharArrayStorage},
-    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatArrayStorage},
-    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleArrayStorage},
-    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumArrayStorage},
-    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addBoolArrayStorage},
-    {RTI_CDR_TK_NULL, NULL}
-};
-
-DynamicDataDB::writeSequencePrimitiveFunctions DynamicDataDB::writeSequencePrimitiveFunctionsMap[] =
-{
-    {RTI_CDR_TK_OCTET, DynamicDataDB::addOctetSequenceStorage},
-    {RTI_CDR_TK_SHORT, DynamicDataDB::addShortSequenceStorage},
-    {RTI_CDR_TK_USHORT, DynamicDataDB::addUShortSequenceStorage},
-    {RTI_CDR_TK_LONG, DynamicDataDB::addLongSequenceStorage},
-    {RTI_CDR_TK_ULONG, DynamicDataDB::addULongSequenceStorage},
-    {RTI_CDR_TK_LONGLONG, DynamicDataDB::addLongLongSequenceStorage},
-    {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addULongLongSequenceStorage},
-    {RTI_CDR_TK_CHAR, DynamicDataDB::addCharSequenceStorage},
-    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatSequenceStorage},
-    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleSequenceStorage},
-    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumSequenceStorage},
-    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addBoolSequenceStorage},
-    {RTI_CDR_TK_NULL, NULL}
-};
-
-
+#ifdef RICARDO
+DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &tableName,
+        const TypeCode *typeCode) : m_log(log), m_ready(false),
+    m_databaseH(databaseH), m_tableName(tableName), m_addStmt(NULL)
+#else
 DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &tableName,
         struct RTICdrTypeCode *typeCode) : m_log(log), m_ready(false),
     m_databaseH(databaseH), m_tableName(tableName), m_addStmt(NULL)
+#endif
 {
     const char* const METHOD_NAME = "DynamicDataDB";
     const char* const TABLE_CHECK_INIT = "SELECT name FROM sqlite_master WHERE name='";
@@ -115,20 +54,20 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
 	std::replace(m_tableName.begin(), m_tableName.end(), '-', '_');
 
     TABLE_CHECK = TABLE_CHECK_INIT;
-    TABLE_CHECK += m_tableName;
-    TABLE_CHECK += "'";
+    TABLE_CHECK.append(m_tableName);
+    TABLE_CHECK += '\'';
 
     TABLE_DROP = TABLE_DROP_INIT;
     TABLE_DROP += m_tableName;
 
-    if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
+    if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), TABLE_CHECK.length(), &stmt, NULL) == SQLITE_OK)
     {
         ret = sqlite3_step(stmt);
         sqlite3_finalize(stmt);
 
         if(ret == SQLITE_ROW)
         {
-            if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), TABLE_DROP.length(), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) != SQLITE_DONE)
                     logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
@@ -139,7 +78,7 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
 
         if(createInitialStatements(TABLE_CREATE, DYNAMICDATA_ADD, typeCode))
         {
-            if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), TABLE_CREATE.length(), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) == SQLITE_DONE)
                     m_ready = true;
@@ -153,6 +92,10 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
                 logError(m_log, "Cannot prepare the creation statement for %s table", m_tableName.c_str());
             }
         }
+        else
+        {
+            logError(m_log, "Cannot create initial statement for %s table", m_tableName.c_str());
+        }
 
         //printf("%s\n", TABLE_CREATE.c_str());
         //printf("%s\n", DYNAMICDATA_ADD.c_str());
@@ -161,7 +104,7 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
         {
             m_ready = false;
 
-            if(SQLITE_PREPARE(m_databaseH, DYNAMICDATA_ADD.c_str(), strlen(DYNAMICDATA_ADD.c_str()), &m_addStmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, DYNAMICDATA_ADD.c_str(), DYNAMICDATA_ADD.length(), &m_addStmt, NULL) == SQLITE_OK)
             {
                     m_ready = true;
             }
@@ -194,107 +137,13 @@ DynamicDataDB::~DynamicDataDB()
 void DynamicDataDB::eraseSpacesInTableName(string &tableName)
 {
     size_t lookHere = 0;
-    size_t foundHere;
+    size_t foundHere = 0;
     // Erase spaces.
-    while((foundHere = tableName.find(" ")) !=
-            string::npos)
+    while((foundHere = tableName.find(' ', lookHere)) != string::npos)
     {
-        tableName.replace(foundHere, 1, "_");
+        tableName.replace(foundHere, 1, 1, '_');
         lookHere = foundHere + 1;
     }
-}
-
-bool DynamicDataDB::kindIsPrimitive(RTICdrTCKind kind)
-{
-    if((kind == RTI_CDR_TK_STRUCT) ||
-            (kind == RTI_CDR_TK_ARRAY) ||
-            (kind == RTI_CDR_TK_SEQUENCE) ||
-            (kind == RTI_CDR_TK_UNION) ||
-            (kind == RTI_CDR_TK_ALIAS) ||
-            (kind == RTI_CDR_TK_VALUE) ||
-            (kind == RTI_CDR_TK_SPARSE))
-        return false;
-    return true;
-}
-
-bool DynamicDataDB::createInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *typeCode)
-{
-    bool returnedValue = false;
-    string suffix = "";
-
-    table_create = "CREATE TABLE ";
-    table_create += m_tableName;
-    table_create += " (wireshark_timestamp_sec BIGINT, wireshark_timestamp_usec BIGINT UNSIGNED, " \
-                     "ip_src TEXT, ip_dst TEXT, " \
-                     "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
-                     "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED, " \
-                     "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED, " \
-                     "dest_host_id BIGINT UNSIGNED, dest_app_id BIGINT UNSIGNED, dest_instance_id BIGINT UNSIGNED";
-
-    dynamicDataAdd = "INSERT INTO ";
-    dynamicDataAdd += m_tableName;
-    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
-
-    returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, typeCode, suffix);
-
-    table_create += ")";
-    dynamicDataAdd += ")";
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processStructsInitialStatements(string &table_create, string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, string &suffix)
-{
-    const char* const METHOD_NAME = "processStructsInitialStatements";
-    bool returnedValue = false;
-    DDS_UnsignedLong membersNumber;
-    struct RTICdrTypeCode *memberInfo;
-    const char *memberName = NULL;
-    string smemberName;
-
-    if(typeCode != NULL)
-    {
-        if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
-        {
-            returnedValue = true;
-            for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
-            {
-                memberInfo = RTICdrTypeCode_get_member_type(typeCode, count);
-
-                if(memberInfo != NULL)
-                {
-                    memberName = RTICdrTypeCode_get_member_name(typeCode, count);
-
-                    if(memberName != NULL)
-                    {
-                        smemberName = memberName;
-                        returnedValue = processMembersInitialStatements(table_create, dynamicDataAdd,
-                                memberInfo, smemberName, suffix);
-                    }
-                    else
-                    {
-                        logError(m_log, "Cannot obtain name of member %d", count);
-                    }
-                }
-                else
-                {
-                    logError(m_log, "Cannot obtain info about member %d", count);
-                }
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot obtain number of member of the struct");
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
 }
 
 bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string &dynamicDataAdd,
@@ -330,8 +179,9 @@ bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string 
                     if(memberName != NULL)
                     {
                         smemberName = memberName;
-                        returnedValue = processMembersInitialStatements(table_create, dynamicDataAdd,
-                                memberInfo, smemberName, suffix);
+                        //TODO
+                        //returnedValue = processMembersInitialStatements(table_create, dynamicDataAdd,
+                        //        memberInfo, smemberName, suffix);
                     }
                     else
                     {
@@ -552,56 +402,6 @@ bool DynamicDataDB::processSequencesInitialStatements(string &table_create, stri
     return returnedValue;
 }
 
-bool DynamicDataDB::processMembersInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *memberInfo, string &memberName, string &suffix)
-{
-    const char* const METHOD_NAME = "processMembersInitialStatements";
-    bool returnedValue = false;
-    RTICdrTCKind kind;
-    string newSuffix;
-
-    if(RTICdrTypeCode_get_kind(memberInfo, &kind) == RTI_TRUE)
-    {
-        if(kind == RTI_CDR_TK_STRUCT)
-        {
-            newSuffix = suffix;
-            newSuffix += memberName;
-            newSuffix += "__";
-            returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
-        }
-        else if(kind == RTI_CDR_TK_UNION)
-        {
-            newSuffix = suffix;
-            newSuffix += memberName;
-            newSuffix += "__";
-            returnedValue = processUnionsInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
-        }
-        else if(kind == RTI_CDR_TK_ARRAY)
-        {
-            newSuffix = suffix;
-            newSuffix += memberName;
-            returnedValue = processArraysInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
-        }
-        else if(kind == RTI_CDR_TK_SEQUENCE)
-        {
-            newSuffix = suffix;
-            newSuffix += memberName;
-            returnedValue = processSequencesInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
-        }
-        else if(kindIsPrimitive(kind))
-        {
-            returnedValue = processPrimitiveInitialStatements(table_create, dynamicDataAdd,
-                    memberInfo, memberName, suffix);
-        }
-        else
-        {
-            logError(m_log, "The kind %d is not recognize", kind);
-        }
-    }
-
-    return returnedValue;
-}
-
 bool DynamicDataDB::processDimensionsInitialStatements(string &table_create, string &dynamicDataAdd,
         struct RTICdrTypeCode *typeCode, string &suffix, RTICdrUnsignedLong dimensionCount,
         RTICdrUnsignedLong currentDimension)
@@ -665,11 +465,13 @@ bool DynamicDataDB::processArrayElementsInitialStatements(string &table_create, 
         {
             if(RTICdrTypeCode_get_kind(elementType, &elementKind) == RTI_TRUE)
             {
+                //TODO
+                /*
                 if(kindIsPrimitive(elementKind))
                 {
                     returnedValue = processArrayPrimitiveInitialStatements(table_create,
                             dynamicDataAdd, elementType);
-                }
+                }*/
             }
         }
         else
@@ -742,11 +544,13 @@ bool DynamicDataDB::processSequenceElementsInitialStatements(string &table_creat
         {
             if(RTICdrTypeCode_get_kind(elementType, &elementKind) == RTI_TRUE)
             {
+                // TODO
+                /*
                 if(kindIsPrimitive(elementKind))
                 {
                     returnedValue = processSequencePrimitiveInitialStatements(table_create,
                             dynamicDataAdd, elementType, suffix);
-                }
+                }*/
             }
         }
         else
@@ -798,40 +602,6 @@ bool DynamicDataDB::processSequencePrimitiveInitialStatements(string &table_crea
     else
     {
         logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processPrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *primitiveInfo, string &primitiveName, string &suffix)
-{
-    bool returnedValue = false;
-    writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
-        DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
-    bool (*addToStream)(string &memberName, string &table_create,
-            string &dynamicDataAdd) = NULL;
-    RTICdrTCKind kind;
-    string newName;
-
-    if(RTICdrTypeCode_get_kind(primitiveInfo, &kind) == RTI_TRUE)
-    {
-        while(writePrimitiveInitialStatementsFunctionsPointer->_kind != RTI_CDR_TK_NULL)
-        {
-            if(kind == writePrimitiveInitialStatementsFunctionsPointer->_kind)
-            {
-                addToStream = writePrimitiveInitialStatementsFunctionsPointer->_addToStream;
-                break;
-            }
-            writePrimitiveInitialStatementsFunctionsPointer++;
-        }
-
-        if(addToStream != NULL)
-        {
-            newName = suffix;
-            newName += primitiveName;
-            returnedValue = addToStream(newName, table_create, dynamicDataAdd);
-        }
     }
 
     return returnedValue;
@@ -953,73 +723,6 @@ bool DynamicDataDB::addEnumInitialStatements(string &memberName, string &table_c
     return true;
 }
 
-bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, string &ip_dst,
-        unsigned int hostId, unsigned int appId, unsigned int instanceId,
-        unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-        struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-        unsigned int destAppId, unsigned int destInstanceId,
-        struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData)
-{
-    const char* const METHOD_NAME = "storeDynamicData";
-    bool returnedValue = false;
-    int index = 1;
-    string suffix = "";
-
-    if(dynamicData != NULL &&
-            typeCode != NULL)
-    {
-        if(m_ready)
-        {
-            if(sqlite3_reset(m_addStmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int64(m_addStmt, index++, wts.tv_sec);
-                sqlite3_bind_int64(m_addStmt, index++, wts.tv_usec);
-                sqlite3_bind_text(m_addStmt, index++, ip_src.c_str(), ip_src.length(), SQLITE_STATIC);
-                sqlite3_bind_text(m_addStmt, index++, ip_dst.c_str(), ip_dst.length(), SQLITE_STATIC);
-                sqlite3_bind_int64(m_addStmt, index++, hostId);
-                sqlite3_bind_int64(m_addStmt, index++, appId);
-                sqlite3_bind_int64(m_addStmt, index++, instanceId);
-                sqlite3_bind_int64(m_addStmt, index++, readerId);
-                sqlite3_bind_int64(m_addStmt, index++, writerId);
-                sqlite3_bind_int64(m_addStmt, index++, writerSeqNum);
-                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.sec);
-                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.nanosec);
-
-                if(destHostId != 0 || destAppId != 0 ||
-                        destInstanceId != 0)
-                {
-                    sqlite3_bind_int64(m_addStmt, index++, destHostId);
-                    sqlite3_bind_int64(m_addStmt, index++, destAppId);
-                    sqlite3_bind_int64(m_addStmt, index++, destInstanceId);
-                }
-                else
-                {
-                    sqlite3_bind_null(m_addStmt, index++);
-                    sqlite3_bind_null(m_addStmt, index++);
-                    sqlite3_bind_null(m_addStmt, index++);
-                }
-
-                returnedValue = processStructsStorage(typeCode, dynamicData, suffix, index, false);
-
-                if(returnedValue)
-                {
-                    if(sqlite3_step(m_addStmt) != SQLITE_DONE)
-                    {
-                        returnedValue = false;
-                        logError(m_log, "Cannot store in database");
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
 struct DDS_DynamicData* DynamicDataDB::getMemberDynamicDataObject(RTICdrTypeCode *memberTypecode,
         string &memberName, struct DDS_DynamicData *parentDynamicData)
 {
@@ -1052,58 +755,6 @@ struct DDS_DynamicData* DynamicDataDB::getMemberDynamicDataObject(RTICdrTypeCode
     }
 
     return memberDynamicDataObject;
-}
-
-bool DynamicDataDB::processStructsStorage(struct RTICdrTypeCode *typeCode,
-        struct DDS_DynamicData *dynamicData, string &suffix, int &index, bool step)
-{
-    const char* const METHOD_NAME = "processStructsStorage";
-    bool returnedValue = false;
-    DDS_UnsignedLong membersNumber;
-    struct RTICdrTypeCode *memberInfo;
-    const char *memberName = NULL;
-    string smemberName;
-
-    if(typeCode != NULL && (dynamicData != NULL || step))
-    {
-        if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
-        {
-            returnedValue = true;
-            for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
-            {
-                memberInfo = RTICdrTypeCode_get_member_type(typeCode, count);
-
-                if(memberInfo != NULL)
-                {
-                    memberName = RTICdrTypeCode_get_member_name(typeCode, count);
-                    if(memberName != NULL)
-                    {
-                        smemberName = memberName;
-                        returnedValue = processMembersStorage(memberInfo, smemberName, dynamicData,
-                                suffix, index, step);
-                    }
-                    else
-                    {
-                        logError(m_log, "Cannot obtain name of member %d", count);
-                    }
-                }
-                else
-                {
-                    logError(m_log, "Cannot obtain info about member %d", count);
-                }
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot obtain number of member of the struct");
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
 }
 
 bool DynamicDataDB::processUnionsStorage(struct RTICdrTypeCode *typeCode,
@@ -1159,8 +810,9 @@ bool DynamicDataDB::processUnionsStorage(struct RTICdrTypeCode *typeCode,
                                     }
                                 }
 
-                                returnedValue = processMembersStorage(memberInfo, smemberName, dynamicData,
-                                        suffix, index, newStep);
+                                // TODO
+                                //returnedValue = processMembersStorage(memberInfo, smemberName, dynamicData,
+                                //        suffix, index, newStep);
                             }
                             else
                             {
@@ -1191,74 +843,6 @@ bool DynamicDataDB::processUnionsStorage(struct RTICdrTypeCode *typeCode,
     else
     {
         logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processMembersStorage(struct RTICdrTypeCode *memberInfo, string &memberName,
-        struct DDS_DynamicData *dynamicData, string &suffix, int &index, bool step)
-{
-    const char* const METHOD_NAME = "processMembersStorage";
-    bool returnedValue = false;
-    struct DDS_DynamicData *memberDynamicDataObject = NULL;
-    RTICdrTCKind kind;
-    string newSuffix;
-
-    if(RTICdrTypeCode_get_kind(memberInfo, &kind) == RTI_TRUE)
-    {
-        if(kind == RTI_CDR_TK_STRUCT)
-        {
-            if(!step)
-                memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
-                        memberName, dynamicData);
-
-            if((memberDynamicDataObject != NULL) || (step))
-            {
-                newSuffix = suffix;
-                newSuffix += memberName;
-                newSuffix += "__";
-                returnedValue = processStructsStorage(memberInfo, memberDynamicDataObject,
-                        newSuffix, index, step);
-                if(memberDynamicDataObject != NULL)
-                    DDS_DynamicData_delete(memberDynamicDataObject);
-            }
-        }
-        else if(kind == RTI_CDR_TK_UNION)
-        {
-            memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
-                    memberName, dynamicData);
-
-            if(memberDynamicDataObject != NULL)
-            {
-                newSuffix = suffix;
-                newSuffix += memberName;
-                newSuffix += "__";
-                returnedValue = processUnionsStorage(memberInfo, memberDynamicDataObject,
-                        newSuffix, index, step);
-                DDS_DynamicData_delete(memberDynamicDataObject);
-            }
-        }
-        else if(kind == RTI_CDR_TK_ARRAY)
-        {
-            newSuffix = suffix;
-            newSuffix += memberName;
-            returnedValue = processArraysStorage(memberInfo, dynamicData, newSuffix, memberName, index, step);
-        }
-        else if(kind == RTI_CDR_TK_SEQUENCE)
-        {
-            newSuffix = suffix;
-            newSuffix += memberName;
-            returnedValue = processSequencesStorage(memberInfo, dynamicData, newSuffix, memberName, index, step);
-        }
-        else if(kindIsPrimitive(kind))
-        {
-            returnedValue = processPrimitiveStorage(memberInfo, memberName, dynamicData, index, step);
-        }
-        else
-        {
-            logError(m_log, "The kind %d is not recognize", kind);
-        }
     }
 
     return returnedValue;
@@ -1433,11 +1017,13 @@ bool DynamicDataDB::processArrayElementsStorage(sqlite3_stmt *stmt,
     if(stmt != NULL && dynamicData != NULL
             && arrayProcessingInfo != NULL)
     {
+        // TODO
+        /*
         if(kindIsPrimitive(arrayProcessingInfo->elementKind))
         {
             returnedValue = processArrayPrimitiveStorage(stmt,
                     dynamicData, arrayProcessingInfo, currentDimension);
-        }
+        }*/
     }
     else
     {
@@ -1556,12 +1142,14 @@ bool DynamicDataDB::processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, 
 
     if(stmt != NULL && dynamicData != NULL)
     {
+        // TODO
+        /*
         if(kindIsPrimitive(elementKind))
         {
             returnedValue = processSequencePrimitiveStorage(stmt, ref, memberName,
                     elementKind,
                     dynamicData);
-        }
+        }*/
     }
     else
     {
@@ -1595,415 +1183,6 @@ bool DynamicDataDB::processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref,
     if(addToStream != NULL)
     {
         returnedValue = addToStream(stmt, ref, memberName, dynamicData);
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processPrimitiveStorage(struct RTICdrTypeCode *primitiveInfo, string &primitiveName,
-        struct DDS_DynamicData *primitiveData, int &index, bool step)
-{
-    bool returnedValue = false;
-    writePrimitiveStorageFunctions *writePrimitiveStorageFunctionsPointer =
-        DynamicDataDB::writePrimitiveStorageFunctionsMap;
-    bool (*addToStream)(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-            string &name, int & index) = NULL;
-    RTICdrTCKind kind;
-
-    if(RTICdrTypeCode_get_kind(primitiveInfo, &kind) == RTI_TRUE)
-    {
-        while(writePrimitiveStorageFunctionsPointer->_kind != RTI_CDR_TK_NULL)
-        {
-            if(kind == writePrimitiveStorageFunctionsPointer->_kind)
-            {
-                addToStream = writePrimitiveStorageFunctionsPointer->_addToStream;
-                break;
-            }
-            writePrimitiveStorageFunctionsPointer++;
-        }
-
-        if(addToStream != NULL)
-        {
-            if(!step)
-                returnedValue = addToStream(m_addStmt, primitiveData, primitiveName, index);
-            else
-            {
-                sqlite3_bind_null(m_addStmt, index++);
-                returnedValue = true;
-            }
-        }
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addOctetStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addOctetStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_Octet value;
-        if(DDS_DynamicData_get_octet(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_int(stmt, index++, value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the octet field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addShortStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addShortStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_Short value;
-        if(DDS_DynamicData_get_short(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_int(stmt, index++, value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the short field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addUShortStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addUShortStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_UnsignedShort value;
-        if(DDS_DynamicData_get_ushort(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_int(stmt, index++, value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the ushort field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-
-bool DynamicDataDB::addLongStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addLongStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_Long value;
-        if(DDS_DynamicData_get_long(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_int(stmt, index++, value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the long field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addULongStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addULongStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_UnsignedLong value;
-        if(DDS_DynamicData_get_ulong(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_int(stmt, index++, value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the ulong field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addLongLongStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addLongLongStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_LongLong value;
-        if(DDS_DynamicData_get_longlong(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_int64(stmt, index++, value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the longlong field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addULongLongStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addULongLongStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_UnsignedLongLong value;
-        if(DDS_DynamicData_get_ulonglong(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_int64(stmt, index++, value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the ulonglong field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addCharStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addCharStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_Char value = NULL;
-        DDS_DynamicData_get_char(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-        sqlite3_bind_text(stmt, index++, &value, 1, SQLITE_STATIC);
-        returnedValue = true;
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addStringStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addStringStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_Char *value = NULL;
-        DDS_UnsignedLong stringLength;
-        DDS_DynamicData_get_string(dynamicDataObject, &value, &stringLength,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-        if(value != NULL)
-        {
-            sqlite3_bind_text(stmt, index++, value, stringLength, SQLITE_TRANSIENT);
-            DDS_String_free(value);
-            returnedValue = true;
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addFloatStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addFloatStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_Float value;
-        if(DDS_DynamicData_get_float(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_double(stmt, index++, (double)value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the float field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addDoubleStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_Double value;
-        if(DDS_DynamicData_get_double(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_double(stmt, index++, value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the double field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addEnumStorage";
-    bool returnedValue = false;
-    DDS_TypeCode *enumTypeCode = NULL;
-    DDS_Long ordinal;
-    DDS_UnsignedLong eindex;
-    DDS_ExceptionCode_t exception = DDS_NO_EXCEPTION_CODE;
-    const char *label;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_DynamicData_get_long(dynamicDataObject, &ordinal, (char*)name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-        if(DDS_DynamicData_get_member_type(dynamicDataObject, (const DDS_TypeCode**)&enumTypeCode, name.c_str(),
-                    DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            eindex = DDS_TypeCode_find_member_by_label(enumTypeCode, ordinal, &exception);
-
-            if(exception == DDS_NO_EXCEPTION_CODE)
-            {
-                label = DDS_TypeCode_member_name(enumTypeCode, eindex, &exception);
-
-                if(exception == DDS_NO_EXCEPTION_CODE)
-                {
-                    sqlite3_bind_text(stmt, index++, label, strlen(label), SQLITE_STATIC);
-                    returnedValue = true;
-                }
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        string &name, int &index)
-{
-    const char* const METHOD_NAME = "addBoolStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
-    {
-        DDS_Boolean value;
-
-        if(DDS_DynamicData_get_boolean(dynamicDataObject, &value,
-                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-        {
-            sqlite3_bind_int(stmt, index++, value);
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot get the boolean field");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
     }
 
     return returnedValue;
@@ -3378,3 +2557,1627 @@ bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, string &
 
     return returnedValue;
 }
+
+#ifdef RICARDO
+DynamicDataDB::writePrimitiveInitialStatementsFunctions DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap[] =
+{
+    {TypeCode::KIND_OCTET, DynamicDataDB::addTinyIntInitialStatements},
+    {TypeCode::KIND_SHORT, DynamicDataDB::addShortInitialStatements},
+    {TypeCode::KIND_USHORT, DynamicDataDB::addUShortInitialStatements},
+    {TypeCode::KIND_LONG, DynamicDataDB::addIntInitialStatements},
+    {TypeCode::KIND_ULONG, DynamicDataDB::addUIntInitialStatements},
+    {TypeCode::KIND_LONGLONG, DynamicDataDB::addBigIntInitialStatements},
+    {TypeCode::KIND_ULONGLONG, DynamicDataDB::addUBigIntInitialStatements},
+    {TypeCode::KIND_CHAR, DynamicDataDB::addCharInitialStatements},
+    {TypeCode::KIND_STRING, DynamicDataDB::addTextInitialStatements},
+    {TypeCode::KIND_FLOAT, DynamicDataDB::addFloatInitialStatements},
+    {TypeCode::KIND_DOUBLE, DynamicDataDB::addDoubleInitialStatements},
+    {TypeCode::KIND_ENUM, DynamicDataDB::addEnumInitialStatements},
+    {TypeCode::KIND_BOOLEAN, DynamicDataDB::addTinyIntInitialStatements},
+    {TypeCode::KIND_NULL, NULL}
+};
+
+DynamicDataDB::writePrimitiveStorageFunctions DynamicDataDB::writePrimitiveStorageFunctionsMap[] =
+{
+    {TypeCode::KIND_OCTET, DynamicDataDB::addOctetStorage},
+    {TypeCode::KIND_SHORT, DynamicDataDB::addShortStorage},
+    {TypeCode::KIND_USHORT, DynamicDataDB::addUShortStorage},
+    {TypeCode::KIND_LONG, DynamicDataDB::addLongStorage},
+    {TypeCode::KIND_ULONG, DynamicDataDB::addULongStorage},
+    {TypeCode::KIND_LONGLONG, DynamicDataDB::addLongLongStorage},
+    {TypeCode::KIND_ULONGLONG, DynamicDataDB::addULongLongStorage},
+    {TypeCode::KIND_CHAR, DynamicDataDB::addCharStorage},
+    {TypeCode::KIND_STRING, DynamicDataDB::addStringStorage},
+    {TypeCode::KIND_FLOAT, DynamicDataDB::addFloatStorage},
+    {TypeCode::KIND_DOUBLE, DynamicDataDB::addDoubleStorage},
+    {TypeCode::KIND_BOOLEAN, DynamicDataDB::addBoolStorage},
+    {TypeCode::KIND_NULL, NULL}
+};
+
+DynamicDataDB::writeArrayPrimitiveFunctions DynamicDataDB::writeArrayPrimitiveFunctionsMap[] =
+{
+    {TypeCode::KIND_OCTET, DynamicDataDB::addOctetArrayStorage},
+    {TypeCode::KIND_SHORT, DynamicDataDB::addShortArrayStorage},
+    {TypeCode::KIND_USHORT, DynamicDataDB::addUShortArrayStorage},
+    {TypeCode::KIND_LONG, DynamicDataDB::addLongArrayStorage},
+    {TypeCode::KIND_ULONG, DynamicDataDB::addULongArrayStorage},
+    {TypeCode::KIND_LONGLONG, DynamicDataDB::addLongLongArrayStorage},
+    {TypeCode::KIND_ULONGLONG, DynamicDataDB::addULongLongArrayStorage},
+    {TypeCode::KIND_CHAR, DynamicDataDB::addCharArrayStorage},
+    {TypeCode::KIND_FLOAT, DynamicDataDB::addFloatArrayStorage},
+    {TypeCode::KIND_DOUBLE, DynamicDataDB::addDoubleArrayStorage},
+    {TypeCode::KIND_ENUM, DynamicDataDB::addEnumArrayStorage},
+    {TypeCode::KIND_BOOLEAN, DynamicDataDB::addBoolArrayStorage},
+    {TypeCode::KIND_NULL, NULL}
+};
+
+DynamicDataDB::writeSequencePrimitiveFunctions DynamicDataDB::writeSequencePrimitiveFunctionsMap[] =
+{
+    {TypeCode::KIND_OCTET, DynamicDataDB::addOctetSequenceStorage},
+    {TypeCode::KIND_SHORT, DynamicDataDB::addShortSequenceStorage},
+    {TypeCode::KIND_USHORT, DynamicDataDB::addUShortSequenceStorage},
+    {TypeCode::KIND_LONG, DynamicDataDB::addLongSequenceStorage},
+    {TypeCode::KIND_ULONG, DynamicDataDB::addULongSequenceStorage},
+    {TypeCode::KIND_LONGLONG, DynamicDataDB::addLongLongSequenceStorage},
+    {TypeCode::KIND_ULONGLONG, DynamicDataDB::addULongLongSequenceStorage},
+    {TypeCode::KIND_CHAR, DynamicDataDB::addCharSequenceStorage},
+    {TypeCode::KIND_FLOAT, DynamicDataDB::addFloatSequenceStorage},
+    {TypeCode::KIND_DOUBLE, DynamicDataDB::addDoubleSequenceStorage},
+    {TypeCode::KIND_ENUM, DynamicDataDB::addEnumSequenceStorage},
+    {TypeCode::KIND_BOOLEAN, DynamicDataDB::addBoolSequenceStorage},
+    {TypeCode::KIND_NULL, NULL}
+};
+
+bool DynamicDataDB::createInitialStatements(string &table_create, string &dynamicDataAdd,
+        const TypeCode *typeCode)
+{
+    bool returnedValue = false;
+    string suffix = "";
+
+    table_create = "CREATE TABLE ";
+    table_create += m_tableName;
+    table_create += " (wireshark_timestamp_sec BIGINT, wireshark_timestamp_usec BIGINT UNSIGNED, " \
+                     "ip_src TEXT, ip_dst TEXT, " \
+                     "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
+                     "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED, " \
+                     "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED, " \
+                     "dest_host_id BIGINT UNSIGNED, dest_app_id BIGINT UNSIGNED, dest_instance_id BIGINT UNSIGNED";
+
+    dynamicDataAdd = "INSERT INTO ";
+    dynamicDataAdd += m_tableName;
+    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+
+    if(typeCode->getKind() == TypeCode::KIND_STRUCT)
+        returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const StructTypeCode*>(typeCode), suffix);
+
+    table_create += ")";
+    dynamicDataAdd += ")";
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processStructsInitialStatements(string &table_create, string &dynamicDataAdd,
+                    const StructTypeCode *structTC, string &suffix)
+{
+    const char* const METHOD_NAME = "processStructsInitialStatements";
+    bool returnedValue = false;
+
+    if(structTC != NULL)
+    {
+        returnedValue = true;
+        for(uint32_t count = 0; returnedValue && (count < structTC->getMemberCount()); ++count)
+        {
+            const Member *memberInfo = structTC->getMember(count);
+
+            if(memberInfo != NULL)
+            {
+                returnedValue = processMembersInitialStatements(table_create, dynamicDataAdd,
+                        memberInfo, suffix);
+            }
+            else
+            {
+                logError(m_log, "Cannot obtain info about member %d", count);
+            }
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processMembersInitialStatements(string &table_create, string &dynamicDataAdd,
+        const Member *memberInfo, string &suffix)
+{
+    const char* const METHOD_NAME = "processMembersInitialStatements";
+    bool returnedValue = false;
+    string newSuffix;
+
+    if(memberInfo != NULL)
+    {
+        const TypeCode *mTypeCode = memberInfo->getTypeCode();
+
+        if(mTypeCode != NULL)
+        {
+            if(mTypeCode->getKind() == TypeCode::KIND_STRUCT)
+            {
+                newSuffix = suffix;
+                newSuffix += memberInfo->getName();
+                newSuffix += "__";
+                returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const StructTypeCode*>(mTypeCode), newSuffix);
+            }
+            /*else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
+            {
+                newSuffix = suffix;
+                newSuffix += memberName;
+                newSuffix += "__";
+                returnedValue = processUnionsInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
+            }
+            else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
+            {
+                newSuffix = suffix;
+                newSuffix += memberName;
+                returnedValue = processArraysInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
+            }
+            else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
+            {
+                newSuffix = suffix;
+                newSuffix += memberName;
+                returnedValue = processSequencesInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
+            }*/
+            else if(TypeCode::kindIsPrimitive(mTypeCode->getKind()))
+            {
+                returnedValue = processPrimitiveInitialStatements(table_create, dynamicDataAdd,
+                    mTypeCode, memberInfo->getName(), suffix);
+            }
+            else
+            {
+                logError(m_log, "The kind %d is not recognize", mTypeCode->getKind());
+            }
+        }
+        else
+        {
+            logError(m_log, "The member %s cannot contains a typecode", memberInfo->getName().c_str());
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processPrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
+        const TypeCode *primitiveInfo, const string &primitiveName, string &suffix)
+{
+    bool returnedValue = false;
+    writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
+        DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
+    bool (*addToStream)(string &memberName, string &table_create,
+            string &dynamicDataAdd) = NULL;
+    string newName;
+
+    if(primitiveInfo != NULL)
+    {
+        while(writePrimitiveInitialStatementsFunctionsPointer->_kind != TypeCode::KIND_NULL)
+        {
+            if(primitiveInfo->getKind() == writePrimitiveInitialStatementsFunctionsPointer->_kind)
+            {
+                addToStream = writePrimitiveInitialStatementsFunctionsPointer->_addToStream;
+                break;
+            }
+            writePrimitiveInitialStatementsFunctionsPointer++;
+        }
+
+        if(addToStream != NULL)
+        {
+            newName = suffix;
+            newName += primitiveName;
+            returnedValue = addToStream(newName, table_create, dynamicDataAdd);
+        }
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processStructsStorage(const StructTypeCode *typeCode, CDR &cdr,
+    std::string &suffix, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processStructsStorage";
+    bool returnedValue = true;
+    uint32_t membersNumber = 0, count = 0;
+    const Member *memberInfo = NULL;
+
+    // Get memberCount;
+    membersNumber = typeCode->getMemberCount();
+
+    for(; returnedValue && (count < membersNumber); count ++)
+    {
+        memberInfo = typeCode->getMember(count);
+
+        if(memberInfo != NULL)
+        {
+            returnedValue = processMembersStorage(memberInfo, cdr,
+                    suffix, index, step);
+        }
+        else
+        {
+            logError(m_log, "Cannot obtain info about member %d", count);
+        }
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, string &ip_dst,
+        unsigned int hostId, unsigned int appId, unsigned int instanceId,
+        unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+        struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+        unsigned int destAppId, unsigned int destInstanceId,
+        const TypeCode *typeCode, CDR &cdr)
+{
+    const char* const METHOD_NAME = "storeDynamicData";
+    bool returnedValue = false;
+    int index = 1;
+    string suffix = "";
+
+    if(m_ready)
+    {
+        if(typeCode != NULL)
+        {
+            if(sqlite3_reset(m_addStmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int64(m_addStmt, index++, wts.tv_sec);
+                sqlite3_bind_int64(m_addStmt, index++, wts.tv_usec);
+                sqlite3_bind_text(m_addStmt, index++, ip_src.c_str(), ip_src.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addStmt, index++, ip_dst.c_str(), ip_dst.length(), SQLITE_STATIC);
+                sqlite3_bind_int64(m_addStmt, index++, hostId);
+                sqlite3_bind_int64(m_addStmt, index++, appId);
+                sqlite3_bind_int64(m_addStmt, index++, instanceId);
+                sqlite3_bind_int64(m_addStmt, index++, readerId);
+                sqlite3_bind_int64(m_addStmt, index++, writerId);
+                sqlite3_bind_int64(m_addStmt, index++, writerSeqNum);
+                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.sec);
+                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.nanosec);
+
+                if(destHostId != 0 || destAppId != 0 ||
+                        destInstanceId != 0)
+                {
+                    sqlite3_bind_int64(m_addStmt, index++, destHostId);
+                    sqlite3_bind_int64(m_addStmt, index++, destAppId);
+                    sqlite3_bind_int64(m_addStmt, index++, destInstanceId);
+                }
+                else
+                {
+                    sqlite3_bind_null(m_addStmt, index++);
+                    sqlite3_bind_null(m_addStmt, index++);
+                    sqlite3_bind_null(m_addStmt, index++);
+                }
+
+                if(typeCode->getKind() == TypeCode::KIND_STRUCT)
+                {
+                    const StructTypeCode *structTypeCode = dynamic_cast<const StructTypeCode*>(typeCode);
+                    returnedValue = processStructsStorage(structTypeCode, cdr, suffix, index, false);
+                }
+
+                if(returnedValue)
+                {
+                    if(sqlite3_step(m_addStmt) != SQLITE_DONE)
+                    {
+                        returnedValue = false;
+                        logError(m_log, "Cannot store in database");
+                    }
+                }
+            }
+        }
+        else
+        {
+            logError(m_log, "Bad parameters");
+        }
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processMembersStorage(const Member *memberInfo, CDR &cdr,
+    string &suffix, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processMembersStorage";
+    bool returnedValue = false;
+    string newSuffix;
+
+    if(memberInfo != NULL)
+    {
+        const TypeCode *mTypeCode = memberInfo->getTypeCode();
+
+        if(mTypeCode != NULL)
+        {
+            if(mTypeCode->getKind() == TypeCode::KIND_STRUCT)
+            {
+                newSuffix = suffix;
+                newSuffix += memberInfo->getName();
+                newSuffix += "__";
+                returnedValue = processStructsStorage(dynamic_cast<const StructTypeCode*>(mTypeCode), cdr,
+                        newSuffix, index, step);
+            }
+            //TODO
+            /*else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
+            {
+                memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
+                        memberName, dynamicData);
+
+                if(memberDynamicDataObject != NULL)
+                {
+                    newSuffix = suffix;
+                    newSuffix += memberName;
+                    newSuffix += "__";
+                    returnedValue = processUnionsStorage(memberInfo, memberDynamicDataObject,
+                            newSuffix, index, step);
+                    DDS_DynamicData_delete(memberDynamicDataObject);
+                }
+            }
+            else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
+            {
+                newSuffix = suffix;
+                newSuffix += memberName;
+                returnedValue = processArraysStorage(memberInfo, dynamicData, newSuffix, memberName, index, step);
+            }
+            else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
+            {
+                newSuffix = suffix;
+                newSuffix += memberName;
+                returnedValue = processSequencesStorage(memberInfo, dynamicData, newSuffix, memberName, index, step);
+            }*/
+            else if(mTypeCode->getKind() == TypeCode::KIND_ENUM)
+            {
+                returnedValue = addEnumStorage(m_addStmt, dynamic_cast<const EnumTypeCode*>(mTypeCode), cdr, index, step);
+            }
+            else if(TypeCode::kindIsPrimitive(mTypeCode->getKind()))
+            {
+                returnedValue = processPrimitiveStorage(dynamic_cast<const PrimitiveTypeCode*>(mTypeCode), cdr, index, step);
+            }
+            else
+            {
+                logError(m_log, "The kind %d is not recognize", mTypeCode->getKind());
+            }
+        }
+        else
+        {
+            logError(m_log, "The member %s cannot contains a typecode", memberInfo->getName().c_str());
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processPrimitiveStorage(const PrimitiveTypeCode *primitiveInfo,
+        CDR &cdr, int &index, bool step)
+{
+    bool returnedValue = false;
+
+    if(!step)
+    {
+        writePrimitiveStorageFunctions *writePrimitiveStorageFunctionsPointer =
+            DynamicDataDB::writePrimitiveStorageFunctionsMap;
+        bool (*addToStream)(sqlite3_stmt *stmt, CDR &cdr, int & index) = NULL;
+
+        while(writePrimitiveStorageFunctionsPointer->_kind != TypeCode::KIND_NULL)
+        {
+            if(primitiveInfo->getKind() == writePrimitiveStorageFunctionsPointer->_kind)
+            {
+                addToStream = writePrimitiveStorageFunctionsPointer->_addToStream;
+                break;
+            }
+            writePrimitiveStorageFunctionsPointer++;
+        }
+
+        if(addToStream != NULL)
+        {
+                returnedValue = addToStream(m_addStmt, cdr, index);
+        }
+    }
+    else
+    {
+        sqlite3_bind_null(m_addStmt, index++);
+        returnedValue = true;
+    }
+    
+    return returnedValue;
+}
+
+bool DynamicDataDB::addOctetStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addOctetStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        uint8_t value;
+        if(cdr >> value)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the octet field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addShortStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        int16_t value;
+        if(cdr >> value)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the short field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addUShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addUShortStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        uint16_t value;
+        if(cdr >> value)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the ushort field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+
+bool DynamicDataDB::addLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addLongStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        int32_t value;
+        if(cdr >> value)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the long field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addULongStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        uint32_t value;
+        if(cdr >> value)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the ulong field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addLongLongStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        int64_t value;
+        if(cdr >> value)
+        {
+            sqlite3_bind_int64(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the longlong field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addULongLongStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        uint64_t value;
+        if(cdr >> value)
+        {
+            sqlite3_bind_int64(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the ulonglong field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addCharStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addCharStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        char value = NULL;
+        if(cdr >> value)
+        {
+            sqlite3_bind_text(stmt, index++, &value, 1, SQLITE_STATIC);
+            returnedValue = true;
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addStringStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addStringStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        std::string value;
+
+        if(cdr >> value)
+        {
+            sqlite3_bind_text(stmt, index++, value.c_str(), value.length(), SQLITE_TRANSIENT);
+            returnedValue = true;
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addFloatStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addFloatStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        float value;
+        if(cdr >> value)
+        {
+            sqlite3_bind_double(stmt, index++, (double)value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the float field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addDoubleStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        double value;
+        if(cdr >> value)
+        {
+            sqlite3_bind_double(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the double field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+{
+    const char* const METHOD_NAME = "addBoolStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL)
+    {
+        uint8_t value;
+
+        if(cdr >> value)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the boolean field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr, int &index, bool step)
+{
+    const char* const METHOD_NAME = "addEnumStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && enumTC != NULL)
+    {
+        if(!step)
+        {
+            uint32_t ordinal;
+
+            if(cdr >> ordinal)
+            {
+                const EnumMember *member = enumTC->getMemberWithOrdinal(ordinal);
+
+                if(member != NULL)
+                {
+                    sqlite3_bind_text(stmt, index++, member->getName().c_str(), member->getName().length(), SQLITE_STATIC);
+                    returnedValue = true;
+                }
+            }
+        }
+        else
+        {
+            sqlite3_bind_null(stmt, index++);
+            returnedValue = true;
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+#else
+
+DynamicDataDB::writePrimitiveInitialStatementsFunctions DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap[] =
+{
+    {RTI_CDR_TK_OCTET, DynamicDataDB::addTinyIntInitialStatements},
+    {RTI_CDR_TK_SHORT, DynamicDataDB::addShortInitialStatements},
+    {RTI_CDR_TK_USHORT, DynamicDataDB::addUShortInitialStatements},
+    {RTI_CDR_TK_LONG, DynamicDataDB::addIntInitialStatements},
+    {RTI_CDR_TK_ULONG, DynamicDataDB::addUIntInitialStatements},
+    {RTI_CDR_TK_LONGLONG, DynamicDataDB::addBigIntInitialStatements},
+    {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addUBigIntInitialStatements},
+    {RTI_CDR_TK_CHAR, DynamicDataDB::addCharInitialStatements},
+    {RTI_CDR_TK_STRING, DynamicDataDB::addTextInitialStatements},
+    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatInitialStatements},
+    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleInitialStatements},
+    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumInitialStatements},
+    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addTinyIntInitialStatements},
+    {RTI_CDR_TK_NULL, NULL}
+};
+
+DynamicDataDB::writePrimitiveStorageFunctions DynamicDataDB::writePrimitiveStorageFunctionsMap[] =
+{
+    {RTI_CDR_TK_OCTET, DynamicDataDB::addOctetStorage},
+    {RTI_CDR_TK_SHORT, DynamicDataDB::addShortStorage},
+    {RTI_CDR_TK_USHORT, DynamicDataDB::addUShortStorage},
+    {RTI_CDR_TK_LONG, DynamicDataDB::addLongStorage},
+    {RTI_CDR_TK_ULONG, DynamicDataDB::addULongStorage},
+    {RTI_CDR_TK_LONGLONG, DynamicDataDB::addLongLongStorage},
+    {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addULongLongStorage},
+    {RTI_CDR_TK_CHAR, DynamicDataDB::addCharStorage},
+    {RTI_CDR_TK_STRING, DynamicDataDB::addStringStorage},
+    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatStorage},
+    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleStorage},
+    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumStorage},
+    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addBoolStorage},
+    {RTI_CDR_TK_NULL, NULL}
+};
+
+DynamicDataDB::writeArrayPrimitiveFunctions DynamicDataDB::writeArrayPrimitiveFunctionsMap[] =
+{
+    {RTI_CDR_TK_OCTET, DynamicDataDB::addOctetArrayStorage},
+    {RTI_CDR_TK_SHORT, DynamicDataDB::addShortArrayStorage},
+    {RTI_CDR_TK_USHORT, DynamicDataDB::addUShortArrayStorage},
+    {RTI_CDR_TK_LONG, DynamicDataDB::addLongArrayStorage},
+    {RTI_CDR_TK_ULONG, DynamicDataDB::addULongArrayStorage},
+    {RTI_CDR_TK_LONGLONG, DynamicDataDB::addLongLongArrayStorage},
+    {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addULongLongArrayStorage},
+    {RTI_CDR_TK_CHAR, DynamicDataDB::addCharArrayStorage},
+    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatArrayStorage},
+    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleArrayStorage},
+    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumArrayStorage},
+    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addBoolArrayStorage},
+    {RTI_CDR_TK_NULL, NULL}
+};
+
+DynamicDataDB::writeSequencePrimitiveFunctions DynamicDataDB::writeSequencePrimitiveFunctionsMap[] =
+{
+    {RTI_CDR_TK_OCTET, DynamicDataDB::addOctetSequenceStorage},
+    {RTI_CDR_TK_SHORT, DynamicDataDB::addShortSequenceStorage},
+    {RTI_CDR_TK_USHORT, DynamicDataDB::addUShortSequenceStorage},
+    {RTI_CDR_TK_LONG, DynamicDataDB::addLongSequenceStorage},
+    {RTI_CDR_TK_ULONG, DynamicDataDB::addULongSequenceStorage},
+    {RTI_CDR_TK_LONGLONG, DynamicDataDB::addLongLongSequenceStorage},
+    {RTI_CDR_TK_ULONGLONG, DynamicDataDB::addULongLongSequenceStorage},
+    {RTI_CDR_TK_CHAR, DynamicDataDB::addCharSequenceStorage},
+    {RTI_CDR_TK_FLOAT, DynamicDataDB::addFloatSequenceStorage},
+    {RTI_CDR_TK_DOUBLE, DynamicDataDB::addDoubleSequenceStorage},
+    {RTI_CDR_TK_ENUM, DynamicDataDB::addEnumSequenceStorage},
+    {RTI_CDR_TK_BOOLEAN, DynamicDataDB::addBoolSequenceStorage},
+    {RTI_CDR_TK_NULL, NULL}
+};
+
+bool DynamicDataDB::kindIsPrimitive(RTICdrTCKind kind)
+{
+    if((kind == RTI_CDR_TK_STRUCT) ||
+            (kind == RTI_CDR_TK_ARRAY) ||
+            (kind == RTI_CDR_TK_SEQUENCE) ||
+            (kind == RTI_CDR_TK_UNION) ||
+            (kind == RTI_CDR_TK_ALIAS) ||
+            (kind == RTI_CDR_TK_VALUE) ||
+            (kind == RTI_CDR_TK_SPARSE))
+        return false;
+    return true;
+}
+
+bool DynamicDataDB::createInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *typeCode)
+{
+    bool returnedValue = false;
+    string suffix = "";
+
+    table_create = "CREATE TABLE ";
+    table_create += m_tableName;
+    table_create += " (wireshark_timestamp_sec BIGINT, wireshark_timestamp_usec BIGINT UNSIGNED, " \
+                     "ip_src TEXT, ip_dst TEXT, " \
+                     "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
+                     "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED, " \
+                     "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED, " \
+                     "dest_host_id BIGINT UNSIGNED, dest_app_id BIGINT UNSIGNED, dest_instance_id BIGINT UNSIGNED";
+
+    dynamicDataAdd = "INSERT INTO ";
+    dynamicDataAdd += m_tableName;
+    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+
+    returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, typeCode, suffix);
+
+    table_create += ")";
+    dynamicDataAdd += ")";
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processStructsInitialStatements(string &table_create, string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, string &suffix)
+{
+    const char* const METHOD_NAME = "processStructsInitialStatements";
+    bool returnedValue = false;
+    DDS_UnsignedLong membersNumber;
+    struct RTICdrTypeCode *memberInfo;
+    const char *memberName = NULL;
+    string smemberName;
+
+    if(typeCode != NULL)
+    {
+        if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
+        {
+            returnedValue = true;
+            for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
+            {
+                memberInfo = RTICdrTypeCode_get_member_type(typeCode, count);
+
+                if(memberInfo != NULL)
+                {
+                    memberName = RTICdrTypeCode_get_member_name(typeCode, count);
+
+                    if(memberName != NULL)
+                    {
+                        smemberName = memberName;
+                        returnedValue = processMembersInitialStatements(table_create, dynamicDataAdd,
+                                memberInfo, smemberName, suffix);
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot obtain name of member %d", count);
+                    }
+                }
+                else
+                {
+                    logError(m_log, "Cannot obtain info about member %d", count);
+                }
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot obtain number of member of the struct");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processStructsStorage(struct RTICdrTypeCode *typeCode,
+        struct DDS_DynamicData *dynamicData, string &suffix, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processStructsStorage";
+    bool returnedValue = false;
+    DDS_UnsignedLong membersNumber;
+    struct RTICdrTypeCode *memberInfo;
+    const char *memberName = NULL;
+    string smemberName;
+
+    if(typeCode != NULL && (dynamicData != NULL || step))
+    {
+        if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
+        {
+            returnedValue = true;
+            for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
+            {
+                memberInfo = RTICdrTypeCode_get_member_type(typeCode, count);
+
+                if(memberInfo != NULL)
+                {
+                    memberName = RTICdrTypeCode_get_member_name(typeCode, count);
+                    if(memberName != NULL)
+                    {
+                        smemberName = memberName;
+                        returnedValue = processMembersStorage(memberInfo, smemberName, dynamicData,
+                                suffix, index, step);
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot obtain name of member %d", count);
+                    }
+                }
+                else
+                {
+                    logError(m_log, "Cannot obtain info about member %d", count);
+                }
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot obtain number of member of the struct");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processPrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *primitiveInfo, string &primitiveName, string &suffix)
+{
+    bool returnedValue = false;
+    writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
+        DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
+    bool (*addToStream)(string &memberName, string &table_create,
+            string &dynamicDataAdd) = NULL;
+    RTICdrTCKind kind;
+    string newName;
+
+    if(RTICdrTypeCode_get_kind(primitiveInfo, &kind) == RTI_TRUE)
+    {
+        while(writePrimitiveInitialStatementsFunctionsPointer->_kind != RTI_CDR_TK_NULL)
+        {
+            if(kind == writePrimitiveInitialStatementsFunctionsPointer->_kind)
+            {
+                addToStream = writePrimitiveInitialStatementsFunctionsPointer->_addToStream;
+                break;
+            }
+            writePrimitiveInitialStatementsFunctionsPointer++;
+        }
+
+        if(addToStream != NULL)
+        {
+            newName = suffix;
+            newName += primitiveName;
+            returnedValue = addToStream(newName, table_create, dynamicDataAdd);
+        }
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processMembersInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *memberInfo, string &memberName, string &suffix)
+{
+    const char* const METHOD_NAME = "processMembersInitialStatements";
+    bool returnedValue = false;
+    RTICdrTCKind kind;
+    string newSuffix;
+
+    if(RTICdrTypeCode_get_kind(memberInfo, &kind) == RTI_TRUE)
+    {
+        if(kind == RTI_CDR_TK_STRUCT)
+        {
+            newSuffix = suffix;
+            newSuffix += memberName;
+            newSuffix += "__";
+            returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
+        }
+        else if(kind == RTI_CDR_TK_UNION)
+        {
+            newSuffix = suffix;
+            newSuffix += memberName;
+            newSuffix += "__";
+            returnedValue = processUnionsInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
+        }
+        else if(kind == RTI_CDR_TK_ARRAY)
+        {
+            newSuffix = suffix;
+            newSuffix += memberName;
+            returnedValue = processArraysInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
+        }
+        else if(kind == RTI_CDR_TK_SEQUENCE)
+        {
+            newSuffix = suffix;
+            newSuffix += memberName;
+            returnedValue = processSequencesInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
+        }
+        else if(kindIsPrimitive(kind))
+        {
+            returnedValue = processPrimitiveInitialStatements(table_create, dynamicDataAdd,
+                    memberInfo, memberName, suffix);
+        }
+        else
+        {
+            logError(m_log, "The kind %d is not recognize", kind);
+        }
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, string &ip_dst,
+        unsigned int hostId, unsigned int appId, unsigned int instanceId,
+        unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+        struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+        unsigned int destAppId, unsigned int destInstanceId,
+        struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData)
+{
+    const char* const METHOD_NAME = "storeDynamicData";
+    bool returnedValue = false;
+    int index = 1;
+    string suffix = "";
+
+    if(dynamicData != NULL &&
+            typeCode != NULL)
+    {
+        if(m_ready)
+        {
+            if(sqlite3_reset(m_addStmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int64(m_addStmt, index++, wts.tv_sec);
+                sqlite3_bind_int64(m_addStmt, index++, wts.tv_usec);
+                sqlite3_bind_text(m_addStmt, index++, ip_src.c_str(), ip_src.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addStmt, index++, ip_dst.c_str(), ip_dst.length(), SQLITE_STATIC);
+                sqlite3_bind_int64(m_addStmt, index++, hostId);
+                sqlite3_bind_int64(m_addStmt, index++, appId);
+                sqlite3_bind_int64(m_addStmt, index++, instanceId);
+                sqlite3_bind_int64(m_addStmt, index++, readerId);
+                sqlite3_bind_int64(m_addStmt, index++, writerId);
+                sqlite3_bind_int64(m_addStmt, index++, writerSeqNum);
+                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.sec);
+                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.nanosec);
+
+                if(destHostId != 0 || destAppId != 0 ||
+                        destInstanceId != 0)
+                {
+                    sqlite3_bind_int64(m_addStmt, index++, destHostId);
+                    sqlite3_bind_int64(m_addStmt, index++, destAppId);
+                    sqlite3_bind_int64(m_addStmt, index++, destInstanceId);
+                }
+                else
+                {
+                    sqlite3_bind_null(m_addStmt, index++);
+                    sqlite3_bind_null(m_addStmt, index++);
+                    sqlite3_bind_null(m_addStmt, index++);
+                }
+
+                returnedValue = processStructsStorage(typeCode, dynamicData, suffix, index, false);
+
+                if(returnedValue)
+                {
+                    if(sqlite3_step(m_addStmt) != SQLITE_DONE)
+                    {
+                        returnedValue = false;
+                        logError(m_log, "Cannot store in database");
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processMembersStorage(struct RTICdrTypeCode *memberInfo, string &memberName,
+        struct DDS_DynamicData *dynamicData, string &suffix, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processMembersStorage";
+    bool returnedValue = false;
+    struct DDS_DynamicData *memberDynamicDataObject = NULL;
+    RTICdrTCKind kind;
+    string newSuffix;
+
+    if(RTICdrTypeCode_get_kind(memberInfo, &kind) == RTI_TRUE)
+    {
+        if(kind == RTI_CDR_TK_STRUCT)
+        {
+            if(!step)
+                memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
+                        memberName, dynamicData);
+
+            if((memberDynamicDataObject != NULL) || (step))
+            {
+                newSuffix = suffix;
+                newSuffix += memberName;
+                newSuffix += "__";
+                returnedValue = processStructsStorage(memberInfo, memberDynamicDataObject,
+                        newSuffix, index, step);
+                if(memberDynamicDataObject != NULL)
+                    DDS_DynamicData_delete(memberDynamicDataObject);
+            }
+        }
+        else if(kind == RTI_CDR_TK_UNION)
+        {
+            memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
+                    memberName, dynamicData);
+
+            if(memberDynamicDataObject != NULL)
+            {
+                newSuffix = suffix;
+                newSuffix += memberName;
+                newSuffix += "__";
+                returnedValue = processUnionsStorage(memberInfo, memberDynamicDataObject,
+                        newSuffix, index, step);
+                DDS_DynamicData_delete(memberDynamicDataObject);
+            }
+        }
+        else if(kind == RTI_CDR_TK_ARRAY)
+        {
+            newSuffix = suffix;
+            newSuffix += memberName;
+            returnedValue = processArraysStorage(memberInfo, dynamicData, newSuffix, memberName, index, step);
+        }
+        else if(kind == RTI_CDR_TK_SEQUENCE)
+        {
+            newSuffix = suffix;
+            newSuffix += memberName;
+            returnedValue = processSequencesStorage(memberInfo, dynamicData, newSuffix, memberName, index, step);
+        }
+        else if(kindIsPrimitive(kind))
+        {
+            returnedValue = processPrimitiveStorage(memberInfo, memberName, dynamicData, index, step);
+        }
+        else
+        {
+            logError(m_log, "The kind %d is not recognize", kind);
+        }
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processPrimitiveStorage(struct RTICdrTypeCode *primitiveInfo, string &primitiveName,
+        struct DDS_DynamicData *primitiveData, int &index, bool step)
+{
+    bool returnedValue = false;
+    writePrimitiveStorageFunctions *writePrimitiveStorageFunctionsPointer =
+        DynamicDataDB::writePrimitiveStorageFunctionsMap;
+    bool (*addToStream)(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+            string &name, int & index) = NULL;
+    RTICdrTCKind kind;
+
+    if(RTICdrTypeCode_get_kind(primitiveInfo, &kind) == RTI_TRUE)
+    {
+        while(writePrimitiveStorageFunctionsPointer->_kind != RTI_CDR_TK_NULL)
+        {
+            if(kind == writePrimitiveStorageFunctionsPointer->_kind)
+            {
+                addToStream = writePrimitiveStorageFunctionsPointer->_addToStream;
+                break;
+            }
+            writePrimitiveStorageFunctionsPointer++;
+        }
+
+        if(addToStream != NULL)
+        {
+            if(!step)
+                returnedValue = addToStream(m_addStmt, primitiveData, primitiveName, index);
+            else
+            {
+                sqlite3_bind_null(m_addStmt, index++);
+                returnedValue = true;
+            }
+        }
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addOctetStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addOctetStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Octet value;
+        if(DDS_DynamicData_get_octet(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the octet field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addShortStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addShortStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Short value;
+        if(DDS_DynamicData_get_short(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the short field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addUShortStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addUShortStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_UnsignedShort value;
+        if(DDS_DynamicData_get_ushort(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the ushort field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+
+bool DynamicDataDB::addLongStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addLongStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Long value;
+        if(DDS_DynamicData_get_long(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the long field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addULongStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_UnsignedLong value;
+        if(DDS_DynamicData_get_ulong(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the ulong field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongLongStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addLongLongStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_LongLong value;
+        if(DDS_DynamicData_get_longlong(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_int64(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the longlong field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongLongStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addULongLongStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_UnsignedLongLong value;
+        if(DDS_DynamicData_get_ulonglong(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_int64(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the ulonglong field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addCharStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addCharStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Char value = NULL;
+        DDS_DynamicData_get_char(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+        sqlite3_bind_text(stmt, index++, &value, 1, SQLITE_STATIC);
+        returnedValue = true;
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addStringStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addStringStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Char *value = NULL;
+        DDS_UnsignedLong stringLength;
+        DDS_DynamicData_get_string(dynamicDataObject, &value, &stringLength,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+        if(value != NULL)
+        {
+            sqlite3_bind_text(stmt, index++, value, stringLength, SQLITE_TRANSIENT);
+            DDS_String_free(value);
+            returnedValue = true;
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addFloatStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addFloatStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Float value;
+        if(DDS_DynamicData_get_float(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_double(stmt, index++, (double)value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the float field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addDoubleStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Double value;
+        if(DDS_DynamicData_get_double(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_double(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the double field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addEnumStorage";
+    bool returnedValue = false;
+    DDS_TypeCode *enumTypeCode = NULL;
+    DDS_Long ordinal;
+    DDS_UnsignedLong eindex;
+    DDS_ExceptionCode_t exception = DDS_NO_EXCEPTION_CODE;
+    const char *label;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_DynamicData_get_long(dynamicDataObject, &ordinal, (char*)name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+        if(DDS_DynamicData_get_member_type(dynamicDataObject, (const DDS_TypeCode**)&enumTypeCode, name.c_str(),
+                    DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            eindex = DDS_TypeCode_find_member_by_label(enumTypeCode, ordinal, &exception);
+
+            if(exception == DDS_NO_EXCEPTION_CODE)
+            {
+                label = DDS_TypeCode_member_name(enumTypeCode, eindex, &exception);
+
+                if(exception == DDS_NO_EXCEPTION_CODE)
+                {
+                    sqlite3_bind_text(stmt, index++, label, strlen(label), SQLITE_STATIC);
+                    returnedValue = true;
+                }
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        string &name, int &index)
+{
+    const char* const METHOD_NAME = "addBoolStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicDataObject != NULL && !name.empty())
+    {
+        DDS_Boolean value;
+
+        if(DDS_DynamicData_get_boolean(dynamicDataObject, &value,
+                name.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+        {
+            sqlite3_bind_int(stmt, index++, value);
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot get the boolean field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+#endif

@@ -19,12 +19,19 @@ struct timeval;
 
 #include <string>
 #include <list>
+#include <stdint.h>
 
 #include <sqlite3.h>
 
 namespace eProsima
 {
     class eProsimaLog;
+    class Member;
+    class TypeCode;
+    class StructTypeCode;
+    class EnumTypeCode;
+    class PrimitiveTypeCode;
+    class CDR;
 
     typedef struct arrayProcessInfo
     {
@@ -67,6 +74,61 @@ namespace eProsima
                 }
             } arrayNode;
 
+#ifdef RICARDO
+            typedef struct writePrimitiveInitialStatementsFunctions
+            {
+                uint32_t _kind;
+                bool (*_addToStream)(std::string &memberName, std::string &table_create,
+                        std::string &dynamicDataAdd);
+            } writePrimitiveInitialStatementsFunctions;
+
+            typedef struct writePrimitiveStorageFunctions
+            {
+                uint32_t _kind;
+                bool (*_addToStream)(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            } writePrimitiveStorageFunctions;
+
+            typedef struct writeArrayPrimitiveFunctions
+            {
+                uint32_t _kind;
+                bool (*_addToStream)(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+                            
+            } writeArrayPrimitiveFunctions;
+
+            typedef struct writeSequencePrimitiveFunctions
+            {
+                uint32_t _kind;
+                bool (*_addToStream)(sqlite3_stmt *stmt, int ref,
+                        std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+                            
+            } writeSequencePrimitiveFunctions;
+
+            static bool addOctetStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addUShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addULongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addLongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addULongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addCharStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addStringStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addFloatStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addDoubleStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+            static bool addBoolStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
+
+            static bool addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr, int &index, bool step);
+
+            DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
+                    const TypeCode*typeCode);
+
+            bool storeDynamicData(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId,
+                    const TypeCode *typeCode, CDR &cdr);
+#else
             typedef struct writePrimitiveInitialStatementsFunctions
             {
                 RTICdrTCKind _kind;
@@ -97,43 +159,6 @@ namespace eProsima
                             
             } writeSequencePrimitiveFunctions;
 
-            DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
-                    struct RTICdrTypeCode *typeCode);
-
-            ~DynamicDataDB();
-
-            bool storeDynamicData(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
-                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId,
-                    struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData);
-
-            static void eraseSpacesInTableName(std::string &tableName);
-
-            static bool addTinyIntInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-            static bool addShortInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-            static bool addUShortInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-            static bool addIntInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-            static bool addUIntInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-            static bool addBigIntInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-            static bool addUBigIntInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-            static bool addCharInitialStatements(std::string &memberName, std::string &table_create, std::string &dynamicDataAdd);
-            static bool addTextInitialStatements(std::string &memberName, std::string &table_create, std::string &dynamicDataAdd);
-            static bool addFloatInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-            static bool addDoubleInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-            static bool addEnumInitialStatements(std::string &memberName, std::string &table_create,
-                    std::string &dynamicDataAdd);
-
             static bool addOctetStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     std::string &name, int &index);
             static bool addShortStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
@@ -160,6 +185,44 @@ namespace eProsima
                     std::string &name, int &index);
             static bool addBoolStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     std::string &name, int &index);
+
+            DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
+                    struct RTICdrTypeCode *typeCode);
+
+            bool storeDynamicData(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
+                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
+                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
+                    unsigned int destAppId, unsigned int destInstanceId,
+                    struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData);
+#endif
+
+            ~DynamicDataDB();
+
+            static void eraseSpacesInTableName(std::string &tableName);
+
+            static bool addTinyIntInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addShortInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addUShortInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addIntInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addUIntInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addBigIntInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addUBigIntInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addCharInitialStatements(std::string &memberName, std::string &table_create, std::string &dynamicDataAdd);
+            static bool addTextInitialStatements(std::string &memberName, std::string &table_create, std::string &dynamicDataAdd);
+            static bool addFloatInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addDoubleInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
+            static bool addEnumInitialStatements(std::string &memberName, std::string &table_create,
+                    std::string &dynamicDataAdd);
 
             static bool addOctetArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
@@ -201,20 +264,12 @@ namespace eProsima
 
         private:
 
-            bool kindIsPrimitive(RTICdrTCKind kind);
-
-            bool createInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode);
-            bool processStructsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, std::string &suffix);
             bool processUnionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
             bool processArraysInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
             bool processSequencesInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
-            bool processMembersInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *memberInfo, std::string &memberName, std::string &suffix);
             bool processDimensionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix, RTICdrUnsignedLong dimensionCount,
                     RTICdrUnsignedLong currentDimension);
@@ -232,15 +287,10 @@ namespace eProsima
             
             struct DDS_DynamicData* getMemberDynamicDataObject(RTICdrTypeCode *memberTypecode,
                     std::string &memberName, struct DDS_DynamicData *parentDynamicData);
-            bool processStructsStorage(struct RTICdrTypeCode *typeCode,
-                    struct DDS_DynamicData *dynamicData, std::string &suffix,
-                    int &index, bool step);
             bool processUnionsStorage(struct RTICdrTypeCode *typeCode,
                     struct DDS_DynamicData *dynamicData, std::string &suffix,
                     int &index, bool step);
-            bool processMembersStorage(struct RTICdrTypeCode *memberInfo, std::string &memberName,
-                    struct DDS_DynamicData *dynamicData, std::string &suffix,
-                    int &index, bool step);
+           
             bool processArraysStorage(struct RTICdrTypeCode *typeCode,
                     struct DDS_DynamicData *dynamicData, std::string &suffix,
                     std::string &memberName, int &index, bool step);
@@ -258,8 +308,56 @@ namespace eProsima
                     RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData);
             bool processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref, std::string &memberName,
                     RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData);
+
+#ifdef RICARDO
+            bool createInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const TypeCode *typeCode);
+
+            bool processStructsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const StructTypeCode *structTC, std::string &suffix);
+
+            bool processMembersInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const Member *memberInfo, std::string &suffix);
+
+            bool processPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const TypeCode *primitiveInfo, const std::string &primitiveName,
+                    std::string &suffix);
+
+            bool processStructsStorage(const StructTypeCode *typeCode, CDR &cdr,
+                std::string &suffix, int &index, bool step);
+
+            bool processMembersStorage(const Member *memberInfo, CDR &cdr, std::string &suffix,
+                    int &index, bool step);
+
+            bool processPrimitiveStorage(const PrimitiveTypeCode *primitiveInfo,
+                    CDR &cdr, int &index, bool step);
+#else
+            bool kindIsPrimitive(RTICdrTCKind kind);
+
+            bool createInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode);
+
+            bool processStructsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix);
+
+            bool processMembersInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *memberInfo, std::string &memberName, std::string &suffix);
+
+            bool processPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *primitiveInfo, std::string &primitiveName,
+                    std::string &suffix);
+
+            bool processStructsStorage(struct RTICdrTypeCode *typeCode,
+                    struct DDS_DynamicData *dynamicData, std::string &suffix,
+                    int &index, bool step);
+
+            bool processMembersStorage(struct RTICdrTypeCode *memberInfo, std::string &memberName,
+                    struct DDS_DynamicData *dynamicData, std::string &suffix,
+                    int &index, bool step);
+
             bool processPrimitiveStorage(struct RTICdrTypeCode *primitiveInfo, std::string &primitiveName,
                     struct DDS_DynamicData *primitiveData, int &index, bool step);
+#endif
 
             eProsimaLog &m_log;
 

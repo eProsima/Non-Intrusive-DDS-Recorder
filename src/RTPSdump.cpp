@@ -28,7 +28,7 @@ using namespace eProsima;
 #define RTPS_PID_END (0x0001)
 #define RTPS_PID_TOPIC_NAME (0x0005)
 #define RTPS_PID_TYPE_NAME (0x0007)
-#define RTPS_PID_TYPECODE (0x0047)
+#define RTPS_PID_TYPECODE (0x8004)
 #define RTPS_PID_GUID (0x005A)
 
 /* RTI types */
@@ -101,7 +101,7 @@ void RTPSdump::processDataCallback(void *user, const struct timeval &wts,
         unsigned int appId, unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSequenceNum,
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-        unsigned int destAppId, unsigned int destInstanceId,
+        unsigned int destAppId, unsigned int destInstanceId, bool endianess,
         const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataCallback";
@@ -111,7 +111,7 @@ void RTPSdump::processDataCallback(void *user, const struct timeval &wts,
     {
         rtpsdumper->processData(wts, ip_src, ip_dst, hostId, appId, instanceId,
                 readerId, writerId, writerSequenceNum, sourceTmp,
-                destHostId, destAppId, destInstanceId,
+                destHostId, destAppId, destInstanceId, endianess,
                 serializedData, serializedDataLen);
     }
     else
@@ -125,7 +125,7 @@ void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip
         unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSeqNum,
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-        unsigned int destAppId, unsigned int destInstanceId, 
+        unsigned int destAppId, unsigned int destInstanceId, bool endianess,
         const char *serializedData, unsigned int serializedDataLen)
 {
     // Data(w)
@@ -133,7 +133,7 @@ void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip
             readerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER)
     {
         processDataW(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
-                writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId,
+                writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId, endianess,
                 serializedData, serializedDataLen);
     }
     // Data(r)
@@ -141,14 +141,14 @@ void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip
             readerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER)
     {
         processDataR(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
-                writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId,
+                writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId, endianess,
                 serializedData, serializedDataLen);
     }
     // It's not a Data(p)
     else if(writerId != ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER)
     {
         processDataNormal(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
-                writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId,
+                writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId, endianess,
                 serializedData, serializedDataLen);
     }
 }
@@ -157,23 +157,64 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
-                    unsigned int serializedDataLen)
+                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
+                    const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataW";
-    struct DISCBuiltinTopicPublicationData topic = DISC_BUILTIN_TOPIC_PUBLICATION_DATA_INITIALIZE;
-    struct DISCBuiltinTopicPublicationDataPluginEndpointData * epd = NULL;
-    struct DISCBuiltinTopicPublicationDataPool *pool = NULL;
-    struct REDAFastBufferPoolProperty poolProperty = REDA_FAST_BUFFER_POOL_PROPERTY_DEFAULT;
-    struct RTICdrTypeCode *typeCode = NULL;
-    RTICdrStream stream;
 
     if(serializedData != NULL)
     {
+#ifdef RICARDO
         PublicationBuiltinTopic pubtopic;
-        deserializePublicationBuiltinTopic((char*)serializedData, serializedDataLen, pubtopic);
+        deserializePublicationBuiltinTopic(endianess, (char*)serializedData, serializedDataLen, pubtopic);
+
+        if(pubtopic.typeCode != NULL)
+        {
+            TypeCode *typeCode = TypeCode::deserializeTypeCode(pubtopic.typeCode, pubtopic.typeCodeLength);
+
+            if(typeCode != NULL)
+            {
+                // Add typecode.
+                if(m_typecodeDB == NULL ||
+                    m_typecodeDB->addTypecode(pubtopic.topic_name, pubtopic.type_name,
+                            typeCode) == false)
+                {
+                    delete typeCode;
+                }
+
+                // Add entity.
+                if(m_entitiesDB != NULL)
+                    m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                            appId, instanceId, readerId, writerId, writerSeqNum,
+                            sourceTmp, destHostId, destAppId, destInstanceId, pubtopic.guid.hostId,
+                            pubtopic.guid.appId, pubtopic.guid.instanceId,
+                            pubtopic.guid.objectId, 1, pubtopic.topic_name, pubtopic.type_name, true);
+            }
+            else
+            {
+                logError(m_log, "Cannot deserialize the typecode");
+            }
+        }
+        else
+        {
+            logInfo(m_log, "the datawriter of topic %s doesn't send the typecode", pubtopic.topic_name.c_str());
+
+            if(m_entitiesDB != NULL)
+                m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                        appId, instanceId, readerId, writerId, writerSeqNum,
+                        sourceTmp, destHostId, destAppId, destInstanceId, pubtopic.guid.hostId,
+                        pubtopic.guid.appId, pubtopic.guid.instanceId,
+                        pubtopic.guid.objectId, 1, pubtopic.topic_name, pubtopic.type_name, false);
+        }
+#else
+        struct DISCBuiltinTopicPublicationData topic = DISC_BUILTIN_TOPIC_PUBLICATION_DATA_INITIALIZE;
+        struct DISCBuiltinTopicPublicationDataPluginEndpointData * epd = NULL;
+        struct DISCBuiltinTopicPublicationDataPool *pool = NULL;
+        struct REDAFastBufferPoolProperty poolProperty = REDA_FAST_BUFFER_POOL_PROPERTY_DEFAULT;
+        struct RTICdrTypeCode *typeCode = NULL;
+        RTICdrStream stream;
         
-        /*if(DISCBuiltinTopicPublicationDataPluginSupport_initializeData_ex(&topic, RTI_TRUE) == RTI_TRUE)
+        if(DISCBuiltinTopicPublicationDataPluginSupport_initializeData_ex(&topic, RTI_TRUE) == RTI_TRUE)
         {
             RTIOsapiHeap_allocateStructure(&epd, struct DISCBuiltinTopicPublicationDataPluginEndpointData);
 
@@ -294,7 +335,8 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
         else
         {
             logError(m_log, "Cannot initialized DISCBuiltinTopicPublicationData");
-        }*/
+        }
+#endif
     }
     else
     {
@@ -306,27 +348,64 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, const char *serializedData,
-                    unsigned int serializedDataLen)
+                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
+                    const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataR";
-    struct DISCBuiltinTopicSubscriptionData topic = DISC_BUILTIN_TOPIC_SUBSCRIPTION_DATA_INITIALIZE;
-    struct DISCBuiltinTopicSubscriptionDataPluginEndpointData * epd = NULL;
-    struct DISCBuiltinTopicSubscriptionDataPool *pool = NULL;
-    struct REDAFastBufferPoolProperty poolProperty = REDA_FAST_BUFFER_POOL_PROPERTY_DEFAULT;
-    struct RTICdrTypeCode *typeCode = NULL;
-    RTICdrStream stream;
 
     if(serializedData != NULL)
     {
+#ifdef RICARDO
         SubscriptionBuiltinTopic subtopic;
-        deserializeSubscriptionBuiltinTopic((char*)serializedData, serializedDataLen, subtopic);
+        deserializeSubscriptionBuiltinTopic(endianess, (char*)serializedData, serializedDataLen, subtopic);
 
         if(subtopic.typeCode != NULL)
         {
-            TypeCode typeCode(subtopic.typeCode, subtopic.typeCodeLength);
+            TypeCode *typeCode = TypeCode::deserializeTypeCode(subtopic.typeCode, subtopic.typeCodeLength);
+
+            if(typeCode != NULL)
+            {
+                // Add typecode.
+                if(m_typecodeDB == NULL ||
+                    m_typecodeDB->addTypecode(subtopic.topic_name, subtopic.type_name,
+                            typeCode) == false)
+                {
+                    delete typeCode;
+                }
+
+                // Add entity.
+                if(m_entitiesDB != NULL)
+                    m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                            appId, instanceId, readerId, writerId, writerSeqNum,
+                            sourceTmp, destHostId, destAppId, destInstanceId, subtopic.guid.hostId,
+                            subtopic.guid.appId, subtopic.guid.instanceId,
+                            subtopic.guid.objectId, 0, subtopic.topic_name, subtopic.type_name, true);
+            }
+            else
+            {
+                logError(m_log, "Cannot deserialize the typecode");
+            }
         }
-        /*if(DISCBuiltinTopicSubscriptionDataPluginSupport_initializeData_ex(&topic, RTI_TRUE) == RTI_TRUE)
+        else
+        {
+            logInfo(m_log, "the datareader of topic %s doesn't send the typecode", subtopic.topic_name.c_str());
+
+            if(m_entitiesDB != NULL)
+                m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                        appId, instanceId, readerId, writerId, writerSeqNum,
+                        sourceTmp, destHostId, destAppId, destInstanceId, subtopic.guid.hostId,
+                        subtopic.guid.appId, subtopic.guid.instanceId,
+                        subtopic.guid.objectId, 0, subtopic.topic_name, subtopic.type_name, false);
+        }
+#else
+        struct DISCBuiltinTopicSubscriptionData topic = DISC_BUILTIN_TOPIC_SUBSCRIPTION_DATA_INITIALIZE;
+        struct DISCBuiltinTopicSubscriptionDataPluginEndpointData * epd = NULL;
+        struct DISCBuiltinTopicSubscriptionDataPool *pool = NULL;
+        struct REDAFastBufferPoolProperty poolProperty = REDA_FAST_BUFFER_POOL_PROPERTY_DEFAULT;
+        struct RTICdrTypeCode *typeCode = NULL;
+        RTICdrStream stream;
+
+        if(DISCBuiltinTopicSubscriptionDataPluginSupport_initializeData_ex(&topic, RTI_TRUE) == RTI_TRUE)
         {
             RTIOsapiHeap_allocateStructure(&epd, struct DISCBuiltinTopicSubscriptionDataPluginEndpointData);
 
@@ -440,7 +519,8 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
         else
         {
             logError(m_log, "Cannot initialized DISCBuiltinTopicSubscriptionData");
-        }*/
+        }
+#endif
     }
     else
     {
@@ -452,16 +532,12 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
         unsigned int hostId, unsigned int appId, unsigned int instanceId,
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-        unsigned int destAppId, unsigned int destInstanceId,
+        unsigned int destAppId, unsigned int destInstanceId, bool endianess,
         const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataNormal";
     eEntity *entity = NULL;
     eTypeCode *typecode = NULL;
-    struct DDS_DynamicDataTypeSupport *typeSupport = NULL;
-    struct DDS_DynamicDataTypeProperty_t typeProp = DDS_DynamicDataTypeProperty_t_INITIALIZER;
-    struct DDS_DynamicData *dynamicData = NULL;
-    RTICdrStream stream;
     DynamicDataDB *dynamicDB = NULL;
 
     // Check the writer or reader has associated a typecode.
@@ -470,6 +546,40 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
             (entity = m_entitiesDB->findEntity(hostId, appId,
                                                instanceId, readerId)) != NULL)
     {
+#ifdef RICARDO
+        if((typecode = m_typecodeDB->findTypecode(entity->getTopicName(),
+                        entity->getTypeName())) != NULL)
+        {
+            CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIAN : CDRBuffer::BIG_ENDIAN;
+            CDRBuffer buffer((char*)serializedData, serializedDataLen, _endianess);
+            CDR cdr(buffer, CDR::DDS_CDR);
+            
+            if(cdr.read_encapsulation() && cdr.getDDSCdrPlFlag() == CDR::DDS_CDR_WITHOUT_PL)
+            {
+                dynamicDB = typecode->getDynamicDataDB();
+                        
+                if(dynamicDB != NULL)
+                {
+                    if(!dynamicDB->storeDynamicData(wts, ip_src, ip_dst, hostId,
+                                appId, instanceId, readerId, writerId, writerSeqNum,
+                                sourceTmp, destHostId, destAppId, destInstanceId,
+                                typecode->getCdrTypecode(), cdr))
+                    {
+                        logError(m_log, "Cannot stores the dynamic data in database");
+                    }
+                }
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot find the typecode from topic %s", entity->getTopicName().c_str());
+        }
+#else
+        struct DDS_DynamicDataTypeSupport *typeSupport = NULL;
+        struct DDS_DynamicDataTypeProperty_t typeProp = DDS_DynamicDataTypeProperty_t_INITIALIZER;
+        struct DDS_DynamicData *dynamicData = NULL;
+        RTICdrStream stream;
+
         if((typecode = m_typecodeDB->findTypecode(entity->getTopicName().c_str(),
                         entity->getTypeName().c_str())) != NULL)
         {
@@ -523,6 +633,7 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
         {
             logError(m_log, "Cannot find the typecode from topic %s", entity->getTopicName().c_str());
         }
+#endif
     }
     else
     {
@@ -534,14 +645,15 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
 }
 
 
-bool RTPSdump::deserializePublicationBuiltinTopic(char* serializedData, unsigned int serializedDataLength, RTPSdump::PublicationBuiltinTopic &pubtopic)
+bool RTPSdump::deserializePublicationBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, RTPSdump::PublicationBuiltinTopic &pubtopic)
 {
     const char* const METHOD_NAME = "deserializePublicationBuiltinTopic";
     bool returnedValue = false;
 
     if(serializedData != NULL)
-    { 
-        CDRBuffer buffer((char*)serializedData, serializedDataLength);
+    {
+        CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIAN : CDRBuffer::BIG_ENDIAN;
+        CDRBuffer buffer((char*)serializedData, serializedDataLength, _endianess);
         CDR cdr(buffer, CDR::DDS_CDR);
 
         if(cdr.read_encapsulation() && cdr.getDDSCdrPlFlag() == CDR::DDS_CDR_WITH_PL)
@@ -593,14 +705,15 @@ bool RTPSdump::deserializePublicationBuiltinTopic(char* serializedData, unsigned
     return returnedValue;
 }
 
-bool RTPSdump::deserializeSubscriptionBuiltinTopic(char* serializedData, unsigned int serializedDataLength, RTPSdump::SubscriptionBuiltinTopic &subtopic)
+bool RTPSdump::deserializeSubscriptionBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, RTPSdump::SubscriptionBuiltinTopic &subtopic)
 {
     const char* const METHOD_NAME = "deserializeSubscriptionBuiltinTopic";
     bool returnedValue = false;
 
     if(serializedData != NULL)
-    { 
-        CDRBuffer buffer((char*)serializedData, serializedDataLength);
+    {
+        CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIAN : CDRBuffer::BIG_ENDIAN;
+        CDRBuffer buffer((char*)serializedData, serializedDataLength, _endianess);
         CDR cdr(buffer, CDR::DDS_CDR);
 
         if(cdr.read_encapsulation() && cdr.getDDSCdrPlFlag() == CDR::DDS_CDR_WITH_PL)

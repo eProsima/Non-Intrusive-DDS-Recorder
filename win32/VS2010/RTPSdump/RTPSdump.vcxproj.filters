@@ -37,6 +37,12 @@
     <Filter Include="Source Files\cdr">
       <UniqueIdentifier>{718ce660-f18a-4a0f-8382-5c5be5cd9acc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{ca0aaef6-d063-491f-baf8-b4fa0e577b23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{d4104665-7c87-40a2-b89d-bd3b9bd560df}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\main.cpp">
@@ -72,6 +78,24 @@
     <ClCompile Include="..\..\..\src\cdr\TypeCode.cpp">
       <Filter>Source Files\cdr</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cdr\StructTypeCode.cpp">
+      <Filter>Source Files\cdr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cdr\MemberedTypeCode.cpp">
+      <Filter>Source Files\cdr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cdr\EnumTypeCode.cpp">
+      <Filter>Source Files\cdr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\util\IDLPrinter.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cdr\PrimitiveTypeCode.cpp">
+      <Filter>Source Files\cdr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cdr\StringTypeCode.cpp">
+      <Filter>Source Files\cdr</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\RTPSdump.h">
@@ -100,6 +124,24 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\cdr\TypeCode.h">
       <Filter>Header Files\cdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cdr\MemberedTypeCode.h">
+      <Filter>Header Files\cdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cdr\StructTypeCode.h">
+      <Filter>Header Files\cdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cdr\PrimitiveTypeCode.h">
+      <Filter>Header Files\cdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cdr\EnumTypeCode.h">
+      <Filter>Header Files\cdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cdr\StringTypeCode.h">
+      <Filter>Header Files\cdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\util\IDLPrinter.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

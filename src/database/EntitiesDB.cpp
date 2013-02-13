@@ -31,7 +31,7 @@ using namespace std;
 
 eEntity::eEntity(unsigned int hostId, unsigned int appId,
         unsigned int instanceId, unsigned int entityId,
-        const char *topicName, const char *typeName,
+        string &topicName, string &typeName,
         bool existsTypecode) : m_hostId(hostId),
     m_appId(appId), m_instanceId(instanceId),
     m_entityId(entityId), m_topicName(topicName), m_typeName(typeName),
@@ -239,7 +239,7 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
         unsigned int destAppId, unsigned int destInstanceId,const unsigned int entity_hostId, const unsigned int entity_appId,
         const unsigned int entity_instanceId, const unsigned int entityId, int type,
-        const char *topicName, const char *typeName, bool existsTypecode)
+        string &topicName, string &typeName, bool existsTypecode)
 {
     const char* const METHOD_NAME = "addEntity";
     bool returnedValue = false;
@@ -259,8 +259,8 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
                     sqlite3_bind_text(m_addStmt, 5, READER_TEXT, strlen(READER_TEXT), SQLITE_STATIC);
                 else
                     sqlite3_bind_text(m_addStmt, 5, WRITER_TEXT, strlen(WRITER_TEXT), SQLITE_STATIC);
-                sqlite3_bind_text(m_addStmt, 6, topicName, strlen(topicName), SQLITE_STATIC);
-                sqlite3_bind_text(m_addStmt, 7, typeName, strlen(typeName), SQLITE_STATIC);
+                sqlite3_bind_text(m_addStmt, 6, topicName.c_str(), topicName.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addStmt, 7, typeName.c_str(), typeName.length(), SQLITE_STATIC);
                 if(existsTypecode)
                     sqlite3_bind_int(m_addStmt, 8, 1);
                 else
@@ -328,8 +328,8 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
                     sqlite3_bind_text(m_addMsgStmt, 20, READER_TEXT, strlen(READER_TEXT), SQLITE_STATIC);
                 else
                     sqlite3_bind_text(m_addMsgStmt, 20, WRITER_TEXT, strlen(WRITER_TEXT), SQLITE_STATIC);
-                sqlite3_bind_text(m_addMsgStmt, 21, topicName, strlen(topicName), SQLITE_STATIC);
-                sqlite3_bind_text(m_addMsgStmt, 22, typeName, strlen(typeName), SQLITE_STATIC);
+                sqlite3_bind_text(m_addMsgStmt, 21, topicName.c_str(), topicName.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addMsgStmt, 22, typeName.c_str(), typeName.length(), SQLITE_STATIC);
                 if(existsTypecode)
                     sqlite3_bind_int(m_addMsgStmt, 23, 1);
                 else
