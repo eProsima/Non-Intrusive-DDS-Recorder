@@ -71,26 +71,29 @@ const EnumMember* EnumTypeCode::getMemberWithOrdinal(uint32_t ordinal) const
     return returnedValue;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const EnumTypeCode &typeCode)
+bool EnumTypeCode::print(IDLPrinter &printer, bool write) const
 {
     bool returnedValue = true;
 
-    if(printer.addTypeName("enum " + typeCode.getName()))
+	if(write)
+		printer << getName();
+
+    if(!printer.isTypePrinterAndUp("enum " + getName()))
     {
-        printer.seekp(0, std::ios_base::beg);
-        printer << "enum " << typeCode.getName() << " {" << std::endl;
+		IDLPrinter tPrinter(printer);
+        tPrinter << "enum " << getName() << " {" << std::endl;
 
-        for(uint32_t count = 0; count < typeCode.getMemberCount(); ++count)
+        for(uint32_t count = 0; count < getMemberCount(); ++count)
         {
-            const EnumMember *member = dynamic_cast<const EnumMember*>(typeCode.getMember(count));
-            printer << "   " << member->getName() << " = " << member->getOrdinal();
+            const EnumMember *member = dynamic_cast<const EnumMember*>(getMember(count));
+            tPrinter << "   " << member->getName() << " = " << member->getOrdinal();
 
-            if(count != (typeCode.getMemberCount() - 1))
-                printer << "," << std::endl;
+            if(count != (getMemberCount() - 1))
+                tPrinter << "," << std::endl;
         }
 
-        printer << std::endl << "};" << std::endl << std::endl;
-        printer.seekp(0, std::ios_base::end);
+        tPrinter << std::endl << "};" << std::endl << std::endl;
+		printer.addPrinter("enum " + getName(), std::move(tPrinter));
     }
 
     return returnedValue;

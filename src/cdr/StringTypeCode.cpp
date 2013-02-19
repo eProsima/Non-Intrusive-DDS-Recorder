@@ -9,9 +9,11 @@ bool StringTypeCode::deserialize(CDR &cdr)
     return (cdr >> m_dump) & (cdr >> m_maxLength);
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const StringTypeCode &typeCode)
+bool StringTypeCode::print(IDLPrinter &printer, bool write) const
 {
-    return printer << "string ";
+	if(write)
+		return printer << "string ";
+	return true;
 }
 
 bool eProsima::operator<<(IDLPrinter &printer, const StringTypeCode *typeCode)

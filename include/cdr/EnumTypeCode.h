@@ -52,7 +52,9 @@ namespace eProsima
          */
         const EnumMember* getMemberWithOrdinal(uint32_t ordinal) const;
 
-        friend bool operator<<(IDLPrinter &printer, const EnumTypeCode &typeCode);
+		bool print(IDLPrinter &printer, bool write) const;
+
+		friend inline bool operator<<(IDLPrinter &printer, const EnumTypeCode &typeCode) {return typeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const EnumTypeCode *typeCode);
 

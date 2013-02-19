@@ -42,7 +42,9 @@ namespace eProsima
          */
         bool deserialize(CDR &cdr);
 
-        friend bool operator<<(IDLPrinter &printer, const StructTypeCode &structTypeCode);
+		bool print(IDLPrinter &printer, bool write) const;
+
+		friend inline bool operator<<(IDLPrinter &printer, const StructTypeCode &structTypeCode) {return structTypeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const StructTypeCode *structTypeCode);
 

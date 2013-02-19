@@ -39,29 +39,49 @@ Member* StructTypeCode::deserializeMemberInfo(std::string name, CDR &cdr)
     return returnedValue;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const StructTypeCode &typeCode)
+bool StructTypeCode::print(IDLPrinter &printer, bool write) const
 {
     bool returnedValue = true;
 
-    if(printer.addTypeName("struct " + typeCode.getName()))
+	if(write)
+		printer << getName();
+
+    if(!printer.isTypePrinterAndUp("struct " + getName()))
     {
-        printer << "struct " << typeCode.getName() << " {" << std::endl;
+			IDLPrinter tPrinter(printer);
+			tPrinter << "struct " << getName() << " {" << std::endl;
         
-        for(uint32_t count = 0; count < typeCode.getMemberCount(); ++count)
-        {
-            const StructMember *member = dynamic_cast<const StructMember*>(typeCode.getMember(count));
+			for(uint32_t count = 0; count < getMemberCount(); ++count)
+			{
+				const StructMember *member = dynamic_cast<const StructMember*>(getMember(count));
 
-            if(member != NULL)
-            {
-                printer << member->getTypeCode();
-                printer << "   " << member->getName() << ";" << std::endl;
-            }
-            else
-                returnedValue = false;
-        }
+				if(member != NULL)
+				{
+					tPrinter << "   ";
+					tPrinter << member->getTypeCode();
+					tPrinter << " " << member->getName() << ";" << std::endl;
+				}
+				else
+					returnedValue = false;
+			}
 
-        printer << "};" << std::endl << std::endl;
+			tPrinter << "};" << std::endl << std::endl;
+			printer.addPrinter("struct " + getName(), std::move(tPrinter));
     }
+	else
+	{
+		for(uint32_t count = 0; count < getMemberCount(); ++count)
+		{
+			const StructMember *member = dynamic_cast<const StructMember*>(getMember(count));
+
+			if(member != NULL)
+			{
+				member->getTypeCode()->print(printer, false);
+			}
+			else
+				returnedValue = false;
+		}
+	}
 
     return returnedValue;
 }

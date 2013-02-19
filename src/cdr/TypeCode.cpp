@@ -103,31 +103,6 @@ uint32_t TypeCode::getKind() const
     return m_kind;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const TypeCode &typeCode)
-{
-    bool returnedValue = false;
-
-    if(typeCode.getKind() == TypeCode::KIND_STRUCT)
-    {
-        returnedValue = printer << dynamic_cast<const StructTypeCode&>(typeCode);
-    }
-    //TODO
-    else if(typeCode.getKind() == TypeCode::KIND_ENUM)
-    {
-        returnedValue = printer << dynamic_cast<const EnumTypeCode&>(typeCode);
-    }
-    else if(typeCode.getKind() == TypeCode::KIND_STRING)
-    {
-        returnedValue = printer << dynamic_cast<const StringTypeCode&>(typeCode);
-    }
-    else if(TypeCode::kindIsPrimitive(typeCode.getKind()))
-    {
-        returnedValue = printer << dynamic_cast<const PrimitiveTypeCode&>(typeCode);
-    }
-
-    return returnedValue;
-}
-
 bool eProsima::operator<<(IDLPrinter &printer, const TypeCode *typeCode)
 {
     bool returnedValue = false;

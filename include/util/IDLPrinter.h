@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <unordered_map>
+#include <stdint.h>
 
 namespace eProsima
 {
@@ -10,17 +11,29 @@ namespace eProsima
     {
     public:
 
-        IDLPrinter(){}
+        IDLPrinter();
+
+		IDLPrinter(IDLPrinter &printer);
 
         IDLPrinter(IDLPrinter &&printer);
 
-        bool isTypePrinter(std::string &typeName);
+        bool isTypePrinterAndUp(const std::string &typeName);
 
         std::string str();
+
+		bool addPrinter(std::string &&typeName, IDLPrinter &&printer);
+
+		bool operator<(const IDLPrinter &printer) const;
+
+		IDLPrinter& operator=(IDLPrinter &&printer);
 
     private:
 
         std::unordered_map<std::string, IDLPrinter> m_typePrinters;
+
+		uint32_t m_priority;
+
+		uint32_t m_currentGlobalPriority;
     };
 };
 

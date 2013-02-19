@@ -556,6 +556,8 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
             
             if(cdr.read_encapsulation() && cdr.getDDSCdrPlFlag() == CDR::DDS_CDR_WITHOUT_PL)
             {
+				// It is necessary reset the alignment in the CDR buffer.
+				cdr.resetAlignment();
                 dynamicDB = typecode->getDynamicDataDB();
                         
                 if(dynamicDB != NULL)

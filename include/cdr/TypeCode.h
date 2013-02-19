@@ -80,7 +80,9 @@ namespace eProsima
             (kind == KIND_SPARSE));
         }
 
-        friend bool operator<<(IDLPrinter &printer, const TypeCode &typeCode);
+		virtual bool print(IDLPrinter &printer, bool write) const = 0;
+
+		friend inline bool operator<<(IDLPrinter &printer, const TypeCode &typeCode) {return typeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const TypeCode *typeCode);
 

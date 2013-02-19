@@ -21,7 +21,9 @@ namespace eProsima
          */
         bool deserialize(CDR &cdr);
 
-        friend bool operator<<(IDLPrinter &printer, const PrimitiveTypeCode &typeCode);
+		bool print(IDLPrinter &printer, bool write) const;
+
+		friend inline bool operator<<(IDLPrinter &printer, const PrimitiveTypeCode &typeCode) {return typeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const PrimitiveTypeCode *typeCode);
 

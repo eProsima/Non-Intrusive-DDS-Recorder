@@ -1,15 +1,15 @@
 #ifndef _CDR_STRINGTYPECODE_H_
 #define _CDR_STRINGTYPECODE_H_
 
-#include "cdr/TypeCode.h"
+#include "cdr/PrimitiveTypeCode.h"
 
 namespace eProsima
 {
-    class StringTypeCode : public TypeCode
+    class StringTypeCode : public PrimitiveTypeCode
     {
     public:
 
-        StringTypeCode() : TypeCode(TypeCode::KIND_STRING){}
+        StringTypeCode() : PrimitiveTypeCode(TypeCode::KIND_STRING){}
 
         virtual ~StringTypeCode(){}
 
@@ -21,7 +21,9 @@ namespace eProsima
          */
         bool deserialize(CDR &cdr);
 
-        friend bool operator<<(IDLPrinter &printer, const StringTypeCode &typeCode);
+		bool print(IDLPrinter &printer, bool write) const;
+
+		friend inline bool operator<<(IDLPrinter &printer, const StringTypeCode &typeCode) {return typeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const StringTypeCode *typeCode);
 
