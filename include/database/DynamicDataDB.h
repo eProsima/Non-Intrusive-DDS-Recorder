@@ -29,10 +29,22 @@ namespace eProsima
     class Member;
     class TypeCode;
     class StructTypeCode;
+    class ArrayTypeCode;
     class EnumTypeCode;
     class PrimitiveTypeCode;
     class CDR;
 
+#ifndef DDS_USE
+    typedef struct arrayProcessInfo
+    {
+        uint32_t currentDimensionIndex;
+        uint32_t currentDimensionProcess;
+        uint32_t numberOfElements;
+        int pointer;
+        void *buffer;
+        std::string arrayName;
+    } arrayProcessInfo;
+#else
     typedef struct arrayProcessInfo
     {
         RTICdrUnsignedLong numberOfDimensions;
@@ -45,6 +57,7 @@ namespace eProsima
         RTICdrTypeCode *elementType;
         const char *arrayName;
     } arrayProcessInfo;
+#endif
 
     class DynamicDataDB
     {
@@ -74,7 +87,7 @@ namespace eProsima
                 }
             } arrayNode;
 
-#ifdef RICARDO
+#ifndef DDS_USE
             typedef struct writePrimitiveInitialStatementsFunctions
             {
                 uint32_t _kind;
@@ -91,7 +104,7 @@ namespace eProsima
             typedef struct writeArrayPrimitiveFunctions
             {
                 uint32_t _kind;
-                bool (*_addToStream)(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                bool (*_addToStream)(sqlite3_stmt *stmt, CDR &cdr,
                         arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
                             
             } writeArrayPrimitiveFunctions;
@@ -116,8 +129,32 @@ namespace eProsima
             static bool addFloatStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
             static bool addDoubleStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
             static bool addBoolStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-
             static bool addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr, int &index, bool step);
+
+            static bool addOctetArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addUShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addULongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addLongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addULongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addCharArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addFloatArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addDoubleArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addBoolArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+            static bool addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
 
             DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
                     const TypeCode*typeCode);
@@ -186,6 +223,31 @@ namespace eProsima
             static bool addBoolStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     std::string &name, int &index);
 
+            static bool addOctetArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addUShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addULongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addLongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addULongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addCharArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addFloatArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addDoubleArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addBoolArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+            static bool addEnumArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+
             DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
                     struct RTICdrTypeCode *typeCode);
 
@@ -224,31 +286,6 @@ namespace eProsima
             static bool addEnumInitialStatements(std::string &memberName, std::string &table_create,
                     std::string &dynamicDataAdd);
 
-            static bool addOctetArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addUShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addULongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addLongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addULongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addCharArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addFloatArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addDoubleArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addEnumArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            static bool addBoolArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-
             static bool addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
             static bool addShortSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
             static bool addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
@@ -266,41 +303,19 @@ namespace eProsima
 
             bool processUnionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
-            bool processArraysInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, std::string &suffix);
             bool processSequencesInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
-            bool processDimensionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, std::string &suffix, RTICdrUnsignedLong dimensionCount,
-                    RTICdrUnsignedLong currentDimension);
-            bool processArrayElementsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode);
-            bool processArrayPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode);
+            
+            
             bool processSequenceElementsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
             bool processSequencePrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
-            bool processPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *primitiveInfo, std::string &primitiveName,
-                    std::string &suffix);
             
-            struct DDS_DynamicData* getMemberDynamicDataObject(RTICdrTypeCode *memberTypecode,
-                    std::string &memberName, struct DDS_DynamicData *parentDynamicData);
             bool processUnionsStorage(struct RTICdrTypeCode *typeCode,
                     struct DDS_DynamicData *dynamicData, std::string &suffix,
                     int &index, bool step);
-           
-            bool processArraysStorage(struct RTICdrTypeCode *typeCode,
-                    struct DDS_DynamicData *dynamicData, std::string &suffix,
-                    std::string &memberName, int &index, bool step);
-            bool processDimensionsStorage(sqlite3_stmt *stmt, struct RTICdrTypeCode *typeCode,
-                    struct DDS_DynamicData *dynamicData,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            bool processArrayElementsStorage(sqlite3_stmt *stmt,
-                    struct DDS_DynamicData *dynamicData, arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
-            bool processArrayPrimitiveStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicData,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+
             bool processSequencesStorage(struct RTICdrTypeCode *typeCode,
                     struct DDS_DynamicData *dynamicData, std::string &suffix,
                     std::string &memberName, int &index, bool step);
@@ -309,7 +324,7 @@ namespace eProsima
             bool processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref, std::string &memberName,
                     RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData);
 
-#ifdef RICARDO
+#ifndef DDS_USE
             bool createInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     const TypeCode *typeCode);
 
@@ -319,8 +334,20 @@ namespace eProsima
             bool processMembersInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     const Member *memberInfo, std::string &suffix);
 
+            bool processArraysInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const ArrayTypeCode *typeCode, std::string &suffix);
+
+            bool processDimensionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const ArrayTypeCode *typeCode, std::string &suffix, uint32_t currentDimension);
+
+            bool processArrayElementsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const ArrayTypeCode *typeCode);
+
+            bool processArrayPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const PrimitiveTypeCode *typeCode);
+
             bool processPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    const TypeCode *primitiveInfo, const std::string &primitiveName,
+                    const PrimitiveTypeCode *primitiveInfo, const std::string &primitiveName,
                     std::string &suffix);
 
             bool processStructsStorage(const StructTypeCode *typeCode, CDR &cdr,
@@ -328,6 +355,18 @@ namespace eProsima
 
             bool processMembersStorage(const Member *memberInfo, CDR &cdr, std::string &suffix,
                     int &index, bool step);
+
+            bool processArraysStorage(const ArrayTypeCode *typeCode, CDR &cdr, std::string &suffix,
+                    const std::string &memberName, int &index, bool step);
+
+            bool processDimensionsStorage(sqlite3_stmt *stmt, const ArrayTypeCode *typeCode, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+
+            bool processArrayElementsStorage(sqlite3_stmt *stmt, const ArrayTypeCode *typeCode,
+                    CDR &cdr, arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+
+            bool processArrayPrimitiveStorage(sqlite3_stmt *stmt, const PrimitiveTypeCode *typeCode, CDR &cdr,
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
 
             bool processPrimitiveStorage(const PrimitiveTypeCode *primitiveInfo,
                     CDR &cdr, int &index, bool step);
@@ -343,6 +382,19 @@ namespace eProsima
             bool processMembersInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *memberInfo, std::string &memberName, std::string &suffix);
 
+            bool processArraysInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix);
+
+            bool processDimensionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix, RTICdrUnsignedLong dimensionCount,
+                    RTICdrUnsignedLong currentDimension);
+
+            bool processArrayElementsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode);
+
+            bool processArrayPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode);
+
             bool processPrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *primitiveInfo, std::string &primitiveName,
                     std::string &suffix);
@@ -355,8 +407,25 @@ namespace eProsima
                     struct DDS_DynamicData *dynamicData, std::string &suffix,
                     int &index, bool step);
 
+            bool processArraysStorage(struct RTICdrTypeCode *typeCode,
+                    struct DDS_DynamicData *dynamicData, std::string &suffix,
+                    std::string &memberName, int &index, bool step);
+
             bool processPrimitiveStorage(struct RTICdrTypeCode *primitiveInfo, std::string &primitiveName,
                     struct DDS_DynamicData *primitiveData, int &index, bool step);
+
+            struct DDS_DynamicData* getMemberDynamicDataObject(RTICdrTypeCode *memberTypecode,
+                    std::string &memberName, struct DDS_DynamicData *parentDynamicData);
+
+            bool processDimensionsStorage(sqlite3_stmt *stmt, struct RTICdrTypeCode *typeCode,
+                    struct DDS_DynamicData *dynamicData,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+
+            bool processArrayElementsStorage(sqlite3_stmt *stmt,
+                    struct DDS_DynamicData *dynamicData, arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+
+            bool processArrayPrimitiveStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicData,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
 #endif
 
             eProsimaLog &m_log;

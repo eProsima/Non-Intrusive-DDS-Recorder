@@ -2,6 +2,7 @@
 #include "eProsima_c/eProsimaMacros.h"
 #include "eProsima_cpp/eProsimaLog.h"
 #include "cdr/StructTypeCode.h"
+#include "cdr/ArrayTypeCode.h"
 #include "cdr/EnumTypeCode.h"
 #include "cdr/PrimitiveTypeCode.h"
 
@@ -13,6 +14,7 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <stdint.h>
+#include <malloc.h>
 
 #ifndef RTI_WIN32
 #include <sys/time.h>
@@ -29,7 +31,7 @@ static const char* const CLASS_NAME = "DynamicDataDB";
 using namespace eProsima;
 using namespace std;
 
-#ifdef RICARDO
+#ifndef DDS_USE
 DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &tableName,
         const TypeCode *typeCode) : m_log(log), m_ready(false),
     m_databaseH(databaseH), m_tableName(tableName), m_addStmt(NULL)
@@ -207,105 +209,6 @@ bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string 
     return returnedValue;
 }
 
-bool DynamicDataDB::processArraysInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *typeCode, string &suffix)
-{
-    // suffix contains the name of the new table.
-    bool returnedValue = false;
-    const char* const METHOD_NAME = "processArraysInitialStatements";
-    string TABLE_CREATE = "CREATE TABLE ";
-    string TABLE_INSERT = "INSERT INTO ";
-    string TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='";
-    string TABLE_DROP = "DROP TABLE ";
-    RTICdrUnsignedLong dimensionCount;
-    sqlite3_stmt *stmt = NULL;
-    int ret = SQLITE_ERROR;
-
-    if(typeCode != NULL)
-    {
-        TABLE_CREATE += suffix;
-        TABLE_CREATE += " (ref INT";
-        TABLE_INSERT += suffix;
-        TABLE_INSERT += " VALUES(?";
-        TABLE_CHECK += suffix;
-        TABLE_CHECK += "'";
-        TABLE_DROP += suffix;
-
-        if(RTICdrTypeCode_get_array_dimension_count(typeCode, &dimensionCount) == RTI_TRUE)
-        {
-            if(processDimensionsInitialStatements(TABLE_CREATE, TABLE_INSERT, typeCode,
-                        suffix, dimensionCount, 0))
-            {
-                TABLE_CREATE += ")";
-                TABLE_INSERT += ")";
-
-                //printf("%s\n", TABLE_CREATE.c_str());
-                //printf("%s\n", TABLE_INSERT.c_str());
-
-                if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
-                {
-                    ret = sqlite3_step(stmt);
-                    sqlite3_finalize(stmt);
-
-                    if(ret == SQLITE_ROW)
-                    {
-                        if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
-                        {
-                            if(sqlite3_step(stmt) != SQLITE_DONE)
-                                logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
-
-                            sqlite3_finalize(stmt);
-                        }
-                    }
-
-                    if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
-                    {
-                        if(sqlite3_step(stmt) == SQLITE_DONE)
-                        {
-                            sqlite3_finalize(stmt);
-
-                            if(SQLITE_PREPARE(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
-                            {
-                                m_arrays.push_back(new arrayNode(suffix, stmt));
-                                returnedValue = true;
-                            }
-                            else
-                            {
-                                logError(m_log, "Cannot prepare statement to insert in array table %s", suffix.c_str());
-                            }
-                        }
-                        else
-                        {
-                            sqlite3_finalize(stmt);
-                            logError(m_log, "Cannot create the %s table", m_tableName.c_str());
-                        }
-
-                    }
-                    else
-                    {
-                        logError(m_log, "Cannot prepare statement to create array table %s", suffix.c_str());
-                    }
-                }
-                else
-                {
-                    logError(m_log, "Cannot check the %s table", m_tableName.c_str());
-                }
-            }
-        }
-
-        table_create += ", ";
-        table_create += suffix;
-        table_create += " INT";
-        dynamicDataAdd += ", ?";
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
 bool DynamicDataDB::processSequencesInitialStatements(string &table_create, string &dynamicDataAdd,
         struct RTICdrTypeCode *typeCode, string &suffix)
 {
@@ -393,132 +296,6 @@ bool DynamicDataDB::processSequencesInitialStatements(string &table_create, stri
         table_create += suffix;
         table_create += " INT";
         dynamicDataAdd += ", ?";
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processDimensionsInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *typeCode, string &suffix, RTICdrUnsignedLong dimensionCount,
-        RTICdrUnsignedLong currentDimension)
-{
-    bool returnedValue = false;
-    const char* const METHOD_NAME = "processDimensionsInitialStatements";
-    RTICdrUnsignedLong dimensionIndex;
-    string field;
-    char number[50];
-
-    if(typeCode != NULL)
-    {
-        if(RTICdrTypeCode_get_array_dimension(typeCode, currentDimension, &dimensionIndex) == RTI_TRUE)
-        {
-            field = "indice_";
-            SNPRINTF(number, 50, "%d", currentDimension);
-            field += number;
-
-            table_create += ", ";
-            table_create += field;
-            table_create += " INT";
-            dynamicDataAdd += ", ?";
-
-            if(currentDimension == dimensionCount -1)
-            {
-                returnedValue = processArrayElementsInitialStatements(table_create, dynamicDataAdd,
-                        typeCode);
-            }
-            else
-            {
-                returnedValue = processDimensionsInitialStatements(table_create, dynamicDataAdd,
-                        typeCode, suffix, dimensionCount, currentDimension + 1);
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot get the array dimension of %s", suffix.c_str());
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processArrayElementsInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *typeCode)
-{
-    bool returnedValue = false;
-    const char* const METHOD_NAME = "processArrayElementsInitialStatements";
-    RTICdrTypeCode *elementType = NULL;
-    RTICdrTCKind elementKind;
-
-    if(typeCode != NULL)
-    {
-        elementType = RTICdrTypeCode_get_content_type(typeCode);
-
-        if(elementType != NULL)
-        {
-            if(RTICdrTypeCode_get_kind(elementType, &elementKind) == RTI_TRUE)
-            {
-                //TODO
-                /*
-                if(kindIsPrimitive(elementKind))
-                {
-                    returnedValue = processArrayPrimitiveInitialStatements(table_create,
-                            dynamicDataAdd, elementType);
-                }*/
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot obtain the element type");
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processArrayPrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *typeCode)
-{
-    bool returnedValue = false;
-    const char* const METHOD_NAME = "processArrayPrimitiveInitialStatements";
-    writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
-        DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
-    bool (*addToStream)(string &memberName, string &table_create,
-            string &dynamicDataAdd) = NULL;
-    RTICdrTCKind kind;
-    string value = "value";
-
-    if(typeCode != NULL)
-    {
-        if(RTICdrTypeCode_get_kind(typeCode, &kind) == RTI_TRUE)
-        {
-            while(writePrimitiveInitialStatementsFunctionsPointer->_kind != RTI_CDR_TK_NULL)
-            {
-                if(kind == writePrimitiveInitialStatementsFunctionsPointer->_kind)
-                {
-                    addToStream = writePrimitiveInitialStatementsFunctionsPointer->_addToStream;
-                    break;
-                }
-                writePrimitiveInitialStatementsFunctionsPointer++;
-            }
-
-            if(addToStream != NULL)
-            {
-                returnedValue = addToStream(value, table_create, dynamicDataAdd);
-                returnedValue = true;
-            }
-        }
     }
     else
     {
@@ -723,40 +500,6 @@ bool DynamicDataDB::addEnumInitialStatements(string &memberName, string &table_c
     return true;
 }
 
-struct DDS_DynamicData* DynamicDataDB::getMemberDynamicDataObject(RTICdrTypeCode *memberTypecode,
-        string &memberName, struct DDS_DynamicData *parentDynamicData)
-{
-    const char* const METHOD_NAME = "getMemberDynamicDataObject";
-    struct DDS_DynamicData *memberDynamicDataObject = NULL;
-
-    if(parentDynamicData != NULL &&
-            memberTypecode != NULL)
-    {
-        memberDynamicDataObject = DDS_DynamicData_new((const DDS_TypeCode*)memberTypecode, &DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
-
-        if(memberDynamicDataObject != NULL)
-        {
-            if(DDS_DynamicData_get_complex_member(parentDynamicData, memberDynamicDataObject,
-                        memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) != DDS_RETCODE_OK)
-            {
-                DDS_DynamicData_delete(memberDynamicDataObject);
-                memberDynamicDataObject = NULL;
-                logError(m_log, "Cannot get the complex member %s", memberName.c_str());
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot create a dynamicdata structure");
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return memberDynamicDataObject;
-}
-
 bool DynamicDataDB::processUnionsStorage(struct RTICdrTypeCode *typeCode,
         struct DDS_DynamicData *dynamicData, string &suffix, int &index, bool step)
 {
@@ -843,219 +586,6 @@ bool DynamicDataDB::processUnionsStorage(struct RTICdrTypeCode *typeCode,
     else
     {
         logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processArraysStorage(struct RTICdrTypeCode *typeCode,
-        struct DDS_DynamicData *dynamicData, string &suffix,
-        string &memberName, int &index, bool step)
-{
-    const char* const METHOD_NAME = "processArraysStorage";
-    bool returnedValue = false;
-    list<arrayNode*>::iterator it;
-    arrayNode *aNode = NULL;
-    arrayProcessInfo arrayProcessingInfo;
-
-    if(typeCode != NULL && (dynamicData != NULL || step))
-    {
-        arrayProcessingInfo.pointer = 0;
-        arrayProcessingInfo.buffer = 0;
-        arrayProcessingInfo.numberOfElements = 0;
-        arrayProcessingInfo.currentDimensionProcess = 0;
-        arrayProcessingInfo.arrayName = memberName.c_str();
-
-        // Search array statement.
-        for(it = m_arrays.begin(); it != m_arrays.end(); it++)
-        {
-            if(suffix.compare((*it)->m_tableName) == 0)
-            {
-                aNode = (*it);
-                break;
-            }
-        }
-
-        if(it != m_arrays.end())
-        {
-            if(aNode != NULL && aNode->m_stmt != NULL)
-            {
-                if(!step)
-
-                {
-                    if(sqlite3_reset(aNode->m_stmt) == SQLITE_OK)
-                    {
-                        sqlite3_bind_int(aNode->m_stmt, 1, aNode->m_ref);
-                        arrayProcessingInfo.elementType = RTICdrTypeCode_get_content_type(typeCode);
-
-                        if(arrayProcessingInfo.elementType != NULL)
-                        {
-                            if(RTICdrTypeCode_get_kind(arrayProcessingInfo.elementType, &arrayProcessingInfo.elementKind) == RTI_TRUE)
-                            {
-                                if(RTICdrTypeCode_get_array_dimension_count(typeCode, &arrayProcessingInfo.numberOfDimensions) == RTI_TRUE)
-                                {
-                                    if(processDimensionsStorage(aNode->m_stmt, typeCode, dynamicData,
-                                                &arrayProcessingInfo, 0))
-                                    {
-                                        sqlite3_bind_int(m_addStmt, index++, aNode->m_ref++);
-                                        returnedValue = true;
-                                    }
-
-                                    if(arrayProcessingInfo.buffer != NULL)
-                                        RTIOsapiHeap_freeBuffer(arrayProcessingInfo.buffer);
-                                }
-                                else
-                                {
-                                    logError(m_log, "Cannot get the dimension count from array %s",
-                                            suffix.c_str());
-                                }
-                            }
-                            else
-                            {
-                                logError(m_log, "Cannot reset statement for array %s", suffix.c_str());
-                            }
-                        }
-                        else
-                        {
-                            logError(m_log, "Cannot obtain the element type");
-                        }
-                    }
-                    else
-                    {
-                        logError(m_log, "Cannot reset the statement");
-                    }
-                }
-                else
-                {
-                    sqlite3_bind_null(m_addStmt, index++);
-                    returnedValue = true;
-                }
-            }
-            else
-            {
-                logError(m_log, "Bad array statement for %s", suffix.c_str());
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot find the array statement of %s", suffix.c_str());
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processDimensionsStorage(sqlite3_stmt *stmt,
-        struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData,
-        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "processDimensionsStorage";
-    bool returnedValue = false;
-    RTICdrUnsignedLong dimensionIndex;
-
-    if(stmt != NULL && typeCode != NULL && dynamicData != NULL &&
-            arrayProcessingInfo != NULL)
-    {
-        if(RTICdrTypeCode_get_array_dimension(typeCode, currentDimension, &dimensionIndex) == RTI_TRUE)
-        {
-            if(currentDimension == arrayProcessingInfo->currentDimensionProcess)
-            {
-                if(arrayProcessingInfo->numberOfElements != 0)
-                    arrayProcessingInfo->numberOfElements *= dimensionIndex;
-                else
-                    arrayProcessingInfo->numberOfElements = dimensionIndex;
-                arrayProcessingInfo->currentDimensionProcess++;
-            }
-
-            if(currentDimension == arrayProcessingInfo->numberOfDimensions - 1)
-            {
-                arrayProcessingInfo->currentDimensionIndex = dimensionIndex;
-                returnedValue = processArrayElementsStorage(stmt, dynamicData,
-                        arrayProcessingInfo, currentDimension);
-            }
-            else
-            {
-                returnedValue = true;
-                for(unsigned int count = 0; (returnedValue) && (count < dimensionIndex); count++)
-                {
-                    if(sqlite3_reset(stmt) == SQLITE_OK)
-                    {
-                        sqlite3_bind_int(stmt, currentDimension + 2, count);
-                        returnedValue = processDimensionsStorage(stmt, typeCode, dynamicData,
-                                arrayProcessingInfo, currentDimension + 1);
-                    }
-                    else
-                    {
-                        logError(m_log, "Cannot reset statement from array %s", arrayProcessingInfo->arrayName);
-                    }
-                }
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot get the array dimension");
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processArrayElementsStorage(sqlite3_stmt *stmt,
-        struct DDS_DynamicData *dynamicData, arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "processArrayElementsStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicData != NULL
-            && arrayProcessingInfo != NULL)
-    {
-        // TODO
-        /*
-        if(kindIsPrimitive(arrayProcessingInfo->elementKind))
-        {
-            returnedValue = processArrayPrimitiveStorage(stmt,
-                    dynamicData, arrayProcessingInfo, currentDimension);
-        }*/
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processArrayPrimitiveStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicData,
-        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    bool returnedValue = false;
-    writeArrayPrimitiveFunctions *writeArrayPrimitiveFunctionsPointer =
-        DynamicDataDB::writeArrayPrimitiveFunctionsMap;
-    bool (*addToStream)(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-            arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension) = NULL;
-
-    while(writeArrayPrimitiveFunctionsPointer->_kind != RTI_CDR_TK_NULL)
-    {
-        if(arrayProcessingInfo->elementKind == writeArrayPrimitiveFunctionsPointer->_kind)
-        {
-            addToStream = writeArrayPrimitiveFunctionsPointer->_addToStream;
-            break;
-        }
-
-        writeArrayPrimitiveFunctionsPointer++;
-    }
-
-    if(addToStream != NULL)
-    {
-        returnedValue = addToStream(stmt, dynamicData, arrayProcessingInfo, currentDimension);
     }
 
     return returnedValue;
@@ -1183,704 +713,6 @@ bool DynamicDataDB::processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref,
     if(addToStream != NULL)
     {
         returnedValue = addToStream(stmt, ref, memberName, dynamicData);
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addOctetArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addOctetArrayStorage";
-    bool returnedValue = false;
-    DDS_Octet *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_Octet*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Octet)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Octet));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_octet_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addShortArrayStorage";
-    bool returnedValue = false;
-    DDS_Short *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_Short*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Short)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Short));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_short_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addUShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addUShortArrayStorage";
-    bool returnedValue = false;
-    DDS_UnsignedShort *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_UnsignedShort*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_UnsignedShort)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_UnsignedShort));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_ushort_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addLongArrayStorage";
-    bool returnedValue = false;
-    DDS_Long *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_Long*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Long)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Long));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_long_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addULongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
- arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addULongArrayStorage";
-    bool returnedValue = false;
-    DDS_UnsignedLong *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_UnsignedLong*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_UnsignedLong)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_UnsignedLong));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_ulong_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addLongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
- arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addLongLongArrayStorage";
-    bool returnedValue = false;
-    DDS_LongLong *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_LongLong*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_LongLong)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_LongLong));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_longlong_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_int64(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addULongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
- arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addULongLongArrayStorage";
-    bool returnedValue = false;
-    DDS_UnsignedLongLong *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_UnsignedLongLong*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_UnsignedLongLong)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_UnsignedLongLong));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_ulonglong_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_int64(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addCharArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addCharArrayStorage";
-    bool returnedValue = false;
-    DDS_Char *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_Char*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Char)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Char));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_char_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_text(stmt, currentDimension + 3, &(auxPointerBuffer[count]), 1, SQLITE_STATIC); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addFloatArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
- arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addFloatArrayStorage";
-    bool returnedValue = false;
-    DDS_Float *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_Float*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Float)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Float));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_float_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_double(stmt, currentDimension + 3, (double)auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addDoubleArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
- arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addDoubleArrayStorage";
-    bool returnedValue = false;
-    DDS_Double *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_Double*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Double)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Double));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_double_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_double(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
- arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addEnumArrayStorage";
-    bool returnedValue = false;
-    DDS_Long *auxPointerBuffer = NULL;
-    DDS_UnsignedLong eindex, length;
-    DDS_ExceptionCode_t exception = DDS_NO_EXCEPTION_CODE;
-    string label;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_Long*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Long)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Long));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_long_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                eindex = DDS_TypeCode_find_member_by_label((struct DDS_TypeCode*)arrayProcessingInfo->elementType,
-                        auxPointerBuffer[count], &exception);
-
-                if(exception == DDS_NO_EXCEPTION_CODE)
-                {
-                    label = DDS_TypeCode_member_name((struct DDS_TypeCode*)arrayProcessingInfo->elementType, eindex, &exception);
-
-                    if(exception == DDS_NO_EXCEPTION_CODE)
-                    {
-                        if(sqlite3_reset(stmt) == SQLITE_OK)
-                        {
-                            sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                            sqlite3_bind_text(stmt, currentDimension + 3, label.c_str(), label.length(), SQLITE_STATIC); // +1 saltando campo de referencia.
-
-                            if(sqlite3_step(stmt) != SQLITE_DONE)
-                                printError("Cannot step the statement");
-                        }
-                        else
-                            printError("Cannot reset the statement");
-                    }
-                }
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
-        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
-{
-    const char* const METHOD_NAME = "addBoolArrayStorage";
-    bool returnedValue = false;
-    DDS_Boolean *auxPointerBuffer = NULL;
-    DDS_UnsignedLong length;
-
-    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
-    {
-        auxPointerBuffer = (DDS_Boolean*)arrayProcessingInfo->buffer;
-        
-        if(auxPointerBuffer == NULL)
-        {
-            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Boolean)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Boolean));
-
-            if(auxPointerBuffer != NULL)
-            {
-                length = arrayProcessingInfo->numberOfElements;
-                DDS_DynamicData_get_boolean_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName,
-                        DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
-            }
-        }
-
-        if(auxPointerBuffer != NULL)
-        {
-            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
-                        arrayProcessingInfo->currentDimensionIndex); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
-                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                        printError("Cannot step the statement");
-                }
-                else
-                    printError("Cannot reset the statement");
-            }
-            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
-            returnedValue = true;
-        }
-        else
-        {
-            printError("Cannot allocate buffer");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
     }
 
     return returnedValue;
@@ -2558,7 +1390,7 @@ bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, string &
     return returnedValue;
 }
 
-#ifdef RICARDO
+#ifndef DDS_USE
 DynamicDataDB::writePrimitiveInitialStatementsFunctions DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap[] =
 {
     {TypeCode::KIND_OCTET, DynamicDataDB::addTinyIntInitialStatements},
@@ -2572,7 +1404,6 @@ DynamicDataDB::writePrimitiveInitialStatementsFunctions DynamicDataDB::writePrim
     {TypeCode::KIND_STRING, DynamicDataDB::addTextInitialStatements},
     {TypeCode::KIND_FLOAT, DynamicDataDB::addFloatInitialStatements},
     {TypeCode::KIND_DOUBLE, DynamicDataDB::addDoubleInitialStatements},
-    {TypeCode::KIND_ENUM, DynamicDataDB::addEnumInitialStatements},
     {TypeCode::KIND_BOOLEAN, DynamicDataDB::addTinyIntInitialStatements},
     {TypeCode::KIND_NULL, NULL}
 };
@@ -2606,7 +1437,6 @@ DynamicDataDB::writeArrayPrimitiveFunctions DynamicDataDB::writeArrayPrimitiveFu
     {TypeCode::KIND_CHAR, DynamicDataDB::addCharArrayStorage},
     {TypeCode::KIND_FLOAT, DynamicDataDB::addFloatArrayStorage},
     {TypeCode::KIND_DOUBLE, DynamicDataDB::addDoubleArrayStorage},
-    {TypeCode::KIND_ENUM, DynamicDataDB::addEnumArrayStorage},
     {TypeCode::KIND_BOOLEAN, DynamicDataDB::addBoolArrayStorage},
     {TypeCode::KIND_NULL, NULL}
 };
@@ -2714,23 +1544,29 @@ bool DynamicDataDB::processMembersInitialStatements(string &table_create, string
                 newSuffix += memberName;
                 newSuffix += "__";
                 returnedValue = processUnionsInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
-            }
+            }*/
             else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
             {
                 newSuffix = suffix;
-                newSuffix += memberName;
-                returnedValue = processArraysInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
+                newSuffix += memberInfo->getName();
+                returnedValue = processArraysInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const ArrayTypeCode*>(mTypeCode), newSuffix);
             }
-            else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
+            /*else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
             {
                 newSuffix = suffix;
                 newSuffix += memberName;
                 returnedValue = processSequencesInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
             }*/
+            else if(mTypeCode->getKind() == TypeCode::KIND_ENUM)
+            {
+                newSuffix = suffix;
+                newSuffix += memberInfo->getName();
+                returnedValue = addEnumInitialStatements(newSuffix, table_create, dynamicDataAdd);
+            }
             else if(TypeCode::kindIsPrimitive(mTypeCode->getKind()))
             {
                 returnedValue = processPrimitiveInitialStatements(table_create, dynamicDataAdd,
-                    mTypeCode, memberInfo->getName(), suffix);
+                    dynamic_cast<const PrimitiveTypeCode*>(mTypeCode), memberInfo->getName(), suffix);
             }
             else
             {
@@ -2751,7 +1587,7 @@ bool DynamicDataDB::processMembersInitialStatements(string &table_create, string
 }
 
 bool DynamicDataDB::processPrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
-        const TypeCode *primitiveInfo, const string &primitiveName, string &suffix)
+        const PrimitiveTypeCode *primitiveInfo, const string &primitiveName, string &suffix)
 {
     bool returnedValue = false;
     writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
@@ -2778,6 +1614,211 @@ bool DynamicDataDB::processPrimitiveInitialStatements(string &table_create, stri
             newName += primitiveName;
             returnedValue = addToStream(newName, table_create, dynamicDataAdd);
         }
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processArraysInitialStatements(string &table_create, string &dynamicDataAdd,
+        const ArrayTypeCode *typeCode, string &suffix)
+{
+    // suffix contains the name of the new table.
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processArraysInitialStatements";
+    string TABLE_CREATE = "CREATE TABLE ";
+    string TABLE_INSERT = "INSERT INTO ";
+    string TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='";
+    string TABLE_DROP = "DROP TABLE ";
+    sqlite3_stmt *stmt = NULL;
+    int ret = SQLITE_ERROR;
+
+    if(typeCode != NULL)
+    {
+        TABLE_CREATE += suffix;
+        TABLE_CREATE += " (ref INT";
+        TABLE_INSERT += suffix;
+        TABLE_INSERT += " VALUES(?";
+        TABLE_CHECK += suffix;
+        TABLE_CHECK += "'";
+        TABLE_DROP += suffix;
+
+        if(processDimensionsInitialStatements(TABLE_CREATE, TABLE_INSERT, typeCode,
+                    suffix, 0))
+        {
+            TABLE_CREATE += ")";
+            TABLE_INSERT += ")";
+
+            //printf("%s\n", TABLE_CREATE.c_str());
+            //printf("%s\n", TABLE_INSERT.c_str());
+
+            if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
+            {
+                ret = sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+
+                if(ret == SQLITE_ROW)
+                {
+                    if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
+                    {
+                        if(sqlite3_step(stmt) != SQLITE_DONE)
+                            logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
+
+                        sqlite3_finalize(stmt);
+                    }
+                }
+
+                if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
+                {
+                    if(sqlite3_step(stmt) == SQLITE_DONE)
+                    {
+                        sqlite3_finalize(stmt);
+
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
+                        {
+                            m_arrays.push_back(new arrayNode(suffix, stmt));
+                            returnedValue = true;
+                        }
+                        else
+                        {
+                            logError(m_log, "Cannot prepare statement to insert in array table %s", suffix.c_str());
+                        }
+                    }
+                    else
+                    {
+                        sqlite3_finalize(stmt);
+                        logError(m_log, "Cannot create the %s table", m_tableName.c_str());
+                    }
+
+                }
+                else
+                {
+                    logError(m_log, "Cannot prepare statement to create array table %s", suffix.c_str());
+                }
+            }
+            else
+            {
+                logError(m_log, "Cannot check the %s table", m_tableName.c_str());
+            }
+        }
+
+        table_create += ", ";
+        table_create += suffix;
+        table_create += " INT";
+        dynamicDataAdd += ", ?";
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processDimensionsInitialStatements(string &table_create, string &dynamicDataAdd,
+        const ArrayTypeCode *typeCode, string &suffix, uint32_t currentDimension)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processDimensionsInitialStatements";
+    string field;
+
+    if(typeCode != NULL)
+    {
+            field = "indice_" + currentDimension;
+
+            table_create += ", ";
+            table_create += field;
+            table_create += " INT";
+            dynamicDataAdd += ", ?";
+
+            if(currentDimension == typeCode->getDimensionCount() -1)
+            {
+                returnedValue = processArrayElementsInitialStatements(table_create, dynamicDataAdd,
+                        typeCode);
+            }
+            else
+            {
+                returnedValue = processDimensionsInitialStatements(table_create, dynamicDataAdd,
+                        typeCode, suffix, currentDimension + 1);
+            }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processArrayElementsInitialStatements(string &table_create, string &dynamicDataAdd,
+        const ArrayTypeCode *typeCode)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processArrayElementsInitialStatements";
+    const TypeCode *elementType = NULL;
+    std::string value = "value";
+
+    if(typeCode != NULL)
+    {
+        elementType = typeCode->getContentTypeCode();
+
+        if(elementType != NULL)
+        {
+            if(elementType->getKind() == TypeCode::KIND_ENUM)
+            {
+                returnedValue = addEnumInitialStatements(value, table_create, dynamicDataAdd);
+            }
+            else if(TypeCode::kindIsPrimitive(elementType->getKind()))
+            {
+                returnedValue = processArrayPrimitiveInitialStatements(table_create,
+                        dynamicDataAdd, dynamic_cast<const PrimitiveTypeCode*>(elementType));
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot obtain the element type");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+
+bool DynamicDataDB::processArrayPrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
+        const PrimitiveTypeCode *typeCode)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processArrayPrimitiveInitialStatements";
+    writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
+        DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
+    bool (*addToStream)(string &memberName, string &table_create,
+            string &dynamicDataAdd) = NULL;
+    string value = "value";
+
+    if(typeCode != NULL)
+    {
+        while(writePrimitiveInitialStatementsFunctionsPointer->_kind != TypeCode::KIND_NULL)
+        {
+            if(typeCode->getKind() == writePrimitiveInitialStatementsFunctionsPointer->_kind)
+            {
+                addToStream = writePrimitiveInitialStatementsFunctionsPointer->_addToStream;
+                break;
+            }
+            writePrimitiveInitialStatementsFunctionsPointer++;
+        }
+
+        if(addToStream != NULL)
+        {
+            returnedValue = addToStream(value, table_create, dynamicDataAdd);
+            returnedValue = true;
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
     }
 
     return returnedValue;
@@ -2918,14 +1959,14 @@ bool DynamicDataDB::processMembersStorage(const Member *memberInfo, CDR &cdr,
                             newSuffix, index, step);
                     DDS_DynamicData_delete(memberDynamicDataObject);
                 }
-            }
+            }*/
             else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
             {
                 newSuffix = suffix;
-                newSuffix += memberName;
-                returnedValue = processArraysStorage(memberInfo, dynamicData, newSuffix, memberName, index, step);
+                newSuffix += memberInfo->getName();
+                returnedValue = processArraysStorage(dynamic_cast<const ArrayTypeCode*>(mTypeCode), cdr, newSuffix, memberInfo->getName(), index, step);
             }
-            else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
+            /*else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
             {
                 newSuffix = suffix;
                 newSuffix += memberName;
@@ -3308,7 +2349,7 @@ bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumT
     {
         if(!step)
         {
-            uint32_t ordinal;
+            int32_t ordinal;
 
             if(cdr >> ordinal)
             {
@@ -3319,12 +2360,876 @@ bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumT
                     sqlite3_bind_text(stmt, index++, member->getName().c_str(), member->getName().length(), SQLITE_STATIC);
                     returnedValue = true;
                 }
+                else
+                {
+                    printError("Cannot find ordinal of the enumerator");
+                }
             }
         }
         else
         {
             sqlite3_bind_null(stmt, index++);
             returnedValue = true;
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processArraysStorage(const ArrayTypeCode *typeCode, CDR &cdr, string &suffix,
+        const string &memberName, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processArraysStorage";
+    bool returnedValue = false;
+    list<arrayNode*>::iterator it;
+    arrayNode *aNode = NULL;
+    arrayProcessInfo arrayProcessingInfo;
+
+    if(typeCode != NULL)
+    {
+        arrayProcessingInfo.pointer = 0;
+        arrayProcessingInfo.buffer = 0;
+        arrayProcessingInfo.numberOfElements = 0;
+        arrayProcessingInfo.currentDimensionProcess = 0;
+        arrayProcessingInfo.arrayName = memberName;
+
+        // Search array statement.
+        for(it = m_arrays.begin(); it != m_arrays.end(); it++)
+        {
+            if(suffix.compare((*it)->m_tableName) == 0)
+            {
+                aNode = (*it);
+                break;
+            }
+        }
+
+        if(it != m_arrays.end())
+        {
+            if(aNode != NULL && aNode->m_stmt != NULL)
+            {
+                if(!step)
+
+                {
+                    if(sqlite3_reset(aNode->m_stmt) == SQLITE_OK)
+                    {
+                        sqlite3_bind_int(aNode->m_stmt, 1, aNode->m_ref);
+
+                        if(processDimensionsStorage(aNode->m_stmt, typeCode, cdr,
+                                    &arrayProcessingInfo, 0))
+                        {
+                            sqlite3_bind_int(m_addStmt, index++, aNode->m_ref++);
+                            returnedValue = true;
+                        }
+
+                        if(arrayProcessingInfo.buffer != NULL)
+                            free(arrayProcessingInfo.buffer);
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot reset the statement");
+                    }
+                }
+                else
+                {
+                    sqlite3_bind_null(m_addStmt, index++);
+                    returnedValue = true;
+                }
+            }
+            else
+            {
+                logError(m_log, "Bad array statement for %s", suffix.c_str());
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot find the array statement of %s", suffix.c_str());
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processDimensionsStorage(sqlite3_stmt *stmt,
+        const ArrayTypeCode *typeCode, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "processDimensionsStorage";
+    bool returnedValue = false;
+    uint32_t dimensionIndex;
+
+    if(stmt != NULL && typeCode != NULL &&
+            arrayProcessingInfo != NULL)
+    {
+        dimensionIndex = typeCode->getDimension(currentDimension);
+
+        if(currentDimension == arrayProcessingInfo->currentDimensionProcess)
+        {
+            if(arrayProcessingInfo->numberOfElements != 0)
+                arrayProcessingInfo->numberOfElements *= dimensionIndex;
+            else
+                arrayProcessingInfo->numberOfElements = dimensionIndex;
+            arrayProcessingInfo->currentDimensionProcess++;
+        }
+
+        if(currentDimension == typeCode->getDimensionCount() - 1)
+        {
+            arrayProcessingInfo->currentDimensionIndex = dimensionIndex;
+            returnedValue = processArrayElementsStorage(stmt, typeCode, cdr,
+                    arrayProcessingInfo, currentDimension);
+        }
+        else
+        {
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < dimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count);
+                    returnedValue = processDimensionsStorage(stmt, typeCode, cdr,
+                            arrayProcessingInfo, currentDimension + 1);
+                }
+                else
+                {
+                    logError(m_log, "Cannot reset statement from array %s", arrayProcessingInfo->arrayName);
+                }
+            }
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processArrayElementsStorage(sqlite3_stmt *stmt, const ArrayTypeCode* typeCode, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "processArrayElementsStorage";
+    bool returnedValue = false;
+    const TypeCode *elementType = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        elementType = typeCode->getContentTypeCode();
+
+        if(elementType->getKind() == TypeCode::KIND_ENUM)
+        {
+        }
+        else if(TypeCode::kindIsPrimitive(elementType->getKind()))
+        {
+            returnedValue = processArrayPrimitiveStorage(stmt, dynamic_cast<const PrimitiveTypeCode*>(elementType), cdr,
+                    arrayProcessingInfo, currentDimension);
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processArrayPrimitiveStorage(sqlite3_stmt *stmt, const PrimitiveTypeCode *typeCode, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    bool returnedValue = false;
+    writeArrayPrimitiveFunctions *writeArrayPrimitiveFunctionsPointer =
+        DynamicDataDB::writeArrayPrimitiveFunctionsMap;
+    bool (*addToStream)(sqlite3_stmt *stmt, CDR &cdr, arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension) = NULL;
+
+    while(writeArrayPrimitiveFunctionsPointer->_kind != TypeCode::KIND_NULL)
+    {
+        if(typeCode->getKind() == writeArrayPrimitiveFunctionsPointer->_kind)
+        {
+            addToStream = writeArrayPrimitiveFunctionsPointer->_addToStream;
+            break;
+        }
+
+        writeArrayPrimitiveFunctionsPointer++;
+    }
+
+    if(addToStream != NULL)
+    {
+        returnedValue = addToStream(stmt, cdr, arrayProcessingInfo, currentDimension);
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addOctetArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addOctetArrayStorage";
+    bool returnedValue = false;
+    uint8_t *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (uint8_t*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (uint8_t*)calloc(sizeof(DDS_Octet)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Octet));
+
+            if(auxPointerBuffer != NULL)
+            {
+                // TODO Deserializacion
+                std::array<int, 10> a;
+                cdr >> a;
+
+                //std::array<std::array<float, 10>, 20> p;
+                //cdr >> p;
+
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addShortArrayStorage";
+    bool returnedValue = false;
+    int16_t *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (int16_t*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (int16_t*)calloc(sizeof(DDS_Short)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Short));
+
+            if(auxPointerBuffer != NULL)
+            {
+                //TODO Deserializacion
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addUShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addUShortArrayStorage";
+    bool returnedValue = false;
+    uint16_t *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (uint16_t*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (uint16_t*)calloc(sizeof(DDS_UnsignedShort)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_UnsignedShort));
+
+            if(auxPointerBuffer != NULL)
+            {
+                //TODO Deserailizaicon
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addLongArrayStorage";
+    bool returnedValue = false;
+    int32_t *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (int32_t*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (int32_t*)calloc(sizeof(DDS_Long)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Long));
+
+            if(auxPointerBuffer != NULL)
+            {
+                // TODO Deserializacion
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addULongArrayStorage";
+    bool returnedValue = false;
+    uint32_t *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (uint32_t*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (uint32_t*)calloc(sizeof(DDS_UnsignedLong)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_UnsignedLong));
+
+            if(auxPointerBuffer != NULL)
+            {
+                //TODO Deserializacion
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addLongLongArrayStorage";
+    bool returnedValue = false;
+    int64_t *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (int64_t*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (int64_t*)calloc(sizeof(DDS_LongLong)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_LongLong));
+
+            if(auxPointerBuffer != NULL)
+            {
+                // TODO Deserializacion
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int64(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addULongLongArrayStorage";
+    bool returnedValue = false;
+    uint64_t *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (uint64_t*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (uint64_t*)calloc(sizeof(DDS_UnsignedLongLong)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_UnsignedLongLong));
+
+            if(auxPointerBuffer != NULL)
+            {
+                // TODO Deserializacion
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int64(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addCharArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addCharArrayStorage";
+    bool returnedValue = false;
+    char *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (char*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (char*)calloc(sizeof(DDS_Char)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Char));
+
+            if(auxPointerBuffer != NULL)
+            {
+                // TODO deserializacion
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_text(stmt, currentDimension + 3, &(auxPointerBuffer[count]), 1, SQLITE_STATIC); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addFloatArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addFloatArrayStorage";
+    bool returnedValue = false;
+    float *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (float*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (float*)calloc(sizeof(float)*arrayProcessingInfo->numberOfElements, sizeof(float));
+
+            if(auxPointerBuffer != NULL)
+            {
+                // TODO deserializacion
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_double(stmt, currentDimension + 3, (double)auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addDoubleArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addDoubleArrayStorage";
+    bool returnedValue = false;
+    double *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (double*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (double*)calloc(sizeof(double)*arrayProcessingInfo->numberOfElements, sizeof(double));
+
+            if(auxPointerBuffer != NULL)
+            {
+                // TODO deserialization
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_double(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+{
+    const char* const METHOD_NAME = "addBoolArrayStorage";
+    bool returnedValue = false;
+    uint8_t *auxPointerBuffer = NULL;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = reinterpret_cast<uint8_t*>(arrayProcessingInfo->buffer);
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (uint8_t*)calloc(sizeof(uint8_t)*arrayProcessingInfo->numberOfElements,
+                sizeof(uint8_t));
+
+            if(auxPointerBuffer != NULL)
+            {
+                // TODO deserialization.
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr,
+ arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addEnumArrayStorage";
+    bool returnedValue = false;
+    int32_t *auxPointerBuffer = NULL;
+    string label;
+
+    if(stmt != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (int32_t*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            auxPointerBuffer = (int32_t*)calloc(sizeof(int32_t)*arrayProcessingInfo->numberOfElements,
+                    sizeof(int32_t));
+
+            if(auxPointerBuffer != NULL)
+            {
+                // TODO Deserialziar
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                const EnumMember *member = enumTC->getMemberWithOrdinal(auxPointerBuffer[count]);
+
+                if(member != NULL)
+                {
+                    if(sqlite3_reset(stmt) == SQLITE_OK)
+                    {
+                        sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                        sqlite3_bind_text(stmt, currentDimension + 3, member->getName().c_str(), member->getName().length(), SQLITE_STATIC); // +1 saltando campo de referencia.
+
+                        if(sqlite3_step(stmt) != SQLITE_DONE)
+                            printError("Cannot step the statement");
+                    }
+                    else
+                        printError("Cannot reset the statement");
+                }
+                else
+                {
+                    printError("Cannot find ordinal of the enumerator");
+                }
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
         }
     }
     else
@@ -3491,6 +3396,105 @@ bool DynamicDataDB::processStructsInitialStatements(string &table_create, string
         {
             logError(m_log, "Cannot obtain number of member of the struct");
         }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processArraysInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *typeCode, string &suffix)
+{
+    // suffix contains the name of the new table.
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processArraysInitialStatements";
+    string TABLE_CREATE = "CREATE TABLE ";
+    string TABLE_INSERT = "INSERT INTO ";
+    string TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='";
+    string TABLE_DROP = "DROP TABLE ";
+    RTICdrUnsignedLong dimensionCount;
+    sqlite3_stmt *stmt = NULL;
+    int ret = SQLITE_ERROR;
+
+    if(typeCode != NULL)
+    {
+        TABLE_CREATE += suffix;
+        TABLE_CREATE += " (ref INT";
+        TABLE_INSERT += suffix;
+        TABLE_INSERT += " VALUES(?";
+        TABLE_CHECK += suffix;
+        TABLE_CHECK += "'";
+        TABLE_DROP += suffix;
+
+        if(RTICdrTypeCode_get_array_dimension_count(typeCode, &dimensionCount) == RTI_TRUE)
+        {
+            if(processDimensionsInitialStatements(TABLE_CREATE, TABLE_INSERT, typeCode,
+                        suffix, dimensionCount, 0))
+            {
+                TABLE_CREATE += ")";
+                TABLE_INSERT += ")";
+
+                //printf("%s\n", TABLE_CREATE.c_str());
+                //printf("%s\n", TABLE_INSERT.c_str());
+
+                if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
+                {
+                    ret = sqlite3_step(stmt);
+                    sqlite3_finalize(stmt);
+
+                    if(ret == SQLITE_ROW)
+                    {
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
+                        {
+                            if(sqlite3_step(stmt) != SQLITE_DONE)
+                                logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
+
+                            sqlite3_finalize(stmt);
+                        }
+                    }
+
+                    if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
+                    {
+                        if(sqlite3_step(stmt) == SQLITE_DONE)
+                        {
+                            sqlite3_finalize(stmt);
+
+                            if(SQLITE_PREPARE(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
+                            {
+                                m_arrays.push_back(new arrayNode(suffix, stmt));
+                                returnedValue = true;
+                            }
+                            else
+                            {
+                                logError(m_log, "Cannot prepare statement to insert in array table %s", suffix.c_str());
+                            }
+                        }
+                        else
+                        {
+                            sqlite3_finalize(stmt);
+                            logError(m_log, "Cannot create the %s table", m_tableName.c_str());
+                        }
+
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot prepare statement to create array table %s", suffix.c_str());
+                    }
+                }
+                else
+                {
+                    logError(m_log, "Cannot check the %s table", m_tableName.c_str());
+                }
+            }
+        }
+
+        table_create += ", ";
+        table_create += suffix;
+        table_create += " INT";
+        dynamicDataAdd += ", ?";
     }
     else
     {
@@ -4170,6 +4174,1076 @@ bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *d
         else
         {
             printError("Cannot get the boolean field");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+struct DDS_DynamicData* DynamicDataDB::getMemberDynamicDataObject(RTICdrTypeCode *memberTypecode,
+        string &memberName, struct DDS_DynamicData *parentDynamicData)
+{
+    const char* const METHOD_NAME = "getMemberDynamicDataObject";
+    struct DDS_DynamicData *memberDynamicDataObject = NULL;
+
+    if(parentDynamicData != NULL &&
+            memberTypecode != NULL)
+    {
+        memberDynamicDataObject = DDS_DynamicData_new((const DDS_TypeCode*)memberTypecode, &DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
+
+        if(memberDynamicDataObject != NULL)
+        {
+            if(DDS_DynamicData_get_complex_member(parentDynamicData, memberDynamicDataObject,
+                        memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) != DDS_RETCODE_OK)
+            {
+                DDS_DynamicData_delete(memberDynamicDataObject);
+                memberDynamicDataObject = NULL;
+                logError(m_log, "Cannot get the complex member %s", memberName.c_str());
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot create a dynamicdata structure");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return memberDynamicDataObject;
+}
+
+bool DynamicDataDB::processArraysStorage(struct RTICdrTypeCode *typeCode,
+        struct DDS_DynamicData *dynamicData, string &suffix,
+        string &memberName, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processArraysStorage";
+    bool returnedValue = false;
+    list<arrayNode*>::iterator it;
+    arrayNode *aNode = NULL;
+    arrayProcessInfo arrayProcessingInfo;
+
+    if(typeCode != NULL && (dynamicData != NULL || step))
+    {
+        arrayProcessingInfo.pointer = 0;
+        arrayProcessingInfo.buffer = 0;
+        arrayProcessingInfo.numberOfElements = 0;
+        arrayProcessingInfo.currentDimensionProcess = 0;
+        arrayProcessingInfo.arrayName = memberName.c_str();
+
+        // Search array statement.
+        for(it = m_arrays.begin(); it != m_arrays.end(); it++)
+        {
+            if(suffix.compare((*it)->m_tableName) == 0)
+            {
+                aNode = (*it);
+                break;
+            }
+        }
+
+        if(it != m_arrays.end())
+        {
+            if(aNode != NULL && aNode->m_stmt != NULL)
+            {
+                if(!step)
+
+                {
+                    if(sqlite3_reset(aNode->m_stmt) == SQLITE_OK)
+                    {
+                        sqlite3_bind_int(aNode->m_stmt, 1, aNode->m_ref);
+                        arrayProcessingInfo.elementType = RTICdrTypeCode_get_content_type(typeCode);
+
+                        if(arrayProcessingInfo.elementType != NULL)
+                        {
+                            if(RTICdrTypeCode_get_kind(arrayProcessingInfo.elementType, &arrayProcessingInfo.elementKind) == RTI_TRUE)
+                            {
+                                if(RTICdrTypeCode_get_array_dimension_count(typeCode, &arrayProcessingInfo.numberOfDimensions) == RTI_TRUE)
+                                {
+                                    if(processDimensionsStorage(aNode->m_stmt, typeCode, dynamicData,
+                                                &arrayProcessingInfo, 0))
+                                    {
+                                        sqlite3_bind_int(m_addStmt, index++, aNode->m_ref++);
+                                        returnedValue = true;
+                                    }
+
+                                    if(arrayProcessingInfo.buffer != NULL)
+                                        RTIOsapiHeap_freeBuffer(arrayProcessingInfo.buffer);
+                                }
+                                else
+                                {
+                                    logError(m_log, "Cannot get the dimension count from array %s",
+                                            suffix.c_str());
+                                }
+                            }
+                            else
+                            {
+                                logError(m_log, "Cannot reset statement for array %s", suffix.c_str());
+                            }
+                        }
+                        else
+                        {
+                            logError(m_log, "Cannot obtain the element type");
+                        }
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot reset the statement");
+                    }
+                }
+                else
+                {
+                    sqlite3_bind_null(m_addStmt, index++);
+                    returnedValue = true;
+                }
+            }
+            else
+            {
+                logError(m_log, "Bad array statement for %s", suffix.c_str());
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot find the array statement of %s", suffix.c_str());
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processDimensionsStorage(sqlite3_stmt *stmt,
+        struct RTICdrTypeCode *typeCode, struct DDS_DynamicData *dynamicData,
+        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "processDimensionsStorage";
+    bool returnedValue = false;
+    RTICdrUnsignedLong dimensionIndex;
+
+    if(stmt != NULL && typeCode != NULL && dynamicData != NULL &&
+            arrayProcessingInfo != NULL)
+    {
+        if(RTICdrTypeCode_get_array_dimension(typeCode, currentDimension, &dimensionIndex) == RTI_TRUE)
+        {
+            if(currentDimension == arrayProcessingInfo->currentDimensionProcess)
+            {
+                if(arrayProcessingInfo->numberOfElements != 0)
+                    arrayProcessingInfo->numberOfElements *= dimensionIndex;
+                else
+                    arrayProcessingInfo->numberOfElements = dimensionIndex;
+                arrayProcessingInfo->currentDimensionProcess++;
+            }
+
+            if(currentDimension == arrayProcessingInfo->numberOfDimensions - 1)
+            {
+                arrayProcessingInfo->currentDimensionIndex = dimensionIndex;
+                returnedValue = processArrayElementsStorage(stmt, dynamicData,
+                        arrayProcessingInfo, currentDimension);
+            }
+            else
+            {
+                returnedValue = true;
+                for(unsigned int count = 0; (returnedValue) && (count < dimensionIndex); count++)
+                {
+                    if(sqlite3_reset(stmt) == SQLITE_OK)
+                    {
+                        sqlite3_bind_int(stmt, currentDimension + 2, count);
+                        returnedValue = processDimensionsStorage(stmt, typeCode, dynamicData,
+                                arrayProcessingInfo, currentDimension + 1);
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot reset statement from array %s", arrayProcessingInfo->arrayName);
+                    }
+                }
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot get the array dimension");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processArrayElementsStorage(sqlite3_stmt *stmt,
+        struct DDS_DynamicData *dynamicData, arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "processArrayElementsStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicData != NULL
+            && arrayProcessingInfo != NULL)
+    {
+        if(kindIsPrimitive(arrayProcessingInfo->elementKind))
+        {
+            returnedValue = processArrayPrimitiveStorage(stmt,
+                    dynamicData, arrayProcessingInfo, currentDimension);
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processArrayPrimitiveStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicData,
+        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    bool returnedValue = false;
+    writeArrayPrimitiveFunctions *writeArrayPrimitiveFunctionsPointer =
+        DynamicDataDB::writeArrayPrimitiveFunctionsMap;
+    bool (*addToStream)(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+            arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension) = NULL;
+
+    while(writeArrayPrimitiveFunctionsPointer->_kind != RTI_CDR_TK_NULL)
+    {
+        if(arrayProcessingInfo->elementKind == writeArrayPrimitiveFunctionsPointer->_kind)
+        {
+            addToStream = writeArrayPrimitiveFunctionsPointer->_addToStream;
+            break;
+        }
+
+        writeArrayPrimitiveFunctionsPointer++;
+    }
+
+    if(addToStream != NULL)
+    {
+        returnedValue = addToStream(stmt, dynamicData, arrayProcessingInfo, currentDimension);
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addOctetArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addOctetArrayStorage";
+    bool returnedValue = false;
+    DDS_Octet *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Octet*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Octet)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Octet));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_octet_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addShortArrayStorage";
+    bool returnedValue = false;
+    DDS_Short *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Short*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Short)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Short));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_short_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addUShortArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addUShortArrayStorage";
+    bool returnedValue = false;
+    DDS_UnsignedShort *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_UnsignedShort*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_UnsignedShort)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_UnsignedShort));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_ushort_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addLongArrayStorage";
+    bool returnedValue = false;
+    DDS_Long *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Long*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Long)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Long));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_long_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+ arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addULongArrayStorage";
+    bool returnedValue = false;
+    DDS_UnsignedLong *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_UnsignedLong*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_UnsignedLong)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_UnsignedLong));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_ulong_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+ arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addLongLongArrayStorage";
+    bool returnedValue = false;
+    DDS_LongLong *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_LongLong*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_LongLong)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_LongLong));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_longlong_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int64(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongLongArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+ arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addULongLongArrayStorage";
+    bool returnedValue = false;
+    DDS_UnsignedLongLong *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_UnsignedLongLong*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_UnsignedLongLong)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_UnsignedLongLong));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_ulonglong_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int64(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addCharArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addCharArrayStorage";
+    bool returnedValue = false;
+    DDS_Char *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Char*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Char)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Char));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_char_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_text(stmt, currentDimension + 3, &(auxPointerBuffer[count]), 1, SQLITE_STATIC); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addFloatArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+ arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addFloatArrayStorage";
+    bool returnedValue = false;
+    DDS_Float *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Float*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Float)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Float));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_float_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_double(stmt, currentDimension + 3, (double)auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addDoubleArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+ arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addDoubleArrayStorage";
+    bool returnedValue = false;
+    DDS_Double *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Double*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Double)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Double));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_double_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_double(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
+        arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addBoolArrayStorage";
+    bool returnedValue = false;
+    DDS_Boolean *auxPointerBuffer = NULL;
+    DDS_UnsignedLong length;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Boolean*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Boolean)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Boolean));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_boolean_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName,
+                        DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                    sqlite3_bind_int(stmt, currentDimension + 3, auxPointerBuffer[count]); // +1 saltando campo de referencia.
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                        printError("Cannot step the statement");
+                }
+                else
+                    printError("Cannot reset the statement");
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processDimensionsInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *typeCode, string &suffix, RTICdrUnsignedLong dimensionCount,
+        RTICdrUnsignedLong currentDimension)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processDimensionsInitialStatements";
+    RTICdrUnsignedLong dimensionIndex;
+    string field;
+    char number[50];
+
+    if(typeCode != NULL)
+    {
+        if(RTICdrTypeCode_get_array_dimension(typeCode, currentDimension, &dimensionIndex) == RTI_TRUE)
+        {
+            field = "indice_";
+            SNPRINTF(number, 50, "%d", currentDimension);
+            field += number;
+
+            table_create += ", ";
+            table_create += field;
+            table_create += " INT";
+            dynamicDataAdd += ", ?";
+
+            if(currentDimension == dimensionCount -1)
+            {
+                returnedValue = processArrayElementsInitialStatements(table_create, dynamicDataAdd,
+                        typeCode);
+            }
+            else
+            {
+                returnedValue = processDimensionsInitialStatements(table_create, dynamicDataAdd,
+                        typeCode, suffix, dimensionCount, currentDimension + 1);
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot get the array dimension of %s", suffix.c_str());
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processArrayElementsInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *typeCode)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processArrayElementsInitialStatements";
+    RTICdrTypeCode *elementType = NULL;
+    RTICdrTCKind elementKind;
+
+    if(typeCode != NULL)
+    {
+        elementType = RTICdrTypeCode_get_content_type(typeCode);
+
+        if(elementType != NULL)
+        {
+            if(RTICdrTypeCode_get_kind(elementType, &elementKind) == RTI_TRUE)
+            {
+                //TODO
+                /*
+                if(kindIsPrimitive(elementKind))
+                {
+                    returnedValue = processArrayPrimitiveInitialStatements(table_create,
+                            dynamicDataAdd, elementType);
+                }*/
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot obtain the element type");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+
+bool DynamicDataDB::processArrayPrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *typeCode)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processArrayPrimitiveInitialStatements";
+    writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
+        DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
+    bool (*addToStream)(string &memberName, string &table_create,
+            string &dynamicDataAdd) = NULL;
+    RTICdrTCKind kind;
+    string value = "value";
+
+    if(typeCode != NULL)
+    {
+        if(RTICdrTypeCode_get_kind(typeCode, &kind) == RTI_TRUE)
+        {
+            while(writePrimitiveInitialStatementsFunctionsPointer->_kind != RTI_CDR_TK_NULL)
+            {
+                if(kind == writePrimitiveInitialStatementsFunctionsPointer->_kind)
+                {
+                    addToStream = writePrimitiveInitialStatementsFunctionsPointer->_addToStream;
+                    break;
+                }
+                writePrimitiveInitialStatementsFunctionsPointer++;
+            }
+
+            if(addToStream != NULL)
+            {
+                returnedValue = addToStream(value, table_create, dynamicDataAdd);
+                returnedValue = true;
+            }
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+ arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+{
+    const char* const METHOD_NAME = "addEnumArrayStorage";
+    bool returnedValue = false;
+    DDS_Long *auxPointerBuffer = NULL;
+    DDS_UnsignedLong eindex, length;
+    DDS_ExceptionCode_t exception = DDS_NO_EXCEPTION_CODE;
+    string label;
+
+    if(stmt != NULL && dynamicDataObject != NULL && arrayProcessingInfo != NULL)
+    {
+        auxPointerBuffer = (DDS_Long*)arrayProcessingInfo->buffer;
+        
+        if(auxPointerBuffer == NULL)
+        {
+            RTIOsapiHeap_allocateBufferAligned((void**)&auxPointerBuffer, sizeof(DDS_Long)*arrayProcessingInfo->numberOfElements,
+                    sizeof(DDS_Long));
+
+            if(auxPointerBuffer != NULL)
+            {
+                length = arrayProcessingInfo->numberOfElements;
+                DDS_DynamicData_get_long_array(dynamicDataObject, auxPointerBuffer, &length, arrayProcessingInfo->arrayName, DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+                arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
+            }
+        }
+
+        if(auxPointerBuffer != NULL)
+        {
+            for(unsigned int count = arrayProcessingInfo->pointer; count < (arrayProcessingInfo->pointer +
+                        arrayProcessingInfo->currentDimensionIndex); count++)
+            {
+                eindex = DDS_TypeCode_find_member_by_label((struct DDS_TypeCode*)arrayProcessingInfo->elementType,
+                        auxPointerBuffer[count], &exception);
+
+                if(exception == DDS_NO_EXCEPTION_CODE)
+                {
+                    label = DDS_TypeCode_member_name((struct DDS_TypeCode*)arrayProcessingInfo->elementType, eindex, &exception);
+
+                    if(exception == DDS_NO_EXCEPTION_CODE)
+                    {
+                        if(sqlite3_reset(stmt) == SQLITE_OK)
+                        {
+                            sqlite3_bind_int(stmt, currentDimension + 2, count - arrayProcessingInfo->pointer);
+                            sqlite3_bind_text(stmt, currentDimension + 3, label.c_str(), label.length(), SQLITE_STATIC); // +1 saltando campo de referencia.
+
+                            if(sqlite3_step(stmt) != SQLITE_DONE)
+                                printError("Cannot step the statement");
+                        }
+                        else
+                            printError("Cannot reset the statement");
+                    }
+                }
+            }
+            arrayProcessingInfo->pointer += arrayProcessingInfo->currentDimensionIndex;
+            returnedValue = true;
+        }
+        else
+        {
+            printError("Cannot allocate buffer");
         }
     }
     else

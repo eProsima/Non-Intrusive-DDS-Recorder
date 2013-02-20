@@ -12,7 +12,7 @@ bool StringTypeCode::deserialize(CDR &cdr)
 bool StringTypeCode::print(IDLPrinter &printer, bool write) const
 {
 	if(write)
-		return printer << "string ";
+		printer << "string ";
 	return true;
 }
 

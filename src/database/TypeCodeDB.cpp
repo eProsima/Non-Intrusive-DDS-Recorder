@@ -4,7 +4,7 @@
 #include "cdr/StructTypeCode.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
-#ifndef RICARDO
+#ifndef DDS_USE
 #include "cdr/cdr_stream.h"
 #include "cdr/cdr_typeCode.h"
 #include "osapi/osapi_heap.h"
@@ -44,7 +44,7 @@ using namespace std;
 static const char* const CLASS_NAME = "TypeCodeDB";
 static const char* const TYPECODE_ADD = "INSERT INTO " TYPECODE_TABLE " VALUES(?, ?, ?)";
 
-#ifdef RICARDO
+#ifndef DDS_USE
 eTypeCode::eTypeCode(std::string &topicName, std::string &typeName,
         TypeCode *typeCode, DynamicDataDB *dynamicDB) :
     m_topicName(topicName), m_typeName(typeName), m_typeCode(typeCode),
@@ -62,7 +62,7 @@ eTypeCode::eTypeCode(const char *topicName, const char *typeName,
 
 eTypeCode::~eTypeCode()
 {
-#ifdef RICARDO
+#ifndef DDS_USE
     delete m_typeCode;
 #else
     RTIOsapiHeap_freeBufferNotAligned(m_typeCode);
@@ -101,7 +101,7 @@ bool eTypeCode::equal(const char *topicName, const char *typeName)
     return returnedValue;
 }
 
-#ifdef RICARDO
+#ifndef DDS_USE
 TypeCode* eTypeCode::getCdrTypecode()
 {
     return m_typeCode;
@@ -205,7 +205,7 @@ TypeCodeDB::~TypeCodeDB()
     }
 }
 
-#ifdef RICARDO
+#ifndef DDS_USE
 bool TypeCodeDB::addTypecode(std::string &topicName, std::string &typeName, TypeCode *typeCode)
 {
     const char* const METHOD_NAME = "addTypeCode";
@@ -317,7 +317,7 @@ bool TypeCodeDB::addTypecode(const char *topicName, const char *typeName,
 }
 #endif
 
-#ifdef RICARDO
+#ifndef DDS_USE
 eTypeCode* TypeCodeDB::findTypecode(std::string &topicName, std::string &typeName)
 #else
 eTypeCode* TypeCodeDB::findTypecode(const char *topicName, const char *typeName)
@@ -338,7 +338,7 @@ eTypeCode* TypeCodeDB::findTypecode(const char *topicName, const char *typeName)
     return returnedValue;
 }
 
-#ifdef RICARDO
+#ifndef DDS_USE
 std::string TypeCodeDB::getPrintIDL(const TypeCode *typeCode)
 {
     IDLPrinter txtStream;

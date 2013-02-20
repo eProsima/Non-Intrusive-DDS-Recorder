@@ -164,7 +164,7 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
 
     if(serializedData != NULL)
     {
-#ifdef RICARDO
+#ifndef DDS_USE
         PublicationBuiltinTopic pubtopic;
         deserializePublicationBuiltinTopic(endianess, (char*)serializedData, serializedDataLen, pubtopic);
 
@@ -355,7 +355,7 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
 
     if(serializedData != NULL)
     {
-#ifdef RICARDO
+#ifndef DDS_USE
         SubscriptionBuiltinTopic subtopic;
         deserializeSubscriptionBuiltinTopic(endianess, (char*)serializedData, serializedDataLen, subtopic);
 
@@ -546,7 +546,7 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
             (entity = m_entitiesDB->findEntity(hostId, appId,
                                                instanceId, readerId)) != NULL)
     {
-#ifdef RICARDO
+#ifndef DDS_USE
         if((typecode = m_typecodeDB->findTypecode(entity->getTopicName(),
                         entity->getTypeName())) != NULL)
         {

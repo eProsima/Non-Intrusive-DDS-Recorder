@@ -1,7 +1,7 @@
 #ifndef _TYPECODEDB_H_
 #define _TYPECODEDB_H_
 
-#ifndef RICARDO
+#ifndef DDS_USE
 struct RTICdrTypeCode;
 #endif
 
@@ -21,7 +21,7 @@ namespace eProsima
     class eTypeCode
     {
         public:
-#ifdef RICARDO
+#ifndef DDS_USE
             eTypeCode(std::string &topicName, std::string &typeName,
                     TypeCode *typeCode, DynamicDataDB *dynamicDB);
 #else
@@ -48,7 +48,7 @@ namespace eProsima
              *
              * \return Return the CdrTypeCode. Don't free this pointer.
              */
-#ifdef RICARDO
+#ifndef DDS_USE
             TypeCode* getCdrTypecode();
 #else
             RTICdrTypeCode* getCdrTypecode();
@@ -60,7 +60,7 @@ namespace eProsima
 
             std::string m_topicName;
             std::string m_typeName;
-#ifdef RICARDO
+#ifndef DDS_USE
             TypeCode *m_typeCode;
 #else
             struct RTICdrTypeCode *m_typeCode;
@@ -85,7 +85,7 @@ namespace eProsima
              * \return True value is returned if the typecode was added. False is returned
              * if the typecode is already in the database and it wasn't added.
              */
-#ifdef RICARDO
+#ifndef DDS_USE
             bool addTypecode(std::string &topicName, std::string &typeName,
                     TypeCode *typeCode);
 #else
@@ -101,7 +101,7 @@ namespace eProsima
              * \return Return the pointer to the eTypeCode structure if this was found.
              * In other case NULL pointer is returned. Don't free this pointer.
              */
-#ifdef RICARDO
+#ifndef DDS_USE
             eTypeCode* findTypecode(std::string &topicName, std::string &typeName);
 #else
             eTypeCode* findTypecode(const char *topicName, const char *typeName);
@@ -109,7 +109,7 @@ namespace eProsima
 
         private:
 
-#ifdef RICARDO
+#ifndef DDS_USE
             std::string getPrintIDL(const TypeCode *typeCode);
 #else
             char *getPrintIDL(RTICdrTypeCode *typeCode);

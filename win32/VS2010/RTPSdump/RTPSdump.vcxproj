@@ -52,7 +52,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(NDDSHOME)\include;$(NDDSHOME)\include\ndds;$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include\cpp;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;__LITTLE_ENDIAN__;RTI_ENDIAN_LITTLE;NDDS_DLL_VARIABLE;SQLITE_PREPARE_V2;WIN32;RTI_WIN32;_DEBUG;_CONSOLE;RICARDO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>EPROSIMA_WIN32;__LITTLE_ENDIAN__;RTI_ENDIAN_LITTLE;NDDS_DLL_VARIABLE;SQLITE_PREPARE_V2;WIN32;RTI_WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -63,9 +63,9 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>CDRd.lib;nddsczd.lib;nddscorezd.lib;wpcap.lib;sqlite3.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CDRd.lib;nddscppd.lib;nddscd.lib;nddscore.lib;wpcap.lib;sqlite3.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(HOME)\workspace\desarrollo\DDS\proyectos\cdr\lib\i86Win32VS2010;$(NDDSHOME)\lib\i86Win32VS2005;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Lib;$(HOME)\programas\sqlite-3.7.0\lib\i86win32vs2005;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(HOME)\workspace\desarrollo\DDS\proyectos\cdr\lib\i86Win32VS2010;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Lib;$(HOME)\programas\sqlite-3.7.0\lib\i86win32vs2005;$(NDDSHOME)\lib\i86Win32VS2005;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
@@ -82,9 +82,9 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>CDR.lib;nddscz.lib;nddscorez.lib;wpcap.lib;sqlite3.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CDR.lib;wpcap.lib;sqlite3.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(HOME)\workspace\desarrollo\DDS\proyectos\cdr\lib\i86Win32VS2010;$(NDDSHOME)\lib\i86Win32VS2005;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Lib;$(HOME)\programas\sqlite-3.7.0\lib\i86win32vs2005;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(HOME)\workspace\desarrollo\DDS\proyectos\cdr\lib\i86Win32VS2010;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Lib;$(HOME)\programas\sqlite-3.7.0\lib\i86win32vs2005;$(NDDSHOME)\lib\i86Win32VS2005;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -92,6 +92,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\cdr\ArrayTypeCode.cpp" />
+    <ClCompile Include="..\..\..\src\cdr\ContentTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\EnumTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\MemberedTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\PrimitiveTypeCode.cpp" />
@@ -116,6 +118,8 @@
     <ClCompile Include="..\..\..\src\util\IDLPrinter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\cdr\ArrayTypeCode.h" />
+    <ClInclude Include="..\..\..\include\cdr\ContentTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\EnumTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\MemberedTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\PrimitiveTypeCode.h" />

@@ -1,5 +1,6 @@
 #include "cdr/TypeCode.h"
 #include "cdr/StructTypeCode.h"
+#include "cdr/ArrayTypeCode.h"
 #include "cdr/EnumTypeCode.h"
 #include "cdr/StringTypeCode.h"
 #include "cdr/PrimitiveTypeCode.h"
@@ -68,6 +69,14 @@ TypeCode* TypeCode::deserializeTypeCode(CDR &cdr)
                 returnedValue = static_cast<TypeCode*>(structTC);
             else
                 delete structTC;
+        }
+        if(kind == KIND_ARRAY)
+        {
+            ArrayTypeCode *arrayTC = new ArrayTypeCode();
+            if(arrayTC->deserialize(cdr))
+                returnedValue = static_cast<TypeCode*>(arrayTC);
+            else
+                delete arrayTC;
         }
         else if(kind == KIND_ENUM)
         {

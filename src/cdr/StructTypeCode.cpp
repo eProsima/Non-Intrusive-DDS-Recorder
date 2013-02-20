@@ -58,7 +58,7 @@ bool StructTypeCode::print(IDLPrinter &printer, bool write) const
 				if(member != NULL)
 				{
 					tPrinter << "   ";
-					tPrinter << member->getTypeCode();
+					returnedValue &= tPrinter << member->getTypeCode();
 					tPrinter << " " << member->getName() << ";" << std::endl;
 				}
 				else
@@ -76,7 +76,7 @@ bool StructTypeCode::print(IDLPrinter &printer, bool write) const
 
 			if(member != NULL)
 			{
-				member->getTypeCode()->print(printer, false);
+				returnedValue &= member->getTypeCode()->print(printer, false);
 			}
 			else
 				returnedValue = false;

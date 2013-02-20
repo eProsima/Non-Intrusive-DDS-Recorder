@@ -77,7 +77,8 @@ namespace eProsima
             (kind == KIND_UNION) ||
             (kind == KIND_ALIAS) ||
             (kind == KIND_VALUE) ||
-            (kind == KIND_SPARSE));
+            (kind == KIND_SPARSE) ||
+            (kind == KIND_ENUM));
         }
 
 		virtual bool print(IDLPrinter &printer, bool write) const = 0;
