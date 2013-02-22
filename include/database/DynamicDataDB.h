@@ -32,6 +32,7 @@ namespace eProsima
     class ArrayTypeCode;
     class EnumTypeCode;
     class PrimitiveTypeCode;
+    class SequenceTypeCode;
     class CDR;
 
 #ifndef DDS_USE
@@ -112,8 +113,7 @@ namespace eProsima
             typedef struct writeSequencePrimitiveFunctions
             {
                 uint32_t _kind;
-                bool (*_addToStream)(sqlite3_stmt *stmt, int ref,
-                        std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+                bool (*_addToStream)(sqlite3_stmt *stmt, int ref, CDR &cdr);
                             
             } writeSequencePrimitiveFunctions;
 
@@ -154,7 +154,20 @@ namespace eProsima
             static bool addBoolArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
             static bool addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr,
-                    arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+                    arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+
+            static bool addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addShortSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addULongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addCharSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const EnumTypeCode *enumTC, CDR &cdr);
+            static bool addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
 
             DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
                     const TypeCode*typeCode);
@@ -248,6 +261,19 @@ namespace eProsima
             static bool addEnumArrayStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicDataObject,
                     arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
 
+            static bool addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addShortSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addLongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addULongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addCharSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+            static bool addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
+
             DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
                     struct RTICdrTypeCode *typeCode);
 
@@ -286,43 +312,18 @@ namespace eProsima
             static bool addEnumInitialStatements(std::string &memberName, std::string &table_create,
                     std::string &dynamicDataAdd);
 
-            static bool addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addShortSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addLongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addULongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addCharSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-            static bool addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, std::string &memberName, struct DDS_DynamicData *dynamicDataObject);
-
         private:
 
             bool processUnionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
-            bool processSequencesInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, std::string &suffix);
             
             
-            bool processSequenceElementsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, std::string &suffix);
-            bool processSequencePrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, std::string &suffix);
+            
+            
             
             bool processUnionsStorage(struct RTICdrTypeCode *typeCode,
                     struct DDS_DynamicData *dynamicData, std::string &suffix,
                     int &index, bool step);
-
-            bool processSequencesStorage(struct RTICdrTypeCode *typeCode,
-                    struct DDS_DynamicData *dynamicData, std::string &suffix,
-                    std::string &memberName, int &index, bool step);
-            bool processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, std::string &memberName,
-                    RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData);
-            bool processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref, std::string &memberName,
-                    RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData);
 
 #ifndef DDS_USE
             bool createInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
@@ -350,6 +351,15 @@ namespace eProsima
                     const PrimitiveTypeCode *primitiveInfo, const std::string &primitiveName,
                     std::string &suffix);
 
+            bool processSequencesInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const SequenceTypeCode *typeCode, std::string &suffix);
+
+            bool processSequenceElementsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const SequenceTypeCode *typeCode, std::string &suffix);
+
+            bool processSequencePrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const PrimitiveTypeCode *typeCode, std::string &suffix);
+
             bool processStructsStorage(const StructTypeCode *typeCode, CDR &cdr,
                 std::string &suffix, int &index, bool step);
 
@@ -370,6 +380,14 @@ namespace eProsima
 
             bool processPrimitiveStorage(const PrimitiveTypeCode *primitiveInfo,
                     CDR &cdr, int &index, bool step);
+
+            bool processSequencesStorage(const SequenceTypeCode *typeCode,
+                    CDR &cdr, std::string &suffix,
+                    const std::string &memberName, int &index, bool step);
+
+            bool processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, const SequenceTypeCode *typeCode, CDR &cdr);
+
+            bool processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref, const PrimitiveTypeCode *typeCode, CDR &cdr);
 #else
             bool kindIsPrimitive(RTICdrTCKind kind);
 
@@ -399,6 +417,15 @@ namespace eProsima
                     struct RTICdrTypeCode *primitiveInfo, std::string &primitiveName,
                     std::string &suffix);
 
+            bool processSequencesInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix);
+
+            bool processSequenceElementsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix);
+
+            bool processSequencePrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix);
+
             bool processStructsStorage(struct RTICdrTypeCode *typeCode,
                     struct DDS_DynamicData *dynamicData, std::string &suffix,
                     int &index, bool step);
@@ -426,6 +453,16 @@ namespace eProsima
 
             bool processArrayPrimitiveStorage(sqlite3_stmt *stmt, struct DDS_DynamicData *dynamicData,
                     arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension);
+
+            bool processSequencesStorage(struct RTICdrTypeCode *typeCode,
+                    struct DDS_DynamicData *dynamicData, std::string &suffix,
+                    std::string &memberName, int &index, bool step);
+
+            bool processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, std::string &memberName,
+                    RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData);
+
+            bool processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref, std::string &memberName,
+                    RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData);
 #endif
 
             eProsimaLog &m_log;

@@ -4,6 +4,7 @@
 #include "cdr/StructTypeCode.h"
 #include "cdr/ArrayTypeCode.h"
 #include "cdr/EnumTypeCode.h"
+#include "cdr/SequenceTypeCode.h"
 #include "cdr/PrimitiveTypeCode.h"
 
 #include "dds_c/dds_c_common.h"
@@ -199,181 +200,6 @@ bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string 
         else
         {
             logError(m_log, "Cannot obtain number of member of the struct");
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processSequencesInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *typeCode, string &suffix)
-{
-    // suffix contains the name of the new table.
-    bool returnedValue = false;
-    const char* const METHOD_NAME = "processSequencesInitialStatements";
-    string TABLE_CREATE = "CREATE TABLE ";
-    string TABLE_INSERT = "INSERT INTO ";
-    string TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='";
-    string TABLE_DROP = "DROP TABLE ";
-    sqlite3_stmt *stmt = NULL;
-    string newSuffix = suffix;
-    int ret = SQLITE_ERROR;
-
-    if(typeCode != NULL)
-    {
-        TABLE_CREATE += suffix;
-        TABLE_CREATE += " (ref INT, indice INT";
-        TABLE_INSERT += suffix;
-        TABLE_INSERT += " VALUES(?, ?";
-        TABLE_CHECK += suffix;
-        TABLE_CHECK += "'";
-        TABLE_DROP += suffix;
-
-        if(processSequenceElementsInitialStatements(TABLE_CREATE, TABLE_INSERT, typeCode,
-                    newSuffix))
-        {
-            TABLE_CREATE += ")";
-            TABLE_INSERT += ")";
-
-            //printf("%s\n", TABLE_CREATE.c_str());
-            //printf("%s\n", TABLE_INSERT.c_str());
-
-            if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
-            {
-                ret = sqlite3_step(stmt);
-                sqlite3_finalize(stmt);
-
-                if(ret == SQLITE_ROW)
-                {
-                    if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
-                    {
-                        if(sqlite3_step(stmt) != SQLITE_DONE)
-                            logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
-
-                        sqlite3_finalize(stmt);
-                    }
-                }
-
-                if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
-                {
-                    if(sqlite3_step(stmt) == SQLITE_DONE)
-                    {
-                        sqlite3_finalize(stmt);
-
-                        if(SQLITE_PREPARE(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
-                        {
-                            m_sequences.push_back(new arrayNode(suffix, stmt));
-                            returnedValue = true;
-                        }
-                        else
-                        {
-                            logError(m_log, "Cannot prepare statement to insert in array table %s", suffix.c_str());
-                        }
-                    }
-                    else
-                    {
-                        sqlite3_finalize(stmt);
-                        logError(m_log, "Cannot create the %s table", m_tableName.c_str());
-                    }
-
-                }
-                else
-                {
-                    logError(m_log, "Cannot prepare statement to create array table %s", suffix.c_str());
-                }
-            }
-            else
-            {
-                logError(m_log, "Cannot check the %s table", m_tableName.c_str());
-            }
-        }
-
-        table_create += ", ";
-        table_create += suffix;
-        table_create += " INT";
-        dynamicDataAdd += ", ?";
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processSequenceElementsInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *typeCode, string &suffix)
-{
-    bool returnedValue = false;
-    const char* const METHOD_NAME = "processSequenceElementsInitialStatements";
-    RTICdrTypeCode *elementType = NULL;
-    RTICdrTCKind elementKind;
-
-    if(typeCode != NULL)
-    {
-        elementType = RTICdrTypeCode_get_content_type(typeCode);
-
-        if(elementType != NULL)
-        {
-            if(RTICdrTypeCode_get_kind(elementType, &elementKind) == RTI_TRUE)
-            {
-                // TODO
-                /*
-                if(kindIsPrimitive(elementKind))
-                {
-                    returnedValue = processSequencePrimitiveInitialStatements(table_create,
-                            dynamicDataAdd, elementType, suffix);
-                }*/
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot obtain the element type");
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processSequencePrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *typeCode, string &suffix)
-{
-    bool returnedValue = false;
-    const char* const METHOD_NAME = "processSequencePrimitiveInitialStatements";
-    writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
-        DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
-    bool (*addToStream)(string &memberName, string &table_create,
-            string &dynamicDataAdd) = NULL;
-    RTICdrTCKind kind;
-    string value = "value";
-
-    if(typeCode != NULL)
-    {
-        if(RTICdrTypeCode_get_kind(typeCode, &kind) == RTI_TRUE)
-        {
-            while(writePrimitiveInitialStatementsFunctionsPointer->_kind != RTI_CDR_TK_NULL)
-            {
-                if(kind == writePrimitiveInitialStatementsFunctionsPointer->_kind)
-                {
-                    addToStream = writePrimitiveInitialStatementsFunctionsPointer->_addToStream;
-                    break;
-                }
-                writePrimitiveInitialStatementsFunctionsPointer++;
-            }
-
-            if(addToStream != NULL)
-            {
-                returnedValue = addToStream(value, table_create, dynamicDataAdd);
-                returnedValue = true;
-            }
         }
     }
     else
@@ -591,805 +417,6 @@ bool DynamicDataDB::processUnionsStorage(struct RTICdrTypeCode *typeCode,
     return returnedValue;
 }
 
-bool DynamicDataDB::processSequencesStorage(struct RTICdrTypeCode *typeCode,
-        struct DDS_DynamicData *dynamicData, string &suffix,
-        string &memberName, int &index, bool step)
-{
-    const char* const METHOD_NAME = "processSequencesStorage";
-    bool returnedValue = false;
-    list<arrayNode*>::iterator it;
-    arrayNode *aNode = NULL;
-    RTICdrTypeCode *elementType = NULL;
-    RTICdrTCKind elementKind;
-
-    if(typeCode != NULL && (dynamicData != NULL || step))
-    {
-        // Search array statement.
-        for(it = m_sequences.begin(); it != m_sequences.end(); it++)
-        {
-            if(suffix.compare((*it)->m_tableName) == 0)
-            {
-                aNode = (*it);
-                break;
-            }
-        }
-
-        if(it != m_sequences.end())
-        {
-            if(aNode != NULL && aNode->m_stmt != NULL)
-            {
-                if(!step)
-
-                {
-                    elementType = RTICdrTypeCode_get_content_type(typeCode);
-
-                    if(elementType != NULL)
-                    {
-                        if(RTICdrTypeCode_get_kind(elementType, &elementKind) == RTI_TRUE)
-                        {
-                            if(processSequenceElementsStorage(aNode->m_stmt, aNode->m_ref, memberName,
-                                        elementKind, dynamicData))
-                            {
-                                sqlite3_bind_int(m_addStmt, index++, aNode->m_ref++);
-                                returnedValue = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        logError(m_log, "Cannot obtain the element type");
-                    }
-                }
-                else
-                {
-                    sqlite3_bind_null(m_addStmt, index++);
-                    returnedValue = true;
-                }
-            }
-            else
-            {
-                logError(m_log, "Bad array statement for %s", suffix.c_str());
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot find the array statement of %s", suffix.c_str());
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData)
-{
-    const char* const METHOD_NAME = "processSequenceElementsStorage";
-    bool returnedValue = false;
-
-    if(stmt != NULL && dynamicData != NULL)
-    {
-        // TODO
-        /*
-        if(kindIsPrimitive(elementKind))
-        {
-            returnedValue = processSequencePrimitiveStorage(stmt, ref, memberName,
-                    elementKind,
-                    dynamicData);
-        }*/
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref,
-        string &memberName, RTICdrTCKind elementKind,
-        struct DDS_DynamicData *dynamicData)
-{
-    bool returnedValue = false;
-    writeSequencePrimitiveFunctions *writeSequencePrimitiveFunctionsPointer =
-        DynamicDataDB::writeSequencePrimitiveFunctionsMap;
-    bool (*addToStream)(sqlite3_stmt *stmt, int ref,
-            string &memberName, struct DDS_DynamicData *dynamicDataObject) = NULL;
-
-    while(writeSequencePrimitiveFunctionsPointer->_kind != RTI_CDR_TK_NULL)
-    {
-        if(elementKind == writeSequencePrimitiveFunctionsPointer->_kind)
-        {
-            addToStream = writeSequencePrimitiveFunctionsPointer->_addToStream;
-            break;
-        }
-
-        writeSequencePrimitiveFunctionsPointer++;
-    }
-
-    if(addToStream != NULL)
-    {
-        returnedValue = addToStream(stmt, ref, memberName, dynamicData);
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addOctetSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_OctetSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_OctetSeq_initialize(&values);
-            DDS_OctetSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_octet_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_int(stmt, 3, *DDS_OctetSeq_get_reference(&values, count));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_OctetSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addShortSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addShortSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_ShortSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_ShortSeq_initialize(&values);
-            DDS_ShortSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_short_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_int(stmt, 3, *DDS_ShortSeq_get_reference(&values, count));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_ShortSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addUShortSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_UnsignedShortSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_UnsignedShortSeq_initialize(&values);
-            DDS_UnsignedShortSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_ushort_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_int(stmt, 3, *DDS_UnsignedShortSeq_get_reference(&values, count));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_UnsignedShortSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addLongSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addLongSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_LongSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_LongSeq_initialize(&values);
-            DDS_LongSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_long_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_int(stmt, 3, *DDS_LongSeq_get_reference(&values, count));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_LongSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addULongSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addULongSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_UnsignedLongSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_UnsignedLongSeq_initialize(&values);
-            DDS_UnsignedLongSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_ulong_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_int(stmt, 3, *DDS_UnsignedLongSeq_get_reference(&values, count));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_UnsignedLongSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addLongLongSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_LongLongSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_LongLongSeq_initialize(&values);
-            DDS_LongLongSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_longlong_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_int64(stmt, 3, *DDS_LongLongSeq_get_reference(&values, count));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_LongLongSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addULongLongSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_UnsignedLongLongSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_UnsignedLongLongSeq_initialize(&values);
-            DDS_UnsignedLongLongSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_ulonglong_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_int64(stmt, 3, *DDS_UnsignedLongLongSeq_get_reference(&values, count));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_UnsignedLongLongSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addCharSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addCharSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_CharSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_CharSeq_initialize(&values);
-            DDS_CharSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_char_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_text(stmt, 3, DDS_CharSeq_get_reference(&values, count), 1, SQLITE_STATIC);
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_CharSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addFloatSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_FloatSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_FloatSeq_initialize(&values);
-            DDS_FloatSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_float_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_double(stmt, 3, (double)(*DDS_FloatSeq_get_reference(&values, count)));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_FloatSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addDoubleSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_DoubleSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_DoubleSeq_initialize(&values);
-            DDS_DoubleSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_double_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_double(stmt, 3, *DDS_DoubleSeq_get_reference(&values, count));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_DoubleSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addEnumSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_LongSeq ordinals;
-    DDS_Long eindex;
-    DDS_TypeCode *sequenceTypeCode = NULL, *enumTypeCode = NULL;
-    DDS_ExceptionCode_t exception = DDS_NO_EXCEPTION_CODE;
-    string label;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            if(DDS_DynamicData_get_member_type(dynamicDataObject, (const struct DDS_TypeCode**)&sequenceTypeCode,
-                        memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
-            {
-                enumTypeCode = DDS_TypeCode_content_type(sequenceTypeCode, &exception);
-
-                if(exception == DDS_NO_EXCEPTION_CODE)
-                {
-                    DDS_LongSeq_initialize(&ordinals);
-                    DDS_LongSeq_ensure_length(&ordinals, memberInfo.element_count, memberInfo.element_count);
-                    DDS_DynamicData_get_long_seq(dynamicDataObject, &ordinals, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-                    returnedValue = true;
-                    for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-                    {
-                        if(sqlite3_reset(stmt) == SQLITE_OK)
-                        {
-                            DDS_UnsignedLong ordinal = *DDS_LongSeq_get_reference(&ordinals, count);
-                            eindex = DDS_TypeCode_find_member_by_label(enumTypeCode, ordinal, &exception);
-
-                                if(exception == DDS_NO_EXCEPTION_CODE)
-                                {
-                                    label = DDS_TypeCode_member_name(enumTypeCode, eindex, &exception);
-
-                                    if(exception == DDS_NO_EXCEPTION_CODE)
-                                    {
-                                        sqlite3_bind_int(stmt, 1, ref);
-                                        sqlite3_bind_int(stmt, 2, count);
-                                        sqlite3_bind_text(stmt, 3, label.c_str(), label.length(), SQLITE_STATIC);
-
-                                        if(sqlite3_step(stmt) != SQLITE_DONE)
-                                        {
-                                            printError("Cannot step the statement");
-                                            returnedValue = false;
-                                        }
-                                    }
-                                }
-                        }
-                        else
-                        {
-                            printError("Cannot reset statement");
-                            returnedValue = false;
-                        }
-                    }
-
-                    DDS_LongSeq_finalize(&ordinals);
-                }
-            }
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
-        struct DDS_DynamicData *dynamicDataObject)
-{
-    const char* const METHOD_NAME = "addBoolSequenceStorage";
-    bool returnedValue = false;
-    DDS_DynamicDataMemberInfo memberInfo;
-    struct DDS_BooleanSeq values;
-
-    if(stmt != NULL && dynamicDataObject != NULL)
-    {
-        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
-                == DDS_RETCODE_OK)
-        {
-            DDS_BooleanSeq_initialize(&values);
-            DDS_BooleanSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
-            DDS_DynamicData_get_boolean_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
-
-            returnedValue = true;
-            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
-            {
-                if(sqlite3_reset(stmt) == SQLITE_OK)
-                {
-                    sqlite3_bind_int(stmt, 1, ref);
-                    sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_int(stmt, 3, *DDS_BooleanSeq_get_reference(&values, count));
-
-                    if(sqlite3_step(stmt) != SQLITE_DONE)
-                    {
-                        printError("Cannot step the statement");
-                        returnedValue = false;
-                    }
-                }
-                else
-                {
-                    printError("Cannot reset statement");
-                    returnedValue = false;
-                }
-            }
-
-            DDS_BooleanSeq_finalize(&values);
-        }
-        else
-        {
-            printError("Cannot get member info");
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
 #ifndef DDS_USE
 DynamicDataDB::writePrimitiveInitialStatementsFunctions DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap[] =
 {
@@ -1453,7 +480,6 @@ DynamicDataDB::writeSequencePrimitiveFunctions DynamicDataDB::writeSequencePrimi
     {TypeCode::KIND_CHAR, DynamicDataDB::addCharSequenceStorage},
     {TypeCode::KIND_FLOAT, DynamicDataDB::addFloatSequenceStorage},
     {TypeCode::KIND_DOUBLE, DynamicDataDB::addDoubleSequenceStorage},
-    {TypeCode::KIND_ENUM, DynamicDataDB::addEnumSequenceStorage},
     {TypeCode::KIND_BOOLEAN, DynamicDataDB::addBoolSequenceStorage},
     {TypeCode::KIND_NULL, NULL}
 };
@@ -1551,12 +577,12 @@ bool DynamicDataDB::processMembersInitialStatements(string &table_create, string
                 newSuffix += memberInfo->getName();
                 returnedValue = processArraysInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const ArrayTypeCode*>(mTypeCode), newSuffix);
             }
-            /*else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
+            else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
             {
                 newSuffix = suffix;
-                newSuffix += memberName;
-                returnedValue = processSequencesInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
-            }*/
+                newSuffix += memberInfo->getName();
+                returnedValue = processSequencesInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const SequenceTypeCode*>(mTypeCode), newSuffix);
+            }
             else if(mTypeCode->getKind() == TypeCode::KIND_ENUM)
             {
                 newSuffix = suffix;
@@ -1755,7 +781,6 @@ bool DynamicDataDB::processArrayElementsInitialStatements(string &table_create, 
     bool returnedValue = false;
     const char* const METHOD_NAME = "processArrayElementsInitialStatements";
     const TypeCode *elementType = NULL;
-    std::string value = "value";
 
     if(typeCode != NULL)
     {
@@ -1765,6 +790,7 @@ bool DynamicDataDB::processArrayElementsInitialStatements(string &table_create, 
         {
             if(elementType->getKind() == TypeCode::KIND_ENUM)
             {
+                std::string value = "value";
                 returnedValue = addEnumInitialStatements(value, table_create, dynamicDataAdd);
             }
             else if(TypeCode::kindIsPrimitive(elementType->getKind()))
@@ -1792,6 +818,175 @@ bool DynamicDataDB::processArrayPrimitiveInitialStatements(string &table_create,
 {
     bool returnedValue = false;
     const char* const METHOD_NAME = "processArrayPrimitiveInitialStatements";
+    writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
+        DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
+    bool (*addToStream)(string &memberName, string &table_create,
+            string &dynamicDataAdd) = NULL;
+    string value = "value";
+
+    if(typeCode != NULL)
+    {
+        while(writePrimitiveInitialStatementsFunctionsPointer->_kind != TypeCode::KIND_NULL)
+        {
+            if(typeCode->getKind() == writePrimitiveInitialStatementsFunctionsPointer->_kind)
+            {
+                addToStream = writePrimitiveInitialStatementsFunctionsPointer->_addToStream;
+                break;
+            }
+            writePrimitiveInitialStatementsFunctionsPointer++;
+        }
+
+        if(addToStream != NULL)
+        {
+            returnedValue = addToStream(value, table_create, dynamicDataAdd);
+            returnedValue = true;
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequencesInitialStatements(string &table_create, string &dynamicDataAdd,
+        const SequenceTypeCode *typeCode, string &suffix)
+{
+    // suffix contains the name of the new table.
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processSequencesInitialStatements";
+    string TABLE_CREATE = "CREATE TABLE ";
+    string TABLE_INSERT = "INSERT INTO ";
+    string TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='";
+    string TABLE_DROP = "DROP TABLE ";
+    sqlite3_stmt *stmt = NULL;
+    string newSuffix = suffix;
+    int ret = SQLITE_ERROR;
+
+    if(typeCode != NULL)
+    {
+        TABLE_CREATE += suffix;
+        TABLE_CREATE += " (ref INT, indice INT";
+        TABLE_INSERT += suffix;
+        TABLE_INSERT += " VALUES(?, ?";
+        TABLE_CHECK += suffix;
+        TABLE_CHECK += "'";
+        TABLE_DROP += suffix;
+
+        if(processSequenceElementsInitialStatements(TABLE_CREATE, TABLE_INSERT, typeCode,
+                    newSuffix))
+        {
+            TABLE_CREATE += ")";
+            TABLE_INSERT += ")";
+
+            //printf("%s\n", TABLE_CREATE.c_str());
+            //printf("%s\n", TABLE_INSERT.c_str());
+
+            if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
+            {
+                ret = sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+
+                if(ret == SQLITE_ROW)
+                {
+                    if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
+                    {
+                        if(sqlite3_step(stmt) != SQLITE_DONE)
+                            logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
+
+                        sqlite3_finalize(stmt);
+                    }
+                }
+
+                if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
+                {
+                    if(sqlite3_step(stmt) == SQLITE_DONE)
+                    {
+                        sqlite3_finalize(stmt);
+
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
+                        {
+                            m_sequences.push_back(new arrayNode(suffix, stmt));
+                            returnedValue = true;
+                        }
+                        else
+                        {
+                            logError(m_log, "Cannot prepare statement to insert in array table %s", suffix.c_str());
+                        }
+                    }
+                    else
+                    {
+                        sqlite3_finalize(stmt);
+                        logError(m_log, "Cannot create the %s table", m_tableName.c_str());
+                    }
+
+                }
+                else
+                {
+                    logError(m_log, "Cannot prepare statement to create array table %s", suffix.c_str());
+                }
+            }
+            else
+            {
+                logError(m_log, "Cannot check the %s table", m_tableName.c_str());
+            }
+        }
+
+        table_create += ", ";
+        table_create += suffix;
+        table_create += " INT";
+        dynamicDataAdd += ", ?";
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequenceElementsInitialStatements(string &table_create, string &dynamicDataAdd,
+        const SequenceTypeCode *typeCode, string &suffix)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processSequenceElementsInitialStatements";
+    const TypeCode *elementType = NULL;
+
+    if(typeCode != NULL)
+    {
+        elementType = typeCode->getContentTypeCode();
+
+        if(elementType != NULL)
+        {
+            if(elementType->getKind() == TypeCode::KIND_ENUM)
+            {
+                //returnedValue = addEnumInitialStatements(value, table_create, dynamicDataAdd);
+            }
+            else if(TypeCode::kindIsPrimitive(elementType->getKind()))
+            {
+                returnedValue = processSequencePrimitiveInitialStatements(table_create,
+                        dynamicDataAdd, dynamic_cast<const PrimitiveTypeCode*>(elementType), suffix);
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot obtain the element type");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequencePrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
+        const PrimitiveTypeCode *typeCode, string &suffix)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processSequencePrimitiveInitialStatements";
     writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
         DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
     bool (*addToStream)(string &memberName, string &table_create,
@@ -1944,8 +1139,7 @@ bool DynamicDataDB::processMembersStorage(const Member *memberInfo, CDR &cdr,
                 returnedValue = processStructsStorage(dynamic_cast<const StructTypeCode*>(mTypeCode), cdr,
                         newSuffix, index, step);
             }
-            //TODO
-            /*else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
+            else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
             {
                 memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
                         memberName, dynamicData);
@@ -1959,19 +1153,19 @@ bool DynamicDataDB::processMembersStorage(const Member *memberInfo, CDR &cdr,
                             newSuffix, index, step);
                     DDS_DynamicData_delete(memberDynamicDataObject);
                 }
-            }*/
+            }
             else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
             {
                 newSuffix = suffix;
                 newSuffix += memberInfo->getName();
                 returnedValue = processArraysStorage(dynamic_cast<const ArrayTypeCode*>(mTypeCode), cdr, newSuffix, memberInfo->getName(), index, step);
             }
-            /*else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
+            else if(mTypeCode->getKind() == TypeCode::KIND_SEQUENCE)
             {
                 newSuffix = suffix;
-                newSuffix += memberName;
-                returnedValue = processSequencesStorage(memberInfo, dynamicData, newSuffix, memberName, index, step);
-            }*/
+                newSuffix += memberInfo->getName();
+                returnedValue = processSequencesStorage(dynamic_cast<const SequenceTypeCode*>(mTypeCode), cdr, newSuffix, memberInfo->getName(), index, step);
+            }
             else if(mTypeCode->getKind() == TypeCode::KIND_ENUM)
             {
                 returnedValue = addEnumStorage(m_addStmt, dynamic_cast<const EnumTypeCode*>(mTypeCode), cdr, index, step);
@@ -2518,17 +1712,26 @@ bool DynamicDataDB::processArrayElementsStorage(sqlite3_stmt *stmt, const ArrayT
     bool returnedValue = false;
     const TypeCode *elementType = NULL;
 
-    if(stmt != NULL && arrayProcessingInfo != NULL)
+    if(stmt != NULL &&  typeCode != NULL && arrayProcessingInfo != NULL)
     {
         elementType = typeCode->getContentTypeCode();
 
-        if(elementType->getKind() == TypeCode::KIND_ENUM)
+        if(elementType != NULL)
         {
+            if(elementType->getKind() == TypeCode::KIND_ENUM)
+            {
+                returnedValue = addEnumArrayStorage(stmt, dynamic_cast<const EnumTypeCode*>(elementType), cdr,
+                        arrayProcessingInfo, currentDimension);
+            }
+            else if(TypeCode::kindIsPrimitive(elementType->getKind()))
+            {
+                returnedValue = processArrayPrimitiveStorage(stmt, dynamic_cast<const PrimitiveTypeCode*>(elementType), cdr,
+                        arrayProcessingInfo, currentDimension);
+            }
         }
-        else if(TypeCode::kindIsPrimitive(elementType->getKind()))
+        else
         {
-            returnedValue = processArrayPrimitiveStorage(stmt, dynamic_cast<const PrimitiveTypeCode*>(elementType), cdr,
-                    arrayProcessingInfo, currentDimension);
+            logError(m_log, "Cannot get the content typecode");
         }
     }
     else
@@ -2579,18 +1782,12 @@ bool DynamicDataDB::addOctetArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
         
         if(auxPointerBuffer == NULL)
         {
-            auxPointerBuffer = (uint8_t*)calloc(sizeof(DDS_Octet)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Octet));
+            auxPointerBuffer = (uint8_t*)calloc(sizeof(uint8_t)*arrayProcessingInfo->numberOfElements,
+                    sizeof(uint8_t));
 
             if(auxPointerBuffer != NULL)
             {
-                // TODO Deserializacion
-                std::array<int, 10> a;
-                cdr >> a;
-
-                //std::array<std::array<float, 10>, 20> p;
-                //cdr >> p;
-
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -2640,12 +1837,12 @@ bool DynamicDataDB::addShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
         
         if(auxPointerBuffer == NULL)
         {
-            auxPointerBuffer = (int16_t*)calloc(sizeof(DDS_Short)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Short));
+            auxPointerBuffer = (int16_t*)calloc(sizeof(int16_t)*arrayProcessingInfo->numberOfElements,
+                    sizeof(int16_t));
 
             if(auxPointerBuffer != NULL)
             {
-                //TODO Deserializacion
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -2695,12 +1892,12 @@ bool DynamicDataDB::addUShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
         
         if(auxPointerBuffer == NULL)
         {
-            auxPointerBuffer = (uint16_t*)calloc(sizeof(DDS_UnsignedShort)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_UnsignedShort));
+            auxPointerBuffer = (uint16_t*)calloc(sizeof(uint16_t)*arrayProcessingInfo->numberOfElements,
+                    sizeof(uint16_t));
 
             if(auxPointerBuffer != NULL)
             {
-                //TODO Deserailizaicon
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -2750,12 +1947,12 @@ bool DynamicDataDB::addLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
         
         if(auxPointerBuffer == NULL)
         {
-            auxPointerBuffer = (int32_t*)calloc(sizeof(DDS_Long)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_Long));
+            auxPointerBuffer = (int32_t*)calloc(sizeof(int32_t)*arrayProcessingInfo->numberOfElements,
+                    sizeof(int32_t));
 
             if(auxPointerBuffer != NULL)
             {
-                // TODO Deserializacion
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -2805,12 +2002,12 @@ bool DynamicDataDB::addULongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
         
         if(auxPointerBuffer == NULL)
         {
-            auxPointerBuffer = (uint32_t*)calloc(sizeof(DDS_UnsignedLong)*arrayProcessingInfo->numberOfElements,
-                    sizeof(DDS_UnsignedLong));
+            auxPointerBuffer = (uint32_t*)calloc(sizeof(uint32_t)*arrayProcessingInfo->numberOfElements,
+                    sizeof(uint32_t));
 
             if(auxPointerBuffer != NULL)
             {
-                //TODO Deserializacion
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -2865,7 +2062,7 @@ bool DynamicDataDB::addLongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
 
             if(auxPointerBuffer != NULL)
             {
-                // TODO Deserializacion
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -2920,7 +2117,7 @@ bool DynamicDataDB::addULongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
 
             if(auxPointerBuffer != NULL)
             {
-                // TODO Deserializacion
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -2975,7 +2172,7 @@ bool DynamicDataDB::addCharArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
 
             if(auxPointerBuffer != NULL)
             {
-                // TODO deserializacion
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -3029,7 +2226,7 @@ bool DynamicDataDB::addFloatArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
 
             if(auxPointerBuffer != NULL)
             {
-                // TODO deserializacion
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -3083,7 +2280,7 @@ bool DynamicDataDB::addDoubleArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
 
             if(auxPointerBuffer != NULL)
             {
-                // TODO deserialization
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -3176,7 +2373,7 @@ bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
 }
 
 bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr,
- arrayProcessInfo *arrayProcessingInfo, RTICdrUnsignedLong currentDimension)
+ arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addEnumArrayStorage";
     bool returnedValue = false;
@@ -3194,7 +2391,7 @@ bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *
 
             if(auxPointerBuffer != NULL)
             {
-                // TODO Deserialziar
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }
@@ -3230,6 +2427,612 @@ bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *
         else
         {
             printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequencesStorage(const SequenceTypeCode *typeCode,
+        CDR &cdr, string &suffix,
+        const string &memberName, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processSequencesStorage";
+    bool returnedValue = false;
+    list<arrayNode*>::iterator it;
+    arrayNode *aNode = NULL;
+    const TypeCode *elementType = NULL;
+
+    if(typeCode != NULL)
+    {
+        // Search array statement.
+        for(it = m_sequences.begin(); it != m_sequences.end(); it++)
+        {
+            if(suffix.compare((*it)->m_tableName) == 0)
+            {
+                aNode = (*it);
+                break;
+            }
+        }
+
+        if(it != m_sequences.end())
+        {
+            if(aNode != NULL && aNode->m_stmt != NULL)
+            {
+                if(!step)
+
+                {
+                    if(processSequenceElementsStorage(aNode->m_stmt, aNode->m_ref, typeCode, cdr))
+                    {
+                        sqlite3_bind_int(m_addStmt, index++, aNode->m_ref++);
+                        returnedValue = true;
+                    }
+                }
+                else
+                {
+                    sqlite3_bind_null(m_addStmt, index++);
+                    returnedValue = true;
+                }
+            }
+            else
+            {
+                logError(m_log, "Bad array statement for %s", suffix.c_str());
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot find the array statement of %s", suffix.c_str());
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, const SequenceTypeCode *typeCode, CDR &cdr)
+{
+    const char* const METHOD_NAME = "processSequenceElementsStorage";
+    bool returnedValue = false;
+    const TypeCode *elementType = NULL;
+
+    if(stmt != NULL && typeCode != NULL)
+    {
+        elementType = typeCode->getContentTypeCode();
+
+        if(elementType != NULL)
+        {
+            if(elementType->getKind() == TypeCode::KIND_ENUM)
+            {
+                addEnumSequenceStorage(stmt, ref, dynamic_cast<const EnumTypeCode*>(elementType), cdr);
+            }
+            else if(TypeCode::kindIsPrimitive(elementType->getKind()))
+            {
+                returnedValue = processSequencePrimitiveStorage(stmt, ref, dynamic_cast<const PrimitiveTypeCode*>(elementType), cdr);
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot get the content typecode");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref,
+        const PrimitiveTypeCode *typeCode, CDR &cdr)
+{
+    bool returnedValue = false;
+    writeSequencePrimitiveFunctions *writeSequencePrimitiveFunctionsPointer =
+        DynamicDataDB::writeSequencePrimitiveFunctionsMap;
+    bool (*addToStream)(sqlite3_stmt *stmt, int ref, CDR &cdr) = NULL;
+
+    while(writeSequencePrimitiveFunctionsPointer->_kind != TypeCode::KIND_NULL)
+    {
+        if(typeCode->getKind() == writeSequencePrimitiveFunctionsPointer->_kind)
+        {
+            addToStream = writeSequencePrimitiveFunctionsPointer->_addToStream;
+            break;
+        }
+
+        writeSequencePrimitiveFunctionsPointer++;
+    }
+
+    if(addToStream != NULL)
+    {
+        returnedValue = addToStream(stmt, ref, cdr);
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addOctetSequenceStorage";
+    bool returnedValue = false;
+    std::vector<uint8_t> values;
+
+    if(stmt != NULL)
+    {
+            cdr >> values;
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, values[count]);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addShortSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addShortSequenceStorage";
+    bool returnedValue = false;
+    std::vector<int16_t> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_int(stmt, 3, values[count]);
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addUShortSequenceStorage";
+    bool returnedValue = false;
+    std::vector<uint16_t> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count <  values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_int(stmt, 3, values[count]);
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addLongSequenceStorage";
+    bool returnedValue = false;
+    std::vector<int32_t> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_int(stmt, 3, values[count]);
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addULongSequenceStorage";
+    bool returnedValue = false;
+    std::vector<uint32_t> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_int(stmt, 3, values[count]);
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addLongLongSequenceStorage";
+    bool returnedValue = false;
+    std::vector<int64_t> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_int64(stmt, 3, values[count]);
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addULongLongSequenceStorage";
+    bool returnedValue = false;
+    std::vector<uint64_t> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_int64(stmt, 3, values[count]);
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addCharSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addCharSequenceStorage";
+    bool returnedValue = false;
+    std::vector<char> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_text(stmt, 3, &(values[count]), 1, SQLITE_STATIC);
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addFloatSequenceStorage";
+    bool returnedValue = false;
+    std::vector<float> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_double(stmt, 3, (double)(values[count]));
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addDoubleSequenceStorage";
+    bool returnedValue = false;
+    std::vector<double> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_double(stmt, 3, values[count]);
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const EnumTypeCode *enumTC, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addEnumSequenceStorage";
+    bool returnedValue = false;
+    std::vector<int32_t> ordinals;
+
+
+    if(stmt != NULL && enumTC != NULL)
+    {
+        cdr >> ordinals;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < ordinals.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                const EnumMember *member = enumTC->getMemberWithOrdinal(ordinals[count]);
+
+                if(member != NULL)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_text(stmt, 3, member->getName().c_str(), member->getName().length(), SQLITE_STATIC);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+{
+    const char* const METHOD_NAME = "addBoolSequenceStorage";
+    bool returnedValue = false;
+    std::vector<uint8_t> values;
+
+    if(stmt != NULL)
+    {
+        cdr >> values;
+
+        returnedValue = true;
+        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        {
+            if(sqlite3_reset(stmt) == SQLITE_OK)
+            {
+                sqlite3_bind_int(stmt, 1, ref);
+                sqlite3_bind_int(stmt, 2, count);
+                sqlite3_bind_int(stmt, 3, values[count]);
+
+                if(sqlite3_step(stmt) != SQLITE_DONE)
+                {
+                    printError("Cannot step the statement");
+                    returnedValue = false;
+                }
+            }
+            else
+            {
+                printError("Cannot reset statement");
+                returnedValue = false;
+            }
         }
     }
     else
@@ -5244,6 +5047,978 @@ bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
         else
         {
             printError("Cannot allocate buffer");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequencesStorage(struct RTICdrTypeCode *typeCode,
+        struct DDS_DynamicData *dynamicData, string &suffix,
+        string &memberName, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processSequencesStorage";
+    bool returnedValue = false;
+    list<arrayNode*>::iterator it;
+    arrayNode *aNode = NULL;
+    RTICdrTypeCode *elementType = NULL;
+    RTICdrTCKind elementKind;
+
+    if(typeCode != NULL && (dynamicData != NULL || step))
+    {
+        // Search array statement.
+        for(it = m_sequences.begin(); it != m_sequences.end(); it++)
+        {
+            if(suffix.compare((*it)->m_tableName) == 0)
+            {
+                aNode = (*it);
+                break;
+            }
+        }
+
+        if(it != m_sequences.end())
+        {
+            if(aNode != NULL && aNode->m_stmt != NULL)
+            {
+                if(!step)
+
+                {
+                    elementType = RTICdrTypeCode_get_content_type(typeCode);
+
+                    if(elementType != NULL)
+                    {
+                        if(RTICdrTypeCode_get_kind(elementType, &elementKind) == RTI_TRUE)
+                        {
+                            if(processSequenceElementsStorage(aNode->m_stmt, aNode->m_ref, memberName,
+                                        elementKind, dynamicData))
+                            {
+                                sqlite3_bind_int(m_addStmt, index++, aNode->m_ref++);
+                                returnedValue = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot obtain the element type");
+                    }
+                }
+                else
+                {
+                    sqlite3_bind_null(m_addStmt, index++);
+                    returnedValue = true;
+                }
+            }
+            else
+            {
+                logError(m_log, "Bad array statement for %s", suffix.c_str());
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot find the array statement of %s", suffix.c_str());
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequencesInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *typeCode, string &suffix)
+{
+    // suffix contains the name of the new table.
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processSequencesInitialStatements";
+    string TABLE_CREATE = "CREATE TABLE ";
+    string TABLE_INSERT = "INSERT INTO ";
+    string TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='";
+    string TABLE_DROP = "DROP TABLE ";
+    sqlite3_stmt *stmt = NULL;
+    string newSuffix = suffix;
+    int ret = SQLITE_ERROR;
+
+    if(typeCode != NULL)
+    {
+        TABLE_CREATE += suffix;
+        TABLE_CREATE += " (ref INT, indice INT";
+        TABLE_INSERT += suffix;
+        TABLE_INSERT += " VALUES(?, ?";
+        TABLE_CHECK += suffix;
+        TABLE_CHECK += "'";
+        TABLE_DROP += suffix;
+
+        if(processSequenceElementsInitialStatements(TABLE_CREATE, TABLE_INSERT, typeCode,
+                    newSuffix))
+        {
+            TABLE_CREATE += ")";
+            TABLE_INSERT += ")";
+
+            //printf("%s\n", TABLE_CREATE.c_str());
+            //printf("%s\n", TABLE_INSERT.c_str());
+
+            if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK.c_str(), strlen(TABLE_CHECK.c_str()), &stmt, NULL) == SQLITE_OK)
+            {
+                ret = sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+
+                if(ret == SQLITE_ROW)
+                {
+                    if(SQLITE_PREPARE(m_databaseH, TABLE_DROP.c_str(), strlen(TABLE_DROP.c_str()), &stmt, NULL) == SQLITE_OK)
+                    {
+                        if(sqlite3_step(stmt) != SQLITE_DONE)
+                            logError(m_log, "Cannot drop the %s table", m_tableName.c_str());
+
+                        sqlite3_finalize(stmt);
+                    }
+                }
+
+                if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE.c_str(), strlen(TABLE_CREATE.c_str()), &stmt, NULL) == SQLITE_OK)
+                {
+                    if(sqlite3_step(stmt) == SQLITE_DONE)
+                    {
+                        sqlite3_finalize(stmt);
+
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_INSERT.c_str(), strlen(TABLE_INSERT.c_str()), &stmt, NULL) == SQLITE_OK)
+                        {
+                            m_sequences.push_back(new arrayNode(suffix, stmt));
+                            returnedValue = true;
+                        }
+                        else
+                        {
+                            logError(m_log, "Cannot prepare statement to insert in array table %s", suffix.c_str());
+                        }
+                    }
+                    else
+                    {
+                        sqlite3_finalize(stmt);
+                        logError(m_log, "Cannot create the %s table", m_tableName.c_str());
+                    }
+
+                }
+                else
+                {
+                    logError(m_log, "Cannot prepare statement to create array table %s", suffix.c_str());
+                }
+            }
+            else
+            {
+                logError(m_log, "Cannot check the %s table", m_tableName.c_str());
+            }
+        }
+
+        table_create += ", ";
+        table_create += suffix;
+        table_create += " INT";
+        dynamicDataAdd += ", ?";
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequenceElementsInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *typeCode, string &suffix)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processSequenceElementsInitialStatements";
+    RTICdrTypeCode *elementType = NULL;
+    RTICdrTCKind elementKind;
+
+    if(typeCode != NULL)
+    {
+        elementType = RTICdrTypeCode_get_content_type(typeCode);
+
+        if(elementType != NULL)
+        {
+            if(RTICdrTypeCode_get_kind(elementType, &elementKind) == RTI_TRUE)
+            {
+                // TODO
+                /*
+                if(kindIsPrimitive(elementKind))
+                {
+                    returnedValue = processSequencePrimitiveInitialStatements(table_create,
+                            dynamicDataAdd, elementType, suffix);
+                }*/
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot obtain the element type");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequencePrimitiveInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *typeCode, string &suffix)
+{
+    bool returnedValue = false;
+    const char* const METHOD_NAME = "processSequencePrimitiveInitialStatements";
+    writePrimitiveInitialStatementsFunctions *writePrimitiveInitialStatementsFunctionsPointer =
+        DynamicDataDB::writePrimitiveInitialStatementsFunctionsMap;
+    bool (*addToStream)(string &memberName, string &table_create,
+            string &dynamicDataAdd) = NULL;
+    RTICdrTCKind kind;
+    string value = "value";
+
+    if(typeCode != NULL)
+    {
+        if(RTICdrTypeCode_get_kind(typeCode, &kind) == RTI_TRUE)
+        {
+            while(writePrimitiveInitialStatementsFunctionsPointer->_kind != RTI_CDR_TK_NULL)
+            {
+                if(kind == writePrimitiveInitialStatementsFunctionsPointer->_kind)
+                {
+                    addToStream = writePrimitiveInitialStatementsFunctionsPointer->_addToStream;
+                    break;
+                }
+                writePrimitiveInitialStatementsFunctionsPointer++;
+            }
+
+            if(addToStream != NULL)
+            {
+                returnedValue = addToStream(value, table_create, dynamicDataAdd);
+                returnedValue = true;
+            }
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        RTICdrTCKind elementKind, struct DDS_DynamicData *dynamicData)
+{
+    const char* const METHOD_NAME = "processSequenceElementsStorage";
+    bool returnedValue = false;
+
+    if(stmt != NULL && dynamicData != NULL)
+    {
+        if(kindIsPrimitive(elementKind))
+        {
+            returnedValue = processSequencePrimitiveStorage(stmt, ref, memberName,
+                    elementKind,
+                    dynamicData);
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref,
+        string &memberName, RTICdrTCKind elementKind,
+        struct DDS_DynamicData *dynamicData)
+{
+    bool returnedValue = false;
+    writeSequencePrimitiveFunctions *writeSequencePrimitiveFunctionsPointer =
+        DynamicDataDB::writeSequencePrimitiveFunctionsMap;
+    bool (*addToStream)(sqlite3_stmt *stmt, int ref,
+            string &memberName, struct DDS_DynamicData *dynamicDataObject) = NULL;
+
+    while(writeSequencePrimitiveFunctionsPointer->_kind != RTI_CDR_TK_NULL)
+    {
+        if(elementKind == writeSequencePrimitiveFunctionsPointer->_kind)
+        {
+            addToStream = writeSequencePrimitiveFunctionsPointer->_addToStream;
+            break;
+        }
+
+        writeSequencePrimitiveFunctionsPointer++;
+    }
+
+    if(addToStream != NULL)
+    {
+        returnedValue = addToStream(stmt, ref, memberName, dynamicData);
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addOctetSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_OctetSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_OctetSeq_initialize(&values);
+            DDS_OctetSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_octet_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, *DDS_OctetSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_OctetSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addShortSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addShortSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_ShortSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_ShortSeq_initialize(&values);
+            DDS_ShortSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_short_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, *DDS_ShortSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_ShortSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addUShortSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_UnsignedShortSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_UnsignedShortSeq_initialize(&values);
+            DDS_UnsignedShortSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_ushort_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, *DDS_UnsignedShortSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_UnsignedShortSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addLongSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_LongSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_LongSeq_initialize(&values);
+            DDS_LongSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_long_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, *DDS_LongSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_LongSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addULongSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_UnsignedLongSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_UnsignedLongSeq_initialize(&values);
+            DDS_UnsignedLongSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_ulong_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, *DDS_UnsignedLongSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_UnsignedLongSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addLongLongSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_LongLongSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_LongLongSeq_initialize(&values);
+            DDS_LongLongSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_longlong_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int64(stmt, 3, *DDS_LongLongSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_LongLongSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addULongLongSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_UnsignedLongLongSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_UnsignedLongLongSeq_initialize(&values);
+            DDS_UnsignedLongLongSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_ulonglong_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int64(stmt, 3, *DDS_UnsignedLongLongSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_UnsignedLongLongSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addCharSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addCharSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_CharSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_CharSeq_initialize(&values);
+            DDS_CharSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_char_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_text(stmt, 3, DDS_CharSeq_get_reference(&values, count), 1, SQLITE_STATIC);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_CharSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addFloatSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_FloatSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_FloatSeq_initialize(&values);
+            DDS_FloatSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_float_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_double(stmt, 3, (double)(*DDS_FloatSeq_get_reference(&values, count)));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_FloatSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addDoubleSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_DoubleSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_DoubleSeq_initialize(&values);
+            DDS_DoubleSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_double_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_double(stmt, 3, *DDS_DoubleSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_DoubleSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addEnumSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_LongSeq ordinals;
+    DDS_Long eindex;
+    DDS_TypeCode *sequenceTypeCode = NULL, *enumTypeCode = NULL;
+    DDS_ExceptionCode_t exception = DDS_NO_EXCEPTION_CODE;
+    string label;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            if(DDS_DynamicData_get_member_type(dynamicDataObject, (const struct DDS_TypeCode**)&sequenceTypeCode,
+                        memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED) == DDS_RETCODE_OK)
+            {
+                enumTypeCode = DDS_TypeCode_content_type(sequenceTypeCode, &exception);
+
+                if(exception == DDS_NO_EXCEPTION_CODE)
+                {
+                    DDS_LongSeq_initialize(&ordinals);
+                    DDS_LongSeq_ensure_length(&ordinals, memberInfo.element_count, memberInfo.element_count);
+                    DDS_DynamicData_get_long_seq(dynamicDataObject, &ordinals, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+                    returnedValue = true;
+                    for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+                    {
+                        if(sqlite3_reset(stmt) == SQLITE_OK)
+                        {
+                            DDS_UnsignedLong ordinal = *DDS_LongSeq_get_reference(&ordinals, count);
+                            eindex = DDS_TypeCode_find_member_by_label(enumTypeCode, ordinal, &exception);
+
+                                if(exception == DDS_NO_EXCEPTION_CODE)
+                                {
+                                    label = DDS_TypeCode_member_name(enumTypeCode, eindex, &exception);
+
+                                    if(exception == DDS_NO_EXCEPTION_CODE)
+                                    {
+                                        sqlite3_bind_int(stmt, 1, ref);
+                                        sqlite3_bind_int(stmt, 2, count);
+                                        sqlite3_bind_text(stmt, 3, label.c_str(), label.length(), SQLITE_STATIC);
+
+                                        if(sqlite3_step(stmt) != SQLITE_DONE)
+                                        {
+                                            printError("Cannot step the statement");
+                                            returnedValue = false;
+                                        }
+                                    }
+                                }
+                        }
+                        else
+                        {
+                            printError("Cannot reset statement");
+                            returnedValue = false;
+                        }
+                    }
+
+                    DDS_LongSeq_finalize(&ordinals);
+                }
+            }
+        }
+        else
+        {
+            printError("Cannot get member info");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, string &memberName,
+        struct DDS_DynamicData *dynamicDataObject)
+{
+    const char* const METHOD_NAME = "addBoolSequenceStorage";
+    bool returnedValue = false;
+    DDS_DynamicDataMemberInfo memberInfo;
+    struct DDS_BooleanSeq values;
+
+    if(stmt != NULL && dynamicDataObject != NULL)
+    {
+        if(DDS_DynamicData_get_member_info(dynamicDataObject, &memberInfo, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED)
+                == DDS_RETCODE_OK)
+        {
+            DDS_BooleanSeq_initialize(&values);
+            DDS_BooleanSeq_ensure_length(&values, memberInfo.element_count, memberInfo.element_count);
+            DDS_DynamicData_get_boolean_seq(dynamicDataObject, &values, memberName.c_str(), DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < memberInfo.element_count); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, *DDS_BooleanSeq_get_reference(&values, count));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+
+            DDS_BooleanSeq_finalize(&values);
+        }
+        else
+        {
+            printError("Cannot get member info");
         }
     }
     else

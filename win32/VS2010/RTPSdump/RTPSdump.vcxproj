@@ -97,9 +97,11 @@
     <ClCompile Include="..\..\..\src\cdr\EnumTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\MemberedTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\PrimitiveTypeCode.cpp" />
+    <ClCompile Include="..\..\..\src\cdr\SequenceTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\StringTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\StructTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\TypeCode.cpp" />
+    <ClCompile Include="..\..\..\src\cdr\UnionTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\src\RTPSdump.cpp" />
     <ClCompile Include="..\..\..\src\RTPSPacketAnalyzer.cpp" />
@@ -123,9 +125,11 @@
     <ClInclude Include="..\..\..\include\cdr\EnumTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\MemberedTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\PrimitiveTypeCode.h" />
+    <ClInclude Include="..\..\..\include\cdr\SequenceTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\StringTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\StructTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\TypeCode.h" />
+    <ClInclude Include="..\..\..\include\cdr\UnionTypeCode.h" />
     <ClInclude Include="..\..\..\include\RTPSdump.h" />
     <ClInclude Include="..\..\..\include\RTPSPacketAnalyzer.h" />
     <ClInclude Include="..\..\..\..\..\..\eProsima\code\eProsima_cpp\eProsimaLog.h" />

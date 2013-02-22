@@ -4,6 +4,7 @@
 #include "cdr/EnumTypeCode.h"
 #include "cdr/StringTypeCode.h"
 #include "cdr/PrimitiveTypeCode.h"
+#include "cdr/SequenceTypeCode.h"
 #include "Cdr.h"
 
 #include <stdio.h>
@@ -77,6 +78,14 @@ TypeCode* TypeCode::deserializeTypeCode(CDR &cdr)
                 returnedValue = static_cast<TypeCode*>(arrayTC);
             else
                 delete arrayTC;
+        }
+        if(kind == KIND_SEQUENCE)
+        {
+            SequenceTypeCode *sequenceTC = new SequenceTypeCode();
+            if(sequenceTC->deserialize(cdr))
+                returnedValue = static_cast<TypeCode*>(sequenceTC);
+            else
+                delete sequenceTC;
         }
         else if(kind == KIND_ENUM)
         {

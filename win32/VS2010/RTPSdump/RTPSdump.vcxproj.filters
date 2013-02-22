@@ -102,6 +102,12 @@
     <ClCompile Include="..\..\..\src\cdr\ContentTypeCode.cpp">
       <Filter>Source Files\cdr</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cdr\SequenceTypeCode.cpp">
+      <Filter>Source Files\cdr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cdr\UnionTypeCode.cpp">
+      <Filter>Source Files\cdr</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\RTPSdump.h">
@@ -153,6 +159,12 @@
       <Filter>Header Files\cdr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\cdr\ContentTypeCode.h">
+      <Filter>Header Files\cdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cdr\SequenceTypeCode.h">
+      <Filter>Header Files\cdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cdr\UnionTypeCode.h">
       <Filter>Header Files\cdr</Filter>
     </ClInclude>
   </ItemGroup>
