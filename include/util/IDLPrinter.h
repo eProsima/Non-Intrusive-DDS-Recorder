@@ -41,6 +41,8 @@ namespace eProsima
 
 		uint32_t m_currentGlobalPriority;
     };
+
+    bool IDLPrinter_cmp(IDLPrinter *printer1, IDLPrinter *printer2);
 };
 
 #endif // _UTIL_IDLPRINTER_H_

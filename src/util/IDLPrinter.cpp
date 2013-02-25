@@ -3,6 +3,11 @@
 
 using namespace eProsima;
 
+bool eProsima::IDLPrinter_cmp(IDLPrinter *printer1, IDLPrinter *printer2)
+{
+	return printer1->m_priority < printer2->m_priority;
+}
+
 IDLPrinter::IDLPrinter() : m_priority(0), m_currentGlobalPriority(0)
 {
 }
@@ -80,11 +85,6 @@ bool IDLPrinter::addPrinter(std::string &&typeName, IDLPrinter *printer)
 	std::pair<std::unordered_map<std::string, IDLPrinter*>::iterator, bool> ret = this->m_typePrinters.insert(std::move(pair));
 
 	return true;
-}
-
- bool eProsima::IDLPrinter_cmp(IDLPrinter *printer1, IDLPrinter *printer2)
-{
-	return printer1->m_priority < printer2->m_priority;
 }
 
 std::ostringstream& IDLPrinter::getOut() 
