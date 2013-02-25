@@ -37,7 +37,7 @@ RTPSDUMP_SRC_CPPFILES= $(EPROSIMADIR)/code/eProsima_cpp/eProsimaLog.cpp \
 		       $(BASEDIR)/src/cdr/StringTypeCode.cpp \
 		       $(BASEDIR)/src/cdr/StructTypeCode.cpp \
 		       $(BASEDIR)/src/cdr/TypeCode.cpp \
-		       $(BASEDIR)/src/cdr/UnicodeTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/UnionTypeCode.cpp \
 		       $(BASEDIR)/src/util/IDLPrinter.cpp \
 		       $(BASEDIR)/src/main.cpp
 
