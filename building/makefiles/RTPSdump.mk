@@ -5,14 +5,15 @@ RTPSDUMP_OUTDIR_RELEASE = $(RTPSDUMP_OUTDIR)/release
 RTPSDUMP_SED_OUTPUT_DIR_DEBUG= $(subst /,\\/,$(RTPSDUMP_OUTDIR_DEBUG))
 RTPSDUMP_SED_OUTPUT_DIR_RELEASE= $(subst /,\\/,$(RTPSDUMP_OUTDIR_RELEASE))
 
-RTPSDUMP_CFLAGS = $(CFLAGS) -DRTI_ENDIAN_LITTLE
-RTPSDUMP_CFLAGS_DEBUG = $(CFLAGS_DEBUG) -DRTI_ENDIAN_LITTLE
+RTPSDUMP_CFLAGS = $(CFLAGS) -std=c++0x -DRTI_ENDIAN_LITTLE
+RTPSDUMP_CFLAGS_DEBUG = $(CFLAGS_DEBUG) -std=c++0x -DRTI_ENDIAN_LITTLE
 
-RTPSDUMP_TARGET_DEBUG= $(BASEDIR)/lib/i86Linux2.6gcc4.1.2/RTPSdumpd
-RTPSDUMP_TARGET= $(BASEDIR)/lib/i86Linux2.6gcc4.1.2/RTPSdump
+RTPSDUMP_TARGET_DEBUG= $(BASEDIR)/lib/$(EPROSIMA_TARGET)/RTPSdumpd
+RTPSDUMP_TARGET= $(BASEDIR)/lib/$(EPROSIMA_TARGET)/RTPSdump
 
 RTPSDUMP_INCLUDE_DIRS= $(INCLUDE_DIRS) -I$(BASEDIR)/include \
-					-I$(EPROSIMADIR)/code
+		       -I$(BASEDIR)/../CDR/include/cpp \
+		       -I$(EPROSIMADIR)/code
 
 RTPSDUMP_LIBS_DEBUG= $(LIBS_DEBUG) -ldl -lpcap -lsqlite3
 RTPSDUMP_LIBS_RELEASE= $(LIBS) -ldl -lpcap -lsqlite3
@@ -27,6 +28,17 @@ RTPSDUMP_SRC_CPPFILES= $(EPROSIMADIR)/code/eProsima_cpp/eProsimaLog.cpp \
 		       $(BASEDIR)/src/database/TypeCodeDB.cpp \
 		       $(BASEDIR)/src/database/EntitiesDB.cpp \
 		       $(BASEDIR)/src/database/DynamicDataDB.cpp \
+		       $(BASEDIR)/src/cdr/ArrayTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/ContentTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/EnumTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/MemberedTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/PrimitiveTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/SequenceTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/StringTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/StructTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/TypeCode.cpp \
+		       $(BASEDIR)/src/cdr/UnicodeTypeCode.cpp \
+		       $(BASEDIR)/src/util/IDLPrinter.cpp \
 		       $(BASEDIR)/src/main.cpp
 
 # Project sources are copied to the current directory

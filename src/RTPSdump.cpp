@@ -1,4 +1,5 @@
 #include "RTPSdump.h"
+#include "Cdr.h"
 #include "eProsima_cpp/eProsimaLog.h"
 #include "database/TypeCodeDB.h"
 #include "database/EntitiesDB.h"
@@ -10,8 +11,6 @@
 #include "pres/pres_typePlugin.h"
 #include "dds_c/dds_c_typecode.h"
 #include "dds_c/dds_c_dynamicdata.h"
-#include "CdrBuffer.h"
-#include "Cdr.h"
 
 #ifndef RTI_WIN32
 #include <sys/time.h>
@@ -550,7 +549,7 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
         if((typecode = m_typecodeDB->findTypecode(entity->getTopicName(),
                         entity->getTypeName())) != NULL)
         {
-            CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIAN : CDRBuffer::BIG_ENDIAN;
+            CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIANESS : CDRBuffer::BIG_ENDIANESS;
             CDRBuffer buffer((char*)serializedData, serializedDataLen, _endianess);
             CDR cdr(buffer, CDR::DDS_CDR);
             
@@ -654,7 +653,7 @@ bool RTPSdump::deserializePublicationBuiltinTopic(bool endianess, char* serializ
 
     if(serializedData != NULL)
     {
-        CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIAN : CDRBuffer::BIG_ENDIAN;
+        CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIANESS : CDRBuffer::BIG_ENDIANESS;
         CDRBuffer buffer((char*)serializedData, serializedDataLength, _endianess);
         CDR cdr(buffer, CDR::DDS_CDR);
 
@@ -672,10 +671,10 @@ bool RTPSdump::deserializePublicationBuiltinTopic(bool endianess, char* serializ
                 switch(parameterId)
                 {
                 case RTPS_PID_GUID:
-                    returnedValue &= cdr.deserialize(pubtopic.guid.hostId, CDRBuffer::BIG_ENDIAN);
-                    returnedValue &= cdr.deserialize(pubtopic.guid.appId, CDRBuffer::BIG_ENDIAN);
-                    returnedValue &= cdr.deserialize(pubtopic.guid.instanceId, CDRBuffer::BIG_ENDIAN);
-                    returnedValue &= cdr.deserialize(pubtopic.guid.objectId, CDRBuffer::BIG_ENDIAN);
+                    returnedValue &= cdr.deserialize(pubtopic.guid.hostId, CDRBuffer::BIG_ENDIANESS);
+                    returnedValue &= cdr.deserialize(pubtopic.guid.appId, CDRBuffer::BIG_ENDIANESS);
+                    returnedValue &= cdr.deserialize(pubtopic.guid.instanceId, CDRBuffer::BIG_ENDIANESS);
+                    returnedValue &= cdr.deserialize(pubtopic.guid.objectId, CDRBuffer::BIG_ENDIANESS);
                     break;
                 case RTPS_PID_TOPIC_NAME:
                     returnedValue &= cdr >> pubtopic.topic_name;
@@ -714,7 +713,7 @@ bool RTPSdump::deserializeSubscriptionBuiltinTopic(bool endianess, char* seriali
 
     if(serializedData != NULL)
     {
-        CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIAN : CDRBuffer::BIG_ENDIAN;
+        CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIANESS : CDRBuffer::BIG_ENDIANESS;
         CDRBuffer buffer((char*)serializedData, serializedDataLength, _endianess);
         CDR cdr(buffer, CDR::DDS_CDR);
 
@@ -732,10 +731,10 @@ bool RTPSdump::deserializeSubscriptionBuiltinTopic(bool endianess, char* seriali
                 switch(parameterId)
                 {
                 case RTPS_PID_GUID:
-                    returnedValue &= cdr.deserialize(subtopic.guid.hostId, CDRBuffer::BIG_ENDIAN);
-                    returnedValue &= cdr.deserialize(subtopic.guid.appId, CDRBuffer::BIG_ENDIAN);
-                    returnedValue &= cdr.deserialize(subtopic.guid.instanceId, CDRBuffer::BIG_ENDIAN);
-                    returnedValue &= cdr.deserialize(subtopic.guid.objectId, CDRBuffer::BIG_ENDIAN);
+                    returnedValue &= cdr.deserialize(subtopic.guid.hostId, CDRBuffer::BIG_ENDIANESS);
+                    returnedValue &= cdr.deserialize(subtopic.guid.appId, CDRBuffer::BIG_ENDIANESS);
+                    returnedValue &= cdr.deserialize(subtopic.guid.instanceId, CDRBuffer::BIG_ENDIANESS);
+                    returnedValue &= cdr.deserialize(subtopic.guid.objectId, CDRBuffer::BIG_ENDIANESS);
                     break;
                 case RTPS_PID_TOPIC_NAME:
                     returnedValue &= cdr >> subtopic.topic_name;

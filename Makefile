@@ -6,7 +6,8 @@ LN=g++
 AR=ar
 CP=cp
 
--include $(EPROSIMADIR)/building/makefiles/dds.mk
+#-include $(EPROSIMADIR)/building/makefiles/dds.mk
+-include $(EPROSIMADIR)/building/makefiles/eProsima.mk
 #Build with RTI DDS 4.4d
 -include $(BASEDIR)/building/makefiles/RTPSdump.mk
 

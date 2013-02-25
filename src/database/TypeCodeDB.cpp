@@ -209,7 +209,6 @@ TypeCodeDB::~TypeCodeDB()
 bool TypeCodeDB::addTypecode(std::string &topicName, std::string &typeName, TypeCode *typeCode)
 {
     const char* const METHOD_NAME = "addTypeCode";
-    char *buffer = NULL;
     DynamicDataDB *dynamicDB;
     string dynamicTableName;
 
@@ -252,7 +251,7 @@ bool TypeCodeDB::addTypecode(std::string &topicName, std::string &typeName, Type
             }
             else
             {
-                logError(m_log, "Cannot create the DynamicDataDB to topic %s", topicName);
+                logError(m_log, "Cannot create the DynamicDataDB to topic %s", topicName.c_str());
             }
         }
     }
