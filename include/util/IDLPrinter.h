@@ -17,17 +17,19 @@ namespace eProsima
 
         IDLPrinter(IDLPrinter &&printer);
 
+        virtual ~IDLPrinter();
+
         bool isTypePrinterAndUp(const std::string &typeName);
 
         std::string str();
 
 		bool addPrinter(std::string &&typeName, IDLPrinter *printer);
 
-		bool operator<(const IDLPrinter &printer) const;
-
 		IDLPrinter& operator=(IDLPrinter &&printer);
 
         std::ostringstream& getOut();
+
+        friend bool IDLPrinter_cmp(IDLPrinter *printer1, IDLPrinter *printer2);
 
     private:
 

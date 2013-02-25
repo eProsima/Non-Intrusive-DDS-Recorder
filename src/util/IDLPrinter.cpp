@@ -18,6 +18,17 @@ IDLPrinter::IDLPrinter(IDLPrinter &&printer) : m_typePrinters(std::move(printer.
     m_out << printer.m_out;
 }
 
+IDLPrinter::~IDLPrinter()
+{
+    std::unordered_map<std::string, IDLPrinter*>::iterator it = m_typePrinters.begin();
+
+    while(it != m_typePrinters.end())
+    {
+        delete (*it).second;
+        it = m_typePrinters.erase(it);
+    }
+}
+
 IDLPrinter& IDLPrinter::operator=(IDLPrinter &&printer)
 {
 	this->m_priority = printer.m_priority;
@@ -45,17 +56,17 @@ std::string IDLPrinter::str()
 {
 	m_out.str("");
 	m_out.clear();
-	std::vector<IDLPrinter> vec;
+	std::vector<IDLPrinter*> vec;
 
 	for(std::unordered_map<std::string, IDLPrinter*>::iterator it = m_typePrinters.begin(); it != m_typePrinters.end(); ++it)
 	{
-		vec.push_back(std::move(*((*it).second)));
+		vec.push_back(std::move((*it).second));
 	}
-	std::sort(vec.begin(), vec.end());
+	std::sort(vec.begin(), vec.end(), IDLPrinter_cmp);
 
-	for(std::vector<IDLPrinter>::reverse_iterator it = vec.rbegin(); it != vec.rend(); ++it)
+	for(std::vector<IDLPrinter*>::reverse_iterator it = vec.rbegin(); it != vec.rend(); ++it)
 	{
-		m_out << (*it).m_out.str();
+		m_out << (*it)->m_out.str();
 	}
 
     return m_out.str();
@@ -71,9 +82,9 @@ bool IDLPrinter::addPrinter(std::string &&typeName, IDLPrinter *printer)
 	return true;
 }
 
-bool IDLPrinter::operator<(const IDLPrinter &printer) const
+ bool eProsima::IDLPrinter_cmp(IDLPrinter *printer1, IDLPrinter *printer2)
 {
-	return this->m_priority < printer.m_priority;
+	return printer1->m_priority < printer2->m_priority;
 }
 
 std::ostringstream& IDLPrinter::getOut() 
