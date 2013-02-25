@@ -46,4 +46,4 @@ namespace eProsima
     };
 };
 
-#endif _CDR_ARRAYTYPECODE_H_
+#endif // _CDR_ARRAYTYPECODE_H_

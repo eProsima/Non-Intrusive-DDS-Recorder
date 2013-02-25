@@ -13,29 +13,28 @@ IDLPrinter::IDLPrinter(IDLPrinter &printer) : m_typePrinters(std::move(printer.m
 }
 
 IDLPrinter::IDLPrinter(IDLPrinter &&printer) : m_typePrinters(std::move(printer.m_typePrinters)),
-	m_priority(printer.m_priority), m_currentGlobalPriority(printer.m_currentGlobalPriority),
-	std::ostringstream(std::move(printer))
+	m_priority(printer.m_priority), m_currentGlobalPriority(printer.m_currentGlobalPriority)
 {
+    m_out << printer.m_out;
 }
 
 IDLPrinter& IDLPrinter::operator=(IDLPrinter &&printer)
 {
 	this->m_priority = printer.m_priority;
 	this->m_currentGlobalPriority = printer.m_currentGlobalPriority;
-	std::swap(std::move(this->m_typePrinters), std::move(printer.m_typePrinters)); 
-	std::ostringstream &st = *this;
-	st = std::move(printer);
+	std::swap(this->m_typePrinters, printer.m_typePrinters); 
+    m_out << printer.m_out;
 	return *this;
 }
 
 bool IDLPrinter::isTypePrinterAndUp(const std::string &typeName)
 {
 	bool returnedValue = false;
-	std::unordered_map<std::string, IDLPrinter>::iterator it = m_typePrinters.find(typeName);
+	std::unordered_map<std::string, IDLPrinter*>::iterator it = m_typePrinters.find(typeName);
 
 	if(it != m_typePrinters.end())
 	{
-		(*it).second.m_priority = m_currentGlobalPriority++;
+		(*it).second->m_priority = m_currentGlobalPriority++;
 		returnedValue = true;
 	}
 
@@ -44,30 +43,30 @@ bool IDLPrinter::isTypePrinterAndUp(const std::string &typeName)
 
 std::string IDLPrinter::str()
 {
-	static_cast<std::ostringstream&>(*this).str("");
-	this->clear();
+	m_out.str("");
+	m_out.clear();
 	std::vector<IDLPrinter> vec;
 
-	for(std::unordered_map<std::string, IDLPrinter>::iterator it = m_typePrinters.begin(); it != m_typePrinters.end(); ++it)
+	for(std::unordered_map<std::string, IDLPrinter*>::iterator it = m_typePrinters.begin(); it != m_typePrinters.end(); ++it)
 	{
-		vec.push_back(std::move((*it).second));
+		vec.push_back(std::move(*((*it).second)));
 	}
 	std::sort(vec.begin(), vec.end());
 
 	for(std::vector<IDLPrinter>::reverse_iterator it = vec.rbegin(); it != vec.rend(); ++it)
 	{
-		*this << static_cast<std::ostringstream&>(*it).str();
+		m_out << (*it).m_out.str();
 	}
 
-    return static_cast<std::ostringstream&>(*this).str();
+    return m_out.str();
 }
 
-bool IDLPrinter::addPrinter(std::string &&typeName, IDLPrinter &&printer)
+bool IDLPrinter::addPrinter(std::string &&typeName, IDLPrinter *printer)
 {
-	this->m_currentGlobalPriority = printer.m_currentGlobalPriority;
-	std::swap(this->m_typePrinters, printer.m_typePrinters);
-	std::pair<std::string, IDLPrinter> pair(std::move(typeName), std::move(printer));
-	std::pair<std::unordered_map<std::string, IDLPrinter>::iterator, bool> ret = this->m_typePrinters.insert(std::move(pair));
+	this->m_currentGlobalPriority = printer->m_currentGlobalPriority;
+	std::swap(this->m_typePrinters, printer->m_typePrinters);
+	std::pair<std::string, IDLPrinter*> pair(std::move(typeName), printer);
+	std::pair<std::unordered_map<std::string, IDLPrinter*>::iterator, bool> ret = this->m_typePrinters.insert(std::move(pair));
 
 	return true;
 }
@@ -75,4 +74,9 @@ bool IDLPrinter::addPrinter(std::string &&typeName, IDLPrinter &&printer)
 bool IDLPrinter::operator<(const IDLPrinter &printer) const
 {
 	return this->m_priority < printer.m_priority;
+}
+
+std::ostringstream& IDLPrinter::getOut() 
+{
+    return m_out;
 }

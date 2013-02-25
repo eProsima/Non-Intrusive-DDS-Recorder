@@ -283,7 +283,7 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
             if(existsTypecode && ! entity->getExistsTypecode())
             {
                 entity->setExistsTypecode(true);
-                logInfo(m_log, "the datawriter of topic %s sends the typecode", topicName);
+                logInfo(m_log, "the datawriter of topic %s sends the typecode", topicName.c_str());
             }
             returnedValue = true;
         }

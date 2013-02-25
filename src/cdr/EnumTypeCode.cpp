@@ -76,24 +76,24 @@ bool EnumTypeCode::print(IDLPrinter &printer, bool write) const
     bool returnedValue = true;
 
 	if(write)
-		printer << getName();
+		printer.getOut() << getName();
 
     if(!printer.isTypePrinterAndUp("enum " + getName()))
     {
-		IDLPrinter tPrinter(printer);
-        tPrinter << "enum " << getName() << " {" << std::endl;
+		IDLPrinter *tPrinter = new IDLPrinter(printer);
+        tPrinter->getOut() << "enum " << getName() << " {" << std::endl;
 
         for(uint32_t count = 0; count < getMemberCount(); ++count)
         {
             const EnumMember *member = dynamic_cast<const EnumMember*>(getMember(count));
-            tPrinter << "   " << member->getName() << " = " << member->getOrdinal();
+            tPrinter->getOut() << "   " << member->getName() << " = " << member->getOrdinal();
 
             if(count != (getMemberCount() - 1))
-                tPrinter << "," << std::endl;
+                tPrinter->getOut() << "," << std::endl;
         }
 
-        tPrinter << std::endl << "};" << std::endl << std::endl;
-		printer.addPrinter("enum " + getName(), std::move(tPrinter));
+        tPrinter->getOut() << std::endl << "};" << std::endl << std::endl;
+		printer.addPrinter("enum " + getName(), tPrinter);
     }
 
     return returnedValue;

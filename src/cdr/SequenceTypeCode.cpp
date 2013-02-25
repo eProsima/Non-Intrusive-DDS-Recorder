@@ -33,9 +33,9 @@ bool SequenceTypeCode::print(IDLPrinter &printer, bool write) const
 
 	if(write)
     {
-        printer << "sequence<";
+        printer.getOut() << "sequence<";
 		printer << getContentTypeCode();
-        printer << ", " << m_maxLength << ">";
+        printer.getOut() << ", " << m_maxLength << ">";
         
     }
     else

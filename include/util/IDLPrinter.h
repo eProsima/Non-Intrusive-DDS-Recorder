@@ -7,7 +7,7 @@
 
 namespace eProsima
 {
-    class IDLPrinter : public std::ostringstream
+    class IDLPrinter
     {
     public:
 
@@ -21,15 +21,19 @@ namespace eProsima
 
         std::string str();
 
-		bool addPrinter(std::string &&typeName, IDLPrinter &&printer);
+		bool addPrinter(std::string &&typeName, IDLPrinter *printer);
 
 		bool operator<(const IDLPrinter &printer) const;
 
 		IDLPrinter& operator=(IDLPrinter &&printer);
 
+        std::ostringstream& getOut();
+
     private:
 
-        std::unordered_map<std::string, IDLPrinter> m_typePrinters;
+        std::unordered_map<std::string, IDLPrinter*> m_typePrinters;
+
+        std::ostringstream m_out;
 
 		uint32_t m_priority;
 

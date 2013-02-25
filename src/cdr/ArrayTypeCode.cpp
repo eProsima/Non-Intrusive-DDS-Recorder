@@ -44,7 +44,7 @@ bool ArrayTypeCode::print(IDLPrinter &printer, bool write) const
         
         for(uint32_t count = 0; count < m_dimensionCount; ++count)
         {
-            printer << "[" << m_dimensions[count] << "]";
+            printer.getOut() << "[" << m_dimensions[count] << "]";
         }
     }
     else

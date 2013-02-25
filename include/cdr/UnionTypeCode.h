@@ -42,15 +42,15 @@ namespace eProsima
          */
         bool deserialize(CDR &cdr);
 
-		bool print(IDLPrinter &printer, bool write) const;
+		//bool print(IDLPrinter &printer, bool write) const;
 
-		friend inline bool operator<<(IDLPrinter &printer, const UnionTypeCode &unionTypeCode) {return unionTypeCode.print(printer, true);}
+		//friend inline bool operator<<(IDLPrinter &printer, const UnionTypeCode &unionTypeCode) {return unionTypeCode.print(printer, true);}
 
-        friend bool operator<<(IDLPrinter &printer, const UnionTypeCode *unionTypeCode);
+        //friend bool operator<<(IDLPrinter &printer, const UnionTypeCode *unionTypeCode);
 
     private:
         
-        Member* deserializeMemberInfo(std::string name, CDR &cdr);
+        //Member* deserializeMemberInfo(std::string name, CDR &cdr);
     };
 };
 

@@ -15,8 +15,8 @@ RTPSDUMP_INCLUDE_DIRS= $(INCLUDE_DIRS) -I$(BASEDIR)/include \
 		       -I$(BASEDIR)/../CDR/include/cpp \
 		       -I$(EPROSIMADIR)/code
 
-RTPSDUMP_LIBS_DEBUG= $(LIBS_DEBUG) -ldl -lpcap -lsqlite3
-RTPSDUMP_LIBS_RELEASE= $(LIBS) -ldl -lpcap -lsqlite3
+RTPSDUMP_LIBS_DEBUG= $(LIBS_DEBUG) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) -ldl -lpcap -lsqlite3 -lcdrd
+RTPSDUMP_LIBS_RELEASE= $(LIBS) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) -ldl -lpcap -lsqlite3 -lcdr
 
 RTPSDUMP_SRC_CFILES= $(EPROSIMADIR)/code/eProsima_c/eProsimaLog.c
 

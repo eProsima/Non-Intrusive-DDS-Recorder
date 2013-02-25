@@ -1141,7 +1141,8 @@ bool DynamicDataDB::processMembersStorage(const Member *memberInfo, CDR &cdr,
             }
             else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
             {
-                memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
+                //TODO
+                /*memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
                         memberName, dynamicData);
 
                 if(memberDynamicDataObject != NULL)
@@ -1152,7 +1153,7 @@ bool DynamicDataDB::processMembersStorage(const Member *memberInfo, CDR &cdr,
                     returnedValue = processUnionsStorage(memberInfo, memberDynamicDataObject,
                             newSuffix, index, step);
                     DDS_DynamicData_delete(memberDynamicDataObject);
-                }
+                }*/
             }
             else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
             {
@@ -1417,7 +1418,7 @@ bool DynamicDataDB::addCharStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
 
     if(stmt != NULL)
     {
-        char value = NULL;
+        char value = 0;
         if(cdr >> value)
         {
             sqlite3_bind_text(stmt, index++, &value, 1, SQLITE_STATIC);
@@ -1692,7 +1693,7 @@ bool DynamicDataDB::processDimensionsStorage(sqlite3_stmt *stmt,
                 }
                 else
                 {
-                    logError(m_log, "Cannot reset statement from array %s", arrayProcessingInfo->arrayName);
+                    logError(m_log, "Cannot reset statement from array %s", arrayProcessingInfo->arrayName.c_str());
                 }
             }
         }
@@ -2445,7 +2446,6 @@ bool DynamicDataDB::processSequencesStorage(const SequenceTypeCode *typeCode,
     bool returnedValue = false;
     list<arrayNode*>::iterator it;
     arrayNode *aNode = NULL;
-    const TypeCode *elementType = NULL;
 
     if(typeCode != NULL)
     {

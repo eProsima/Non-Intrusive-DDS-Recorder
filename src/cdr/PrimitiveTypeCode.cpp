@@ -18,55 +18,55 @@ bool PrimitiveTypeCode::print(IDLPrinter &printer, bool write) const
 		switch(getKind())
 		{
 		case TypeCode::KIND_SHORT:
-			 printer << "short";
+			 printer.getOut() << "short";
 			 returnedValue = true;
 			 break;
 		case TypeCode::KIND_LONG:
-			 printer << "long";
+			 printer.getOut() << "long";
 			 returnedValue = true;
 			 break;
 		case TypeCode::KIND_USHORT:
-			 printer << "unsigned short";
+			 printer.getOut() << "unsigned short";
 			 returnedValue = true;
 			 break;
 		case TypeCode::KIND_ULONG:
-			 printer << "unsigned long";
+			 printer.getOut() << "unsigned long";
 			 returnedValue = true;
 			 break;
 		case TypeCode::KIND_FLOAT:
-			 printer << "float";
+			 printer.getOut() << "float";
 			 returnedValue = true;
 			 break;
 		 case TypeCode::KIND_DOUBLE:
-			 printer << "double";
+			 printer.getOut() << "double";
 			 returnedValue = true;
 			 break;
 		 case TypeCode::KIND_BOOLEAN:
-			 printer << "boolean";
+			 printer.getOut() << "boolean";
 			 returnedValue = true;
 			 break;
 		 case TypeCode::KIND_CHAR:
-			 printer << "char";
+			 printer.getOut() << "char";
 			 returnedValue = true;
 			 break;
 		 case TypeCode::KIND_OCTET:
-			 printer << "octet";
+			 printer.getOut() << "octet";
 			 returnedValue = true;
 			 break;
 		 case TypeCode::KIND_LONGLONG:
-			 printer << "long long";
+			 printer.getOut() << "long long";
 			 returnedValue = true;
 			 break;
 		 case TypeCode::KIND_ULONGLONG:
-			 printer << "unsigned long long";
+			 printer.getOut() << "unsigned long long";
 			 returnedValue = true;
 			 break;
 		 case TypeCode::KIND_LONGDOUBLE:
-			 printer << "long double";
+			 printer.getOut() << "long double";
 			 returnedValue = true;
 			 break;
 		 case TypeCode::KIND_WCHAR:
-			 printer << "wchar";
+			 printer.getOut() << "wchar";
 			 returnedValue = true;
 			 break;
 		}

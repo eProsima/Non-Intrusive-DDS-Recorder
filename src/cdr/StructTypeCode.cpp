@@ -44,12 +44,12 @@ bool StructTypeCode::print(IDLPrinter &printer, bool write) const
     bool returnedValue = true;
 
 	if(write)
-		printer << getName();
+		printer.getOut() << getName();
 
     if(!printer.isTypePrinterAndUp("struct " + getName()))
     {
-			IDLPrinter tPrinter(printer);
-			tPrinter << "struct " << getName() << " {" << std::endl;
+			IDLPrinter *tPrinter = new IDLPrinter(printer);
+			tPrinter->getOut() << "struct " << getName() << " {" << std::endl;
         
 			for(uint32_t count = 0; count < getMemberCount(); ++count)
 			{
@@ -57,16 +57,16 @@ bool StructTypeCode::print(IDLPrinter &printer, bool write) const
 
 				if(member != NULL)
 				{
-					tPrinter << "   ";
-					returnedValue &= tPrinter << member->getTypeCode();
-					tPrinter << " " << member->getName() << ";" << std::endl;
+					tPrinter->getOut() << "   ";
+					returnedValue &= *tPrinter << member->getTypeCode();
+					tPrinter->getOut() << " " << member->getName() << ";" << std::endl;
 				}
 				else
 					returnedValue = false;
 			}
 
-			tPrinter << "};" << std::endl << std::endl;
-			printer.addPrinter("struct " + getName(), std::move(tPrinter));
+			tPrinter->getOut() << "};" << std::endl << std::endl;
+			printer.addPrinter("struct " + getName(), tPrinter);
     }
 	else
 	{
