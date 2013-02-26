@@ -31,8 +31,6 @@ namespace eProsima
              * \return True if they're equal or false in other case.
              */
             bool equal(std::string &topicName, std::string &typeName);
-            // TODO Quitar.
-            bool equal(const char *topicName, const char *typeName);
 
             /**
              * \brief This function return the typecode.
@@ -97,10 +95,12 @@ namespace eProsima
             /// Sqlite3 statement used to add typecodes.
             sqlite3_stmt *m_addStmt;
 
+#ifdef DDS_USE
             /// Buffer used in function getPrintID()
             char *m_buffer;
 
             int m_tcMaxSize;
+#endif
     };
 }
 

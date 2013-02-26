@@ -4,6 +4,8 @@
 #include "cdr/StructTypeCode.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
+#include <string.h>
+
 #ifdef SQLITE_PREPARE_V2
 #define SQLITE_PREPARE sqlite3_prepare_v2
 #else
@@ -43,25 +45,6 @@ bool eTypeCode::equal(std::string &topicName, std::string &typeName)
     return returnedValue;
 }
 
-bool eTypeCode::equal(const char *topicName, const char *typeName)
-{
-    const char* const METHOD_NAME = "equal";
-    bool returnedValue = false;
-
-    if(topicName != NULL && typeName != NULL)
-    {
-        if(strcmp(m_topicName.c_str(), topicName) == 0 &&
-                strcmp(m_typeName.c_str(), typeName) == 0)
-            returnedValue = true;
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
 TypeCode* eTypeCode::getCdrTypecode()
 {
     return m_typeCode;
@@ -73,7 +56,10 @@ DynamicDataDB* eTypeCode::getDynamicDataDB()
 }
 
 TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH, int tcMaxSize) : m_log(log), m_ready(false),
-    m_databaseH(databaseH), m_addStmt(NULL), m_buffer(NULL), m_tcMaxSize(tcMaxSize)
+    m_databaseH(databaseH), m_addStmt(NULL)
+#ifdef DDS_USE
+    , m_buffer(NULL), m_tcMaxSize(tcMaxSize)
+#endif
 {
     const char* const METHOD_NAME = "TypeCodeDB";
     const char* const TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='" TYPECODE_TABLE "'";
@@ -123,9 +109,11 @@ TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH, int tcMaxSize) : m_
 
             if(SQLITE_PREPARE(m_databaseH, TYPECODE_ADD, (int)strlen(TYPECODE_ADD), &m_addStmt, NULL) == SQLITE_OK)
             {
+#ifdef DDS_USE
                 m_buffer = (char*)calloc(m_tcMaxSize, sizeof(char));
 
                 if(m_buffer != NULL)
+#endif
                     m_ready = true;
             }
             else
@@ -148,10 +136,12 @@ TypeCodeDB::~TypeCodeDB()
         delete *it;
     }
 
+#ifdef DDS_USE
     if(m_buffer != NULL)
     {
         free(m_buffer);
     }
+#endif
 
     if(m_addStmt != NULL)
     {
