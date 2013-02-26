@@ -4,7 +4,7 @@
 #include "cdr/StructTypeCode.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
-#ifndef DDS_USE
+#ifdef DDS_USE
 #include "cdr/cdr_stream.h"
 #include "cdr/cdr_typeCode.h"
 #include "osapi/osapi_heap.h"

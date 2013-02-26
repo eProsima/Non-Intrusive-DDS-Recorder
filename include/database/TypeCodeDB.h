@@ -1,7 +1,7 @@
 #ifndef _TYPECODEDB_H_
 #define _TYPECODEDB_H_
 
-#ifndef DDS_USE
+#ifdef DDS_USE
 struct RTICdrTypeCode;
 #endif
 

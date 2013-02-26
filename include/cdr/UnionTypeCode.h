@@ -2,6 +2,7 @@
 #define _CDR_UNIONTYPECODE_H_
 
 #include "cdr/MemberedTypeCode.h"
+#include <vector>
 
 namespace eProsima
 {
@@ -11,13 +12,17 @@ namespace eProsima
     class UnionMember : public Member
     {
     public:
-        UnionMember(std::string &name, uint16_t bits, uint8_t flags);
+        UnionMember(std::string &name, uint32_t labelCount, std::vector<int32_t> label);
 
         virtual ~UnionMember(){}
 
+        uint32_t getLabelCount() const;
+
+        int32_t getLabel(uint32_t pos) const;
+
     private:
-        uint16_t m_bits;
-        uint8_t m_flags;
+        uint32_t m_labelCount;
+        std::vector<int32_t> m_labels;
     };
 
     class UnionTypeCode : public MemberedTypeCode
@@ -32,7 +37,9 @@ namespace eProsima
         /*!
          * @brief Default destructor.
          */
-        virtual ~UnionTypeCode(){}
+        virtual ~UnionTypeCode();
+
+        int32_t getDefaultIndex() const;
 
         /*!
          * @brief This function deserializes a union that is contained in a CDR stream.
@@ -42,15 +49,19 @@ namespace eProsima
          */
         bool deserialize(CDR &cdr);
 
-		//bool print(IDLPrinter &printer, bool write) const;
+		bool print(IDLPrinter &printer, bool write) const;
 
-		//friend inline bool operator<<(IDLPrinter &printer, const UnionTypeCode &unionTypeCode) {return unionTypeCode.print(printer, true);}
+		friend inline bool operator<<(IDLPrinter &printer, const UnionTypeCode &unionTypeCode) {return unionTypeCode.print(printer, true);}
 
-        //friend bool operator<<(IDLPrinter &printer, const UnionTypeCode *unionTypeCode);
+        friend bool operator<<(IDLPrinter &printer, const UnionTypeCode *unionTypeCode);
 
     private:
         
-        //Member* deserializeMemberInfo(std::string name, CDR &cdr);
+        Member* deserializeMemberInfo(std::string name, CDR &cdr);
+
+        int32_t m_defaultIndex;
+
+        TypeCode *m_discriminatorTypeCode;
     };
 };
 

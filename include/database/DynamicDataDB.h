@@ -33,6 +33,7 @@ namespace eProsima
     class EnumTypeCode;
     class PrimitiveTypeCode;
     class SequenceTypeCode;
+    class UnionTypeCode;
     class CDR;
 
 #ifndef DDS_USE
@@ -314,23 +315,15 @@ namespace eProsima
 
         private:
 
-            bool processUnionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
-                    struct RTICdrTypeCode *typeCode, std::string &suffix);
-            
-            
-            
-            
-            
-            bool processUnionsStorage(struct RTICdrTypeCode *typeCode,
-                    struct DDS_DynamicData *dynamicData, std::string &suffix,
-                    int &index, bool step);
-
 #ifndef DDS_USE
             bool createInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     const TypeCode *typeCode);
 
             bool processStructsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     const StructTypeCode *structTC, std::string &suffix);
+
+            bool processUnionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    const UnionTypeCode *unionTC, std::string &suffix);
 
             bool processMembersInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     const Member *memberInfo, std::string &suffix);
@@ -361,6 +354,9 @@ namespace eProsima
                     const PrimitiveTypeCode *typeCode, std::string &suffix);
 
             bool processStructsStorage(const StructTypeCode *typeCode, CDR &cdr,
+                std::string &suffix, int &index, bool step);
+
+            bool processUnionsStorage(const UnionTypeCode *typeCode, CDR &cdr,
                 std::string &suffix, int &index, bool step);
 
             bool processMembersStorage(const Member *memberInfo, CDR &cdr, std::string &suffix,
@@ -397,6 +393,9 @@ namespace eProsima
             bool processStructsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
 
+            bool processUnionsInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
+                    struct RTICdrTypeCode *typeCode, std::string &suffix);
+
             bool processMembersInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     struct RTICdrTypeCode *memberInfo, std::string &memberName, std::string &suffix);
 
@@ -427,6 +426,10 @@ namespace eProsima
                     struct RTICdrTypeCode *typeCode, std::string &suffix);
 
             bool processStructsStorage(struct RTICdrTypeCode *typeCode,
+                    struct DDS_DynamicData *dynamicData, std::string &suffix,
+                    int &index, bool step);
+
+            bool processUnionsStorage(struct RTICdrTypeCode *typeCode,
                     struct DDS_DynamicData *dynamicData, std::string &suffix,
                     int &index, bool step);
 

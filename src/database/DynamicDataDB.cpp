@@ -5,6 +5,7 @@
 #include "cdr/ArrayTypeCode.h"
 #include "cdr/EnumTypeCode.h"
 #include "cdr/SequenceTypeCode.h"
+#include "cdr/UnionTypeCode.h"
 #include "cdr/PrimitiveTypeCode.h"
 
 #include "dds_c/dds_c_common.h"
@@ -149,67 +150,6 @@ void DynamicDataDB::eraseSpacesInTableName(string &tableName)
     }
 }
 
-bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string &dynamicDataAdd,
-        struct RTICdrTypeCode *typeCode, string &suffix)
-{
-    const char* const METHOD_NAME = "processUnionsInitialStatements";
-    bool returnedValue = false;
-    DDS_UnsignedLong membersNumber;
-    struct RTICdrTypeCode *memberInfo;
-    const char *memberName = NULL;
-    string smemberName;
-    string newSuffix = suffix;
-
-    if(typeCode != NULL)
-    {
-        if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
-        {
-            newSuffix += "_discriminator";
-            table_create += ", ";
-            table_create += newSuffix;
-            table_create += " INT";
-            dynamicDataAdd += ", ?";
-
-            returnedValue = true;
-            for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
-            {
-                memberInfo = RTICdrTypeCode_get_member_type(typeCode, count);
-
-                if(memberInfo != NULL)
-                {
-                    memberName = RTICdrTypeCode_get_member_name(typeCode, count);
-
-                    if(memberName != NULL)
-                    {
-                        smemberName = memberName;
-                        //TODO
-                        //returnedValue = processMembersInitialStatements(table_create, dynamicDataAdd,
-                        //        memberInfo, smemberName, suffix);
-                    }
-                    else
-                    {
-                        logError(m_log, "Cannot obtain name of member %d", count);
-                    }
-                }
-                else
-                {
-                    logError(m_log, "Cannot obtain info about member %d", count);
-                }
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot obtain number of member of the struct");
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
-}
-
 bool DynamicDataDB::addTinyIntInitialStatements(string &memberName, string &table_create,
         string &dynamicDataAdd)
 {
@@ -324,97 +264,6 @@ bool DynamicDataDB::addEnumInitialStatements(string &memberName, string &table_c
     table_create += " TEXT";
     dynamicDataAdd += ", ?";
     return true;
-}
-
-bool DynamicDataDB::processUnionsStorage(struct RTICdrTypeCode *typeCode,
-        struct DDS_DynamicData *dynamicData, string &suffix, int &index, bool step)
-{
-    const char* const METHOD_NAME = "processUnionsStorage";
-    bool returnedValue = false;
-    DDS_UnsignedLong membersNumber;
-    struct RTICdrTypeCode *memberInfo;
-    struct DDS_DynamicDataMemberInfo disInfo;
-    const char *memberName = NULL;
-    string smemberName;
-    RTICdrLong label;
-
-    if(typeCode != NULL && dynamicData != NULL)
-    {
-        if(DDS_DynamicData_get_member_info_by_index(dynamicData, &disInfo, 0) == DDS_RETCODE_OK)
-        {
-            if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
-            {
-                sqlite3_bind_int(m_addStmt, index++, disInfo.member_id);
-                returnedValue = true;
-                for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
-                {
-                    bool newStep = true;
-
-                    memberInfo = RTICdrTypeCode_get_member_type(typeCode, count);
-
-                    if(memberInfo != NULL)
-                    {
-                        memberName = RTICdrTypeCode_get_member_name(typeCode, count);
-                        if(memberName != NULL)
-                        {
-                            smemberName = memberName;
-
-                            if(RTICdrTypeCode_get_member_label(typeCode, count, 0, &label) == RTI_TRUE)
-                            {
-                                if(!step)
-                                {
-                                    if(label == disInfo.member_id)
-                                    {
-                                        newStep = false;
-                                    }
-                                    else
-                                    {
-                                        RTICdrTypeCode_get_default_index(typeCode, &label);
-
-                                        if(disInfo.member_id == -1 &&
-                                                label == count)
-                                        {
-                                            newStep = false;
-                                        }
-                                    }
-                                }
-
-                                // TODO
-                                //returnedValue = processMembersStorage(memberInfo, smemberName, dynamicData,
-                                //        suffix, index, newStep);
-                            }
-                            else
-                            {
-                                logError(m_log, "Cannot obtain union label");
-                            }
-                        }
-                        else
-                        {
-                            logError(m_log, "Cannot obtain name of member %d", count);
-                        }
-                    }
-                    else
-                    {
-                        logError(m_log, "Cannot obtain info about member %d", count);
-                    }
-                }
-            }
-            else
-            {
-                logError(m_log, "Cannot obtain number of member of the struct");
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot obtain member info from DynamicData");
-        }
-    }
-    else
-    {
-        logError(m_log, "Bad parameters");
-    }
-
-    return returnedValue;
 }
 
 #ifndef DDS_USE
@@ -544,6 +393,47 @@ bool DynamicDataDB::processStructsInitialStatements(string &table_create, string
     return returnedValue;
 }
 
+bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string &dynamicDataAdd,
+        const UnionTypeCode *unionTC, string &suffix)
+{
+    const char* const METHOD_NAME = "processUnionsInitialStatements";
+    bool returnedValue = false;
+    const char *memberName = NULL;
+    string smemberName;
+    string newSuffix = suffix;
+
+    if(unionTC != NULL)
+    {
+        newSuffix += "_discriminator";
+        table_create += ", ";
+        table_create += newSuffix;
+        table_create += " INT";
+        dynamicDataAdd += ", ?";
+
+        returnedValue = true;
+        for(uint32_t count = 0; returnedValue && (count < unionTC->getMemberCount()); count ++)
+        {
+            const Member *memberInfo = unionTC->getMember(count);
+
+            if(memberInfo != NULL)
+            {
+                returnedValue = processMembersInitialStatements(table_create, dynamicDataAdd,
+                    memberInfo, suffix);
+            }
+            else
+            {
+                logError(m_log, "Cannot obtain info about member %d", count);
+            }
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
 bool DynamicDataDB::processMembersInitialStatements(string &table_create, string &dynamicDataAdd,
         const Member *memberInfo, string &suffix)
 {
@@ -564,13 +454,13 @@ bool DynamicDataDB::processMembersInitialStatements(string &table_create, string
                 newSuffix += "__";
                 returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const StructTypeCode*>(mTypeCode), newSuffix);
             }
-            /*else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
+            else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
             {
                 newSuffix = suffix;
-                newSuffix += memberName;
+                newSuffix += memberInfo->getName();
                 newSuffix += "__";
-                returnedValue = processUnionsInitialStatements(table_create, dynamicDataAdd, memberInfo, newSuffix);
-            }*/
+                returnedValue = processUnionsInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const UnionTypeCode*>(mTypeCode), newSuffix);
+            }
             else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
             {
                 newSuffix = suffix;
@@ -1027,22 +917,102 @@ bool DynamicDataDB::processStructsStorage(const StructTypeCode *typeCode, CDR &c
     uint32_t membersNumber = 0, count = 0;
     const Member *memberInfo = NULL;
 
-    // Get memberCount;
-    membersNumber = typeCode->getMemberCount();
-
-    for(; returnedValue && (count < membersNumber); count ++)
+    if(typeCode != NULL)
     {
-        memberInfo = typeCode->getMember(count);
+        // Get memberCount;
+        membersNumber = typeCode->getMemberCount();
 
-        if(memberInfo != NULL)
+        for(; returnedValue && (count < membersNumber); count ++)
         {
-            returnedValue = processMembersStorage(memberInfo, cdr,
-                    suffix, index, step);
+            memberInfo = typeCode->getMember(count);
+
+            if(memberInfo != NULL)
+            {
+                returnedValue = processMembersStorage(memberInfo, cdr,
+                        suffix, index, step);
+            }
+            else
+            {
+                logError(m_log, "Cannot obtain info about member %d", count);
+            }
         }
-        else
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processUnionsStorage(const UnionTypeCode *typeCode, CDR &cdr,
+    std::string &suffix, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processUnionsStorage";
+    bool returnedValue = false;
+    uint32_t membersNumber, memberMatch = 0;
+    int32_t discriminator;
+    bool discriminatorMatch = false;
+    const UnionMember *memberInfo = NULL;
+
+    if(typeCode != NULL)
+    {
+        if(cdr >> discriminator)
         {
-            logError(m_log, "Cannot obtain info about member %d", count);
+            membersNumber = typeCode->getMemberCount();
+            sqlite3_bind_int(m_addStmt, index++, discriminator);
+
+            // Search selected by discriminator.
+            if(!step)
+            {
+                for(uint32_t count = 0; count < membersNumber; count ++)
+                {
+                    memberInfo = dynamic_cast<const UnionMember*>(typeCode->getMember(count));
+
+                    if(memberInfo != NULL)
+                    {
+                        for(uint32_t lCount = 0; !discriminatorMatch && (lCount < memberInfo->getLabelCount()); ++lCount)
+                        {
+                            if(discriminator == memberInfo->getLabel(lCount))
+                            {
+                                discriminatorMatch = true;
+                                memberMatch = count;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot obtain info about member %d", count);
+                    }
+                }
+
+                if(!discriminatorMatch)
+                {
+                    discriminatorMatch = true;
+                    memberMatch = typeCode->getDefaultIndex();
+                }
+            }
+
+            returnedValue = true;
+            for(uint32_t count = 0; returnedValue && (count < membersNumber); count ++)
+            {
+                memberInfo = dynamic_cast<const UnionMember*>(typeCode->getMember(count));
+
+                if(memberInfo != NULL)
+                {
+                    returnedValue = processMembersStorage(static_cast<const Member*>(memberInfo), cdr,
+                        suffix, index, !discriminatorMatch || !(count == memberMatch));
+                }
+                else
+                {
+                    logError(m_log, "Cannot obtain info about member %d", count);
+                }
+            }
         }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
     }
 
     return returnedValue;
@@ -1141,19 +1111,11 @@ bool DynamicDataDB::processMembersStorage(const Member *memberInfo, CDR &cdr,
             }
             else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
             {
-                //TODO
-                /*memberDynamicDataObject = getMemberDynamicDataObject(memberInfo,
-                        memberName, dynamicData);
-
-                if(memberDynamicDataObject != NULL)
-                {
                     newSuffix = suffix;
-                    newSuffix += memberName;
+                    newSuffix += memberInfo->getName();
                     newSuffix += "__";
-                    returnedValue = processUnionsStorage(memberInfo, memberDynamicDataObject,
+                    returnedValue = processUnionsStorage(dynamic_cast<const UnionTypeCode*>(mTypeCode), cdr,
                             newSuffix, index, step);
-                    DDS_DynamicData_delete(memberDynamicDataObject);
-                }*/
             }
             else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
             {
@@ -6024,6 +5986,157 @@ bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, string &
     else
     {
         printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processUnionsStorage(struct RTICdrTypeCode *typeCode,
+        struct DDS_DynamicData *dynamicData, string &suffix, int &index, bool step)
+{
+    const char* const METHOD_NAME = "processUnionsStorage";
+    bool returnedValue = false;
+    DDS_UnsignedLong membersNumber;
+    struct RTICdrTypeCode *memberInfo;
+    struct DDS_DynamicDataMemberInfo disInfo;
+    const char *memberName = NULL;
+    string smemberName;
+    RTICdrLong label;
+
+    if(typeCode != NULL && dynamicData != NULL)
+    {
+        if(DDS_DynamicData_get_member_info_by_index(dynamicData, &disInfo, 0) == DDS_RETCODE_OK)
+        {
+            if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
+            {
+                sqlite3_bind_int(m_addStmt, index++, disInfo.member_id);
+                returnedValue = true;
+                for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
+                {
+                    bool newStep = true;
+
+                    memberInfo = RTICdrTypeCode_get_member_type(typeCode, count);
+
+                    if(memberInfo != NULL)
+                    {
+                        memberName = RTICdrTypeCode_get_member_name(typeCode, count);
+                        if(memberName != NULL)
+                        {
+                            smemberName = memberName;
+
+                            if(RTICdrTypeCode_get_member_label(typeCode, count, 0, &label) == RTI_TRUE)
+                            {
+                                if(!step)
+                                {
+                                    if(label == disInfo.member_id)
+                                    {
+                                        newStep = false;
+                                    }
+                                    else
+                                    {
+                                        RTICdrTypeCode_get_default_index(typeCode, &label);
+
+                                        if(disInfo.member_id == -1 &&
+                                                label == count)
+                                        {
+                                            newStep = false;
+                                        }
+                                    }
+                                }
+
+                                // TODO
+                                //returnedValue = processMembersStorage(memberInfo, smemberName, dynamicData,
+                                //        suffix, index, newStep);
+                            }
+                            else
+                            {
+                                logError(m_log, "Cannot obtain union label");
+                            }
+                        }
+                        else
+                        {
+                            logError(m_log, "Cannot obtain name of member %d", count);
+                        }
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot obtain info about member %d", count);
+                    }
+                }
+            }
+            else
+            {
+                logError(m_log, "Cannot obtain number of member of the struct");
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot obtain member info from DynamicData");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string &dynamicDataAdd,
+        struct RTICdrTypeCode *typeCode, string &suffix)
+{
+    const char* const METHOD_NAME = "processUnionsInitialStatements";
+    bool returnedValue = false;
+    DDS_UnsignedLong membersNumber;
+    struct RTICdrTypeCode *memberInfo;
+    const char *memberName = NULL;
+    string smemberName;
+    string newSuffix = suffix;
+
+    if(typeCode != NULL)
+    {
+        if(RTICdrTypeCode_get_member_count(typeCode, &membersNumber) == RTI_TRUE)
+        {
+            newSuffix += "_discriminator";
+            table_create += ", ";
+            table_create += newSuffix;
+            table_create += " INT";
+            dynamicDataAdd += ", ?";
+
+            returnedValue = true;
+            for(DDS_UnsignedLong count = 0; returnedValue && (count < membersNumber); count ++)
+            {
+                memberInfo = RTICdrTypeCode_get_member_type(typeCode, count);
+
+                if(memberInfo != NULL)
+                {
+                    memberName = RTICdrTypeCode_get_member_name(typeCode, count);
+
+                    if(memberName != NULL)
+                    {
+                        smemberName = memberName;
+                        returnedValue = processMembersInitialStatements(table_create, dynamicDataAdd,
+                                memberInfo, smemberName, suffix);
+                    }
+                    else
+                    {
+                        logError(m_log, "Cannot obtain name of member %d", count);
+                    }
+                }
+                else
+                {
+                    logError(m_log, "Cannot obtain info about member %d", count);
+                }
+            }
+        }
+        else
+        {
+            logError(m_log, "Cannot obtain number of member of the struct");
+        }
+    }
+    else
+    {
+        logError(m_log, "Bad parameters");
     }
 
     return returnedValue;

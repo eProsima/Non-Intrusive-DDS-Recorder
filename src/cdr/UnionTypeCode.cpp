@@ -4,13 +4,38 @@
 
 using namespace eProsima;
 
-UnionMember::UnionMember(std::string &name, uint16_t bits, uint8_t flags) : Member(name),
-    m_bits(bits), m_flags(flags)
+UnionMember::UnionMember(std::string &name, uint32_t labelCount, std::vector<int32_t> labels) : Member(name),
+    m_labelCount(labelCount)
+{
+    std::swap(m_labels, labels);
+}
+
+uint32_t UnionMember::getLabelCount() const
+{
+    return m_labelCount;
+}
+
+int32_t UnionMember::getLabel(uint32_t pos) const
+{
+    return m_labels[pos];
+}
+
+UnionTypeCode::UnionTypeCode() : MemberedTypeCode(TypeCode::KIND_UNION), m_defaultIndex(0),
+    m_discriminatorTypeCode(NULL)
 {
 }
 
-UnionTypeCode::UnionTypeCode() : MemberedTypeCode(TypeCode::KIND_UNION)
+UnionTypeCode::~UnionTypeCode()
 {
+    if(m_discriminatorTypeCode != NULL)
+    {
+        delete m_discriminatorTypeCode;
+    }
+}
+
+int32_t UnionTypeCode::getDefaultIndex() const
+{
+    return m_defaultIndex;
 }
 
 bool UnionTypeCode::deserialize(CDR &cdr)
@@ -21,7 +46,100 @@ bool UnionTypeCode::deserialize(CDR &cdr)
     // Deserialize size.
     returnedValue &= cdr >> size;
     returnedValue &= deserializeName(cdr);
+    returnedValue &= cdr >> m_defaultIndex;
+    returnedValue &= (m_discriminatorTypeCode = TypeCode::deserializeTypeCode(cdr)) != NULL;
     returnedValue &= deserializeMembers(cdr);
+
+    return returnedValue;
+}
+
+Member* UnionTypeCode::deserializeMemberInfo(std::string name, CDR &cdr)
+{
+    Member *returnedValue = NULL;
+    uint8_t mPointer = 0;
+    uint32_t labelCount = 0;
+    std::vector<int32_t> labels;
+
+    if((cdr >> mPointer) && (cdr >> labelCount))
+    {
+        bool ret = true;
+        int32_t label;
+
+        for(uint32_t count = 0; ret && (count < labelCount); ++count)
+        {
+            ret = cdr >> label;
+            labels.push_back(label);
+        }
+
+        if(ret)
+            returnedValue = new UnionMember(name, labelCount, labels);
+    }
+
+    return returnedValue;
+}
+
+bool UnionTypeCode::print(IDLPrinter &printer, bool write) const
+{
+    bool returnedValue = true;
+
+	if(write)
+		printer.getOut() << getName();
+
+    if(!printer.isTypePrinterAndUp("union " + getName()))
+    {
+			IDLPrinter *tPrinter = new IDLPrinter(printer);
+			tPrinter->getOut() << "union " << getName() << " {" << std::endl;
+        
+			for(uint32_t count = 0; count < getMemberCount(); ++count)
+			{
+				const UnionMember *member = dynamic_cast<const UnionMember*>(getMember(count));
+
+				if(member != NULL)
+				{
+                    // Print labels.
+                    for(uint32_t lCount = 0; lCount < member->getLabelCount(); ++lCount)
+                    {
+                        if(count == (uint32_t)m_defaultIndex)
+                            tPrinter->getOut() << "   default:" << std::endl;
+                        else
+                            tPrinter->getOut() << "   case " << member->getLabel(lCount) << ":" << std::endl;
+                        
+                    }
+					tPrinter->getOut() << "      ";
+					returnedValue &= *tPrinter << member->getTypeCode();
+					tPrinter->getOut() << " " << member->getName() << ";" << std::endl;
+				}
+				else
+					returnedValue = false;
+			}
+
+			tPrinter->getOut() << "};" << std::endl << std::endl;
+			printer.addPrinter("union " + getName(), tPrinter);
+    }
+	else
+	{
+		for(uint32_t count = 0; count < getMemberCount(); ++count)
+		{
+			const UnionMember *member = dynamic_cast<const UnionMember*>(getMember(count));
+
+			if(member != NULL)
+			{
+				returnedValue &= member->getTypeCode()->print(printer, false);
+			}
+			else
+				returnedValue = false;
+		}
+	}
+
+    return returnedValue;
+}
+
+bool eProsima::operator<<(IDLPrinter &printer, const UnionTypeCode *typeCode)
+{
+    bool returnedValue = false;
+
+    if(typeCode != NULL)
+        returnedValue = printer << *typeCode;
 
     return returnedValue;
 }

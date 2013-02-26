@@ -5,6 +5,7 @@
 #include "cdr/StringTypeCode.h"
 #include "cdr/PrimitiveTypeCode.h"
 #include "cdr/SequenceTypeCode.h"
+#include "cdr/UnionTypeCode.h"
 #include "Cdr.h"
 
 #include <stdio.h>
@@ -71,7 +72,15 @@ TypeCode* TypeCode::deserializeTypeCode(CDR &cdr)
             else
                 delete structTC;
         }
-        if(kind == KIND_ARRAY)
+        else if(kind == KIND_UNION)
+        {
+            UnionTypeCode *unionTC = new UnionTypeCode();
+            if(unionTC->deserialize(cdr))
+                returnedValue = static_cast<TypeCode*>(unionTC);
+            else
+                delete unionTC;
+        }
+        else if(kind == KIND_ARRAY)
         {
             ArrayTypeCode *arrayTC = new ArrayTypeCode();
             if(arrayTC->deserialize(cdr))
@@ -79,7 +88,7 @@ TypeCode* TypeCode::deserializeTypeCode(CDR &cdr)
             else
                 delete arrayTC;
         }
-        if(kind == KIND_SEQUENCE)
+        else if(kind == KIND_SEQUENCE)
         {
             SequenceTypeCode *sequenceTC = new SequenceTypeCode();
             if(sequenceTC->deserialize(cdr))
