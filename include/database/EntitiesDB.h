@@ -1,15 +1,13 @@
 #ifndef _ENTITIESDB_H_
 #define _ENTITIESDB_H_
 
-struct DDS_Time_t;
-struct timeval;
-
 #ifdef __cplusplus
 
 #include <string>
 #include <list>
 
 #include <sqlite3.h>
+#include "RTPSPacketAnalyzer.h"
 
 namespace eProsima
 {

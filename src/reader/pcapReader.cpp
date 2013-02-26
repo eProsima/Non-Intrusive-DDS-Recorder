@@ -5,7 +5,7 @@
 #include <string.h>
 #include <malloc.h>
 
-#ifdef RTI_WIN32
+#ifdef EPROSIMA_WIN32
 #include <winsock.h>
 
 /* Ethernet header */
@@ -57,7 +57,7 @@ struct udphdr
 
 #define IP_HEADER_LEN(ip) ip->ip_hl * 4
 
-#endif //RTI_WIN32
+#endif
 
 using namespace std;
 using namespace eProsima;

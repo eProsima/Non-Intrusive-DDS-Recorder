@@ -54,9 +54,6 @@
     <ClCompile Include="..\..\..\src\RTPSPacketAnalyzer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\..\eProsima\code\eProsima_c\eProsimaLog.c">
-      <Filter>Source Files\eProsima</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\..\..\eProsima\code\eProsima_cpp\eProsimaLog.cpp">
       <Filter>Source Files\eProsima</Filter>
     </ClCompile>

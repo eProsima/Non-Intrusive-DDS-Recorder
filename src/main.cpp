@@ -3,8 +3,6 @@
 #include "RTPSdump.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
-#include "ndds/ndds_config_c.h"
-
 #include <stdio.h>
 #include <string.h>
 
@@ -84,7 +82,7 @@ int main(int argc, char *argv[])
 
         if(log != NULL)
         {
-            log->setVerbosity(EPROSIMA_INFO_VERBOSITY_LEVEL);
+            log->setVerbosity(eProsimaLog::EPROSIMA_INFO_VERBOSITY_LEVEL);
             reader = new pcapReader(filename, *log);
 
             if(reader != NULL)

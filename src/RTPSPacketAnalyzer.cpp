@@ -3,12 +3,6 @@
 
 #include <stdio.h>
 
-#ifdef RTI_WIN32
-#include <winsock.h>
-#else
-#include <netinet/in.h>
-#endif
-
 #define JUMP(buffer, length) buffer = &buffer[length]
 
 // TODO Detect platform endianess.
@@ -63,8 +57,8 @@ static const char* const CLASS_NAME = "RTPSPacketAnalyzer";
 RTPSPacketAnalyzer::RTPSPacketAnalyzer(eProsimaLog &log) : m_log(log), m_getDataUser(NULL),
     m_getDataCallback(NULL)
 {
-    m_lastSourceTmp.sec = 0;
-    m_lastSourceTmp.nanosec = 0;
+    m_lastSourceTmp.seconds = 0;
+    m_lastSourceTmp.nanoseconds = 0;
 }
 
 void RTPSPacketAnalyzer::setGetDataCallback(void *user, getDataCallback callback)
@@ -220,9 +214,9 @@ void RTPSPacketAnalyzer::processINFOTSSubmessage(const char *dataSubmessage, boo
 
     if(dataSubmessage != NULL)
     {
-        m_lastSourceTmp.sec = GET_UINT_ENDIAN(endianess, auxPointer);
+        m_lastSourceTmp.seconds = GET_UINT_ENDIAN(endianess, auxPointer);
         JUMP(auxPointer, SUBMESSAGE_INFOTS_SEC);
-        m_lastSourceTmp.nanosec = GET_UINT_ENDIAN(endianess, auxPointer);
+        m_lastSourceTmp.nanoseconds = GET_UINT_ENDIAN(endianess, auxPointer);
         JUMP(auxPointer, SUBMESSAGE_INFOTS_NANOSEC);
     }
     else

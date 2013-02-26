@@ -5,9 +5,7 @@
 #include <stdint.h>
 
 #include <sqlite3.h>
-
-struct DDS_Time_t;
-struct timeval;
+#include "RTPSPacketAnalyzer.h"
 
 #ifdef __cplusplus
 

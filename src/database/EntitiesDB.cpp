@@ -1,12 +1,9 @@
 #include "database/EntitiesDB.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
-#include "cdr/cdr_typeCode.h"
-#include "dds_c/dds_c_infrastructure.h"
-
 #include <string.h>
 
-#ifndef RTI_WIN32
+#ifdef EPROSIMA_LINUX
 #include <sys/time.h>
 #endif
 
@@ -97,14 +94,14 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
 
-    if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK, strlen(TABLE_CHECK), &stmt, NULL) == SQLITE_OK)
+    if(SQLITE_PREPARE(m_databaseH, TABLE_CHECK, (int)strlen(TABLE_CHECK), &stmt, NULL) == SQLITE_OK)
     {
         ret = sqlite3_step(stmt);
         sqlite3_finalize(stmt);
 
         if(ret == SQLITE_ROW)
         {
-            if(SQLITE_PREPARE(m_databaseH, TABLE_TRUNCATE, strlen(TABLE_TRUNCATE), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_TRUNCATE, (int)strlen(TABLE_TRUNCATE), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) == SQLITE_DONE)
                     m_ready = true;
@@ -118,7 +115,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
         }
         else if(ret == SQLITE_DONE)
         {
-            if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE, strlen(TABLE_CREATE), &stmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, TABLE_CREATE, (int)strlen(TABLE_CREATE), &stmt, NULL) == SQLITE_OK)
             {
                 if(sqlite3_step(stmt) == SQLITE_DONE)
                     m_ready = true;
@@ -139,16 +136,16 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
         {
             m_ready = false;
 
-            if(SQLITE_PREPARE(m_databaseH, ENTITY_ADD, strlen(ENTITY_ADD), &m_addStmt, NULL) == SQLITE_OK)
+            if(SQLITE_PREPARE(m_databaseH, ENTITY_ADD, (int)strlen(ENTITY_ADD), &m_addStmt, NULL) == SQLITE_OK)
             {
-                if(SQLITE_PREPARE(m_databaseH, TABLE_MESSAGES_CHECK, strlen(TABLE_MESSAGES_CHECK), &stmt, NULL) == SQLITE_OK)
+                if(SQLITE_PREPARE(m_databaseH, TABLE_MESSAGES_CHECK, (int)strlen(TABLE_MESSAGES_CHECK), &stmt, NULL) == SQLITE_OK)
                 {
                     ret = sqlite3_step(stmt);
                     sqlite3_finalize(stmt);
 
                     if(ret == SQLITE_ROW)
                     {
-                        if(SQLITE_PREPARE(m_databaseH, TABLE_MESSAGES_TRUNCATE, strlen(TABLE_MESSAGES_TRUNCATE), &stmt, NULL) == SQLITE_OK)
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_MESSAGES_TRUNCATE, (int)strlen(TABLE_MESSAGES_TRUNCATE), &stmt, NULL) == SQLITE_OK)
                         {
                             if(sqlite3_step(stmt) == SQLITE_DONE)
                                 m_ready = true;
@@ -162,7 +159,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
                     }
                     else if(ret == SQLITE_DONE)
                     {
-                        if(SQLITE_PREPARE(m_databaseH, TABLE_MESSAGES_CREATE, strlen(TABLE_MESSAGES_CREATE), &stmt, NULL) == SQLITE_OK)
+                        if(SQLITE_PREPARE(m_databaseH, TABLE_MESSAGES_CREATE, (int)strlen(TABLE_MESSAGES_CREATE), &stmt, NULL) == SQLITE_OK)
                         {
                             if(sqlite3_step(stmt) == SQLITE_DONE)
                                 m_ready = true;
@@ -183,7 +180,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
                     {
                         m_ready = false;
 
-                        if(SQLITE_PREPARE(m_databaseH, MESSAGES_ADD, strlen(MESSAGES_ADD), &m_addMsgStmt, NULL) == SQLITE_OK)
+                        if(SQLITE_PREPARE(m_databaseH, MESSAGES_ADD, (int)strlen(MESSAGES_ADD), &m_addMsgStmt, NULL) == SQLITE_OK)
                         {
                             m_ready = true;
                         }
@@ -256,11 +253,11 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
                 sqlite3_bind_int64(m_addStmt, 3, entity_instanceId);
                 sqlite3_bind_int64(m_addStmt, 4, entityId);
                 if(type == 0)
-                    sqlite3_bind_text(m_addStmt, 5, READER_TEXT, strlen(READER_TEXT), SQLITE_STATIC);
+                    sqlite3_bind_text(m_addStmt, 5, READER_TEXT, (int)strlen(READER_TEXT), SQLITE_STATIC);
                 else
-                    sqlite3_bind_text(m_addStmt, 5, WRITER_TEXT, strlen(WRITER_TEXT), SQLITE_STATIC);
-                sqlite3_bind_text(m_addStmt, 6, topicName.c_str(), topicName.length(), SQLITE_STATIC);
-                sqlite3_bind_text(m_addStmt, 7, typeName.c_str(), typeName.length(), SQLITE_STATIC);
+                    sqlite3_bind_text(m_addStmt, 5, WRITER_TEXT, (int)strlen(WRITER_TEXT), SQLITE_STATIC);
+                sqlite3_bind_text(m_addStmt, 6, topicName.c_str(), (int)topicName.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addStmt, 7, typeName.c_str(), (int)typeName.length(), SQLITE_STATIC);
                 if(existsTypecode)
                     sqlite3_bind_int(m_addStmt, 8, 1);
                 else
@@ -295,16 +292,16 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
             {
                 sqlite3_bind_int64(m_addMsgStmt, 1, wts.tv_sec);
                 sqlite3_bind_int64(m_addMsgStmt, 2, wts.tv_usec);
-                sqlite3_bind_text(m_addMsgStmt, 3, ip_src.c_str(), ip_src.length(), SQLITE_STATIC);
-                sqlite3_bind_text(m_addMsgStmt, 4, ip_dst.c_str(), ip_dst.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addMsgStmt, 3, ip_src.c_str(), (int)ip_src.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addMsgStmt, 4, ip_dst.c_str(), (int)ip_dst.length(), SQLITE_STATIC);
                 sqlite3_bind_int64(m_addMsgStmt, 5, hostId);
                 sqlite3_bind_int64(m_addMsgStmt, 6, appId);
                 sqlite3_bind_int64(m_addMsgStmt, 7, instanceId);
                 sqlite3_bind_int64(m_addMsgStmt, 8, readerId);
                 sqlite3_bind_int64(m_addMsgStmt, 9, writerId);
                 sqlite3_bind_int64(m_addMsgStmt, 10, writerSeqNum);
-                sqlite3_bind_int64(m_addMsgStmt, 11, sourceTmp.sec);
-                sqlite3_bind_int64(m_addMsgStmt, 12, sourceTmp.nanosec);
+                sqlite3_bind_int64(m_addMsgStmt, 11, sourceTmp.seconds);
+                sqlite3_bind_int64(m_addMsgStmt, 12, sourceTmp.nanoseconds);
 
                 if(destHostId != 0 || destAppId != 0 ||
                         destInstanceId != 0)
@@ -325,11 +322,11 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
                 sqlite3_bind_int64(m_addMsgStmt, 18, entity_instanceId);
                 sqlite3_bind_int64(m_addMsgStmt, 19, entityId);
                 if(type == 0)
-                    sqlite3_bind_text(m_addMsgStmt, 20, READER_TEXT, strlen(READER_TEXT), SQLITE_STATIC);
+                    sqlite3_bind_text(m_addMsgStmt, 20, READER_TEXT, (int)strlen(READER_TEXT), SQLITE_STATIC);
                 else
-                    sqlite3_bind_text(m_addMsgStmt, 20, WRITER_TEXT, strlen(WRITER_TEXT), SQLITE_STATIC);
-                sqlite3_bind_text(m_addMsgStmt, 21, topicName.c_str(), topicName.length(), SQLITE_STATIC);
-                sqlite3_bind_text(m_addMsgStmt, 22, typeName.c_str(), typeName.length(), SQLITE_STATIC);
+                    sqlite3_bind_text(m_addMsgStmt, 20, WRITER_TEXT, (int)strlen(WRITER_TEXT), SQLITE_STATIC);
+                sqlite3_bind_text(m_addMsgStmt, 21, topicName.c_str(), (int)topicName.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addMsgStmt, 22, typeName.c_str(), (int)typeName.length(), SQLITE_STATIC);
                 if(existsTypecode)
                     sqlite3_bind_int(m_addMsgStmt, 23, 1);
                 else

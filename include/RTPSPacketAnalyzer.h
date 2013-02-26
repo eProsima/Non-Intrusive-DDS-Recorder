@@ -1,11 +1,17 @@
 #ifndef _RTPSPACKETANALYZER_H_
 #define _RTPSPACKETANALYZER_H_
 
-#include "dds_c/dds_c_infrastructure.h"
-
 #ifdef __cplusplus
 
 #include <string>
+#include <stdint.h>
+
+#ifdef EPROSIMA_WIN32
+#include <winsock.h>
+#else
+#include <netinet/in.h>
+#include <sys/time.h>
+#endif
 
 namespace eProsima
 {
@@ -17,6 +23,12 @@ namespace eProsima
             unsigned long long writerSequenceNum, struct DDS_Time_t &sourceTmp,
             unsigned int destHostId, unsigned int destAppId, unsigned int destInstanceId, bool endianess,
             const char *serializedData, unsigned int serializedDataLen);
+
+    typedef struct DDS_Time_t
+    {
+        int32_t seconds;
+        uint32_t nanoseconds;
+    } DDS_Time_t;
 
     class RTPSPacketAnalyzer
     {
@@ -100,7 +112,7 @@ namespace eProsima
             void *m_getDataUser;
             getDataCallback m_getDataCallback;
 
-            struct DDS_Time_t m_lastSourceTmp;
+            DDS_Time_t m_lastSourceTmp;
     };
 }
 

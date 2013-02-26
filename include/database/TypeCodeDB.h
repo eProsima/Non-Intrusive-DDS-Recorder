@@ -1,10 +1,6 @@
 #ifndef _TYPECODEDB_H_
 #define _TYPECODEDB_H_
 
-#ifdef DDS_USE
-struct RTICdrTypeCode;
-#endif
-
 #ifdef __cplusplus
 
 #include <string>
@@ -21,13 +17,8 @@ namespace eProsima
     class eTypeCode
     {
         public:
-#ifndef DDS_USE
             eTypeCode(std::string &topicName, std::string &typeName,
                     TypeCode *typeCode, DynamicDataDB *dynamicDB);
-#else
-            eTypeCode(const char *topicName, const char *typeName,
-                    struct RTICdrTypeCode *typeCode, DynamicDataDB *dynamicDB);
-#endif
 
             ~eTypeCode();
 
@@ -48,11 +39,7 @@ namespace eProsima
              *
              * \return Return the CdrTypeCode. Don't free this pointer.
              */
-#ifndef DDS_USE
             TypeCode* getCdrTypecode();
-#else
-            RTICdrTypeCode* getCdrTypecode();
-#endif
 
             DynamicDataDB* getDynamicDataDB();
 
@@ -60,11 +47,7 @@ namespace eProsima
 
             std::string m_topicName;
             std::string m_typeName;
-#ifndef DDS_USE
             TypeCode *m_typeCode;
-#else
-            struct RTICdrTypeCode *m_typeCode;
-#endif
             DynamicDataDB *m_dynamicDB;
     };
 
@@ -85,13 +68,8 @@ namespace eProsima
              * \return True value is returned if the typecode was added. False is returned
              * if the typecode is already in the database and it wasn't added.
              */
-#ifndef DDS_USE
             bool addTypecode(std::string &topicName, std::string &typeName,
                     TypeCode *typeCode);
-#else
-            bool addTypecode(const char *topicName, const char *typeName,
-                    struct RTICdrTypeCode *typeCode);
-#endif
 
             /**
              * \brief This function searchs a typecode in the database.
@@ -101,19 +79,11 @@ namespace eProsima
              * \return Return the pointer to the eTypeCode structure if this was found.
              * In other case NULL pointer is returned. Don't free this pointer.
              */
-#ifndef DDS_USE
             eTypeCode* findTypecode(std::string &topicName, std::string &typeName);
-#else
-            eTypeCode* findTypecode(const char *topicName, const char *typeName);
-#endif
 
         private:
 
-#ifndef DDS_USE
             std::string getPrintIDL(const TypeCode *typeCode);
-#else
-            char *getPrintIDL(RTICdrTypeCode *typeCode);
-#endif
 
             std::list<eTypeCode*> m_typecodes;
 
