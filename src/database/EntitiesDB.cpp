@@ -14,7 +14,7 @@
 #endif
 
 #define ENTITIES_TABLE "entities"
-#define MESSAGES_TABLE "entities_topic_messages"
+#define MESSAGES_TABLE "discovery_messages"
 #define READER_TEXT "reader"
 #define WRITER_TEXT "writer"
 
