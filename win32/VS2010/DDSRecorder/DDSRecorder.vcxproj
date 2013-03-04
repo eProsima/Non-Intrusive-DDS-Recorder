@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E2184B72-AB0A-4423-9DC6-FC98CE6BCD3F}</ProjectGuid>
-    <RootNamespace>RTPSdump</RootNamespace>
+    <RootNamespace>DDSRecorder</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -177,7 +177,7 @@
     <ClCompile Include="..\..\..\src\cdr\TypeCode.cpp" />
     <ClCompile Include="..\..\..\src\cdr\UnionTypeCode.cpp" />
     <ClCompile Include="..\..\..\src\main.cpp" />
-    <ClCompile Include="..\..\..\src\RTPSdump.cpp" />
+    <ClCompile Include="..\..\..\src\DDSRecorder.cpp" />
     <ClCompile Include="..\..\..\src\RTPSPacketAnalyzer.cpp" />
     <ClCompile Include="..\..\..\..\..\..\eProsima\code\eProsima_cpp\eProsimaLog.cpp" />
     <ClCompile Include="..\..\..\src\reader\ipDefragmenter.cpp" />
@@ -198,7 +198,7 @@
     <ClInclude Include="..\..\..\include\cdr\StructTypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\TypeCode.h" />
     <ClInclude Include="..\..\..\include\cdr\UnionTypeCode.h" />
-    <ClInclude Include="..\..\..\include\RTPSdump.h" />
+    <ClInclude Include="..\..\..\include\DDSRecorder.h" />
     <ClInclude Include="..\..\..\include\RTPSPacketAnalyzer.h" />
     <ClInclude Include="..\..\..\..\..\..\eProsima\code\eProsima_cpp\eProsimaLog.h" />
     <ClInclude Include="..\..\..\include\reader\ipDefragmenter.h" />
@@ -209,7 +209,7 @@
     <ClInclude Include="..\..\..\include\util\IDLPrinter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\..\src\RTPSdump.rc">
+    <ResourceCompile Include="..\..\..\src\DDSRecorder.rc">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EPROSIMA_C_DLL_EXPORT;RTI_WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EPROSIMA_C_DLL_EXPORT;RTI_WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">EPROSIMA_C_DLL_EXPORT;RTI_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>

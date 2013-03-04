@@ -1,4 +1,4 @@
-#include "RTPSdump.h"
+#include "DDSRecorder.h"
 #include "Cdr.h"
 #include "eProsima_cpp/eProsimaLog.h"
 #include "database/TypeCodeDB.h"
@@ -25,12 +25,12 @@
 using namespace eProsima;
 using namespace std;
 
-static const char* const CLASS_NAME = "RTPSdump";
+static const char* const CLASS_NAME = "DDSRecorder";
 
-RTPSdump::RTPSdump(eProsimaLog &log, string &database, int tcMaxSize) : m_log(log), m_databaseH(NULL),
+DDSRecorder::DDSRecorder(eProsimaLog &log, string &database, int tcMaxSize) : m_log(log), m_databaseH(NULL),
     m_typecodeDB(NULL), m_entitiesDB(NULL), m_tcMaxSize(tcMaxSize)
 {
-    const char* const METHOD_NAME = "RTPSdump";
+    const char* const METHOD_NAME = "DDSRecorder";
 
     if(sqlite3_open(database.c_str(), &m_databaseH) == SQLITE_OK)
     {
@@ -58,7 +58,7 @@ RTPSdump::RTPSdump(eProsimaLog &log, string &database, int tcMaxSize) : m_log(lo
     }
 }
 
-RTPSdump::~RTPSdump()
+DDSRecorder::~DDSRecorder()
 {
     if(m_typecodeDB != NULL)
         delete m_typecodeDB;
@@ -68,7 +68,7 @@ RTPSdump::~RTPSdump()
         sqlite3_close(m_databaseH);
 }
 
-void RTPSdump::processDataCallback(void *user, const struct timeval &wts,
+void DDSRecorder::processDataCallback(void *user, const struct timeval &wts,
         std::string &ip_src, std::string &ip_dst, unsigned int hostId,
         unsigned int appId, unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSequenceNum,
@@ -77,7 +77,7 @@ void RTPSdump::processDataCallback(void *user, const struct timeval &wts,
         const char *serializedData, unsigned int serializedDataLen)
 {
     const char* const METHOD_NAME = "processDataCallback";
-    RTPSdump *rtpsdumper = (RTPSdump*)user;
+    DDSRecorder *rtpsdumper = (DDSRecorder*)user;
 
     if(user != NULL)
     {
@@ -92,7 +92,7 @@ void RTPSdump::processDataCallback(void *user, const struct timeval &wts,
     }
 }
 
-void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip_dst,
+void DDSRecorder::processData(const struct timeval &wts, string &ip_src, string &ip_dst,
         unsigned int hostId, unsigned int appId,
         unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSeqNum,
@@ -125,7 +125,7 @@ void RTPSdump::processData(const struct timeval &wts, string &ip_src, string &ip
     }
 }
 
-void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+void DDSRecorder::processDataW(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
@@ -184,7 +184,7 @@ void RTPSdump::processDataW(const struct timeval &wts, std::string &ip_src, std:
     }
 }
 
-void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+void DDSRecorder::processDataR(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
@@ -243,7 +243,7 @@ void RTPSdump::processDataR(const struct timeval &wts, std::string &ip_src, std:
     }
 }
 
-void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, string &ip_dst,
+void DDSRecorder::processDataNormal(const struct timeval &wts, string &ip_src, string &ip_dst,
         unsigned int hostId, unsigned int appId, unsigned int instanceId,
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
@@ -301,7 +301,7 @@ void RTPSdump::processDataNormal(const struct timeval &wts, string &ip_src, stri
 }
 
 
-bool RTPSdump::deserializePublicationBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, RTPSdump::PublicationBuiltinTopic &pubtopic)
+bool DDSRecorder::deserializePublicationBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, DDSRecorder::PublicationBuiltinTopic &pubtopic)
 {
     const char* const METHOD_NAME = "deserializePublicationBuiltinTopic";
     bool returnedValue = false;
@@ -361,7 +361,7 @@ bool RTPSdump::deserializePublicationBuiltinTopic(bool endianess, char* serializ
     return returnedValue;
 }
 
-bool RTPSdump::deserializeSubscriptionBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, RTPSdump::SubscriptionBuiltinTopic &subtopic)
+bool DDSRecorder::deserializeSubscriptionBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, DDSRecorder::SubscriptionBuiltinTopic &subtopic)
 {
     const char* const METHOD_NAME = "deserializeSubscriptionBuiltinTopic";
     bool returnedValue = false;

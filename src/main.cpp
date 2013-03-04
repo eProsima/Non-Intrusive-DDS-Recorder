@@ -1,6 +1,6 @@
 #include "reader/pcapReader.h"
 #include "RTPSPacketAnalyzer.h"
-#include "RTPSdump.h"
+#include "DDSRecorder.h"
 #include "eProsima_cpp/eProsimaLog.h"
 
 #include <stdio.h>
@@ -14,7 +14,7 @@ using namespace eProsima;
 
 void printHelp()
 {
-    printf("RTPSdump usage: RTPSdump.exe [--db database] [--tcMaxSize size] [pcap file]\n");
+    printf("DDSRecorder usage: DDSRecorder.exe [--db database] [--tcMaxSize size] [pcap file]\n");
     printf("Options:\n");
     printf("    --db file: Database file where information will be dumped (Default: dump.db).\n");
     printf("    --tcMaxSize size: Maximum size of typecode that is supported (Default: 2048).\n");
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     eProsimaLog *log = NULL;
     pcapReader *reader = NULL;
     RTPSPacketAnalyzer *analyzer = NULL;
-    RTPSdump *rtpsdumper = NULL;
+    DDSRecorder *rtpsdumper = NULL;
     unsigned int numRTPSPackets = 0;
 
     /* Check options */
@@ -93,11 +93,11 @@ int main(int argc, char *argv[])
 
                     if(analyzer != NULL)
                     {
-                        rtpsdumper = new RTPSdump(*log, db, tcMaxSize);
+                        rtpsdumper = new DDSRecorder(*log, db, tcMaxSize);
 
                         if(rtpsdumper != NULL)
                         {
-                            analyzer->setGetDataCallback((void*)rtpsdumper, RTPSdump::processDataCallback);
+                            analyzer->setGetDataCallback((void*)rtpsdumper, DDSRecorder::processDataCallback);
                             numRTPSPackets = reader->processRTPSPackets((void*)analyzer, RTPSPacketAnalyzer::processRTPSPacketCallback);
 
                             printf("Number of processed RTPS packets: %u\n", numRTPSPackets);

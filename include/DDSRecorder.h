@@ -1,5 +1,5 @@
-#ifndef _RTPSDUMP_H_
-#define _RTPSDUMP_H_
+#ifndef _DDSRECORDER_H_
+#define _DDSRECORDER_H_
 
 #include <string>
 #include <stdint.h>
@@ -15,13 +15,13 @@ namespace eProsima
     class TypeCodeDB;
     class EntitiesDB;
 
-    class RTPSdump
+    class DDSRecorder
     {
         public:
 
-            RTPSdump(eProsimaLog &log, std::string &dabase, int tcMaxSize);
+            DDSRecorder(eProsimaLog &log, std::string &dabase, int tcMaxSize);
 
-            ~RTPSdump();
+            ~DDSRecorder();
 
             static void processDataCallback(void *user, const struct timeval &wts,
                     std::string &ip_src, std::string &ip_dst, unsigned int hostId,
@@ -116,4 +116,4 @@ namespace eProsima
 
 #endif
 
-#endif // _RTPSDUMP_H_
+#endif // _DDSRECORDER_H_
