@@ -21,7 +21,7 @@ namespace eProsima
     class PrimitiveTypeCode;
     class SequenceTypeCode;
     class UnionTypeCode;
-    class CDR;
+    class Cdr;
 
     typedef struct arrayProcessInfo
     {
@@ -71,13 +71,13 @@ namespace eProsima
             typedef struct writePrimitiveStorageFunctions
             {
                 uint32_t _kind;
-                bool (*_addToStream)(sqlite3_stmt *stmt, CDR &cdr, int &index);
+                bool (*_addToStream)(sqlite3_stmt *stmt, Cdr &cdr, int &index);
             } writePrimitiveStorageFunctions;
 
             typedef struct writeArrayPrimitiveFunctions
             {
                 uint32_t _kind;
-                bool (*_addToStream)(sqlite3_stmt *stmt, CDR &cdr,
+                bool (*_addToStream)(sqlite3_stmt *stmt, Cdr &cdr,
                         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
                             
             } writeArrayPrimitiveFunctions;
@@ -85,61 +85,63 @@ namespace eProsima
             typedef struct writeSequencePrimitiveFunctions
             {
                 uint32_t _kind;
-                bool (*_addToStream)(sqlite3_stmt *stmt, int ref, CDR &cdr);
+                bool (*_addToStream)(sqlite3_stmt *stmt, int ref, Cdr &cdr);
                             
             } writeSequencePrimitiveFunctions;
 
-            static bool addOctetStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addUShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addULongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addLongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addULongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addCharStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addStringStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addFloatStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addDoubleStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addBoolStorage(sqlite3_stmt *stmt, CDR &cdr, int &index);
-            static bool addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr, int &index, bool step);
+            static bool addOctetStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addShortStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addUShortStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addLongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addULongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addLongLongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addULongLongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addCharStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addStringStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addFloatStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addDoubleStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
 
-            static bool addOctetArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+
+            static bool addBoolStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index);
+            static bool addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, Cdr &cdr, int &index, bool step);
+
+            static bool addOctetArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addShortArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addUShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addUShortArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addLongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addULongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addULongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addLongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addLongLongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addULongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addULongLongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addCharArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addCharArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addFloatArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addFloatArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addDoubleArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addDoubleArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addBoolArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+            static bool addBoolArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
-            static bool addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr,
+            static bool addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
 
-            static bool addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addShortSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addULongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addCharSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
-            static bool addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const EnumTypeCode *enumTC, CDR &cdr);
-            static bool addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr);
+            static bool addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addULongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addCharSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
+            static bool addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const EnumTypeCode *enumTC, Cdr &cdr);
+            static bool addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr);
 
             DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
                     const TypeCode*typeCode);
@@ -149,7 +151,7 @@ namespace eProsima
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
                     unsigned int destAppId, unsigned int destInstanceId,
-                    const TypeCode *typeCode, CDR &cdr);
+                    const TypeCode *typeCode, Cdr &cdr);
 
             ~DynamicDataDB();
 
@@ -217,37 +219,37 @@ namespace eProsima
             bool processSequencePrimitiveInitialStatements(std::string &table_create, std::string &dynamicDataAdd,
                     const PrimitiveTypeCode *typeCode, std::string &suffix);
 
-            bool processStructsStorage(const StructTypeCode *typeCode, CDR &cdr,
+            bool processStructsStorage(const StructTypeCode *typeCode, Cdr &cdr,
                 std::string &suffix, int &index, bool step);
 
-            bool processUnionsStorage(const UnionTypeCode *typeCode, CDR &cdr,
+            bool processUnionsStorage(const UnionTypeCode *typeCode, Cdr &cdr,
                 std::string &suffix, int &index, bool step);
 
-            bool processMembersStorage(const Member *memberInfo, CDR &cdr, std::string &suffix,
+            bool processMembersStorage(const Member *memberInfo, Cdr &cdr, std::string &suffix,
                     int &index, bool step);
 
-            bool processArraysStorage(const ArrayTypeCode *typeCode, CDR &cdr, std::string &suffix,
+            bool processArraysStorage(const ArrayTypeCode *typeCode, Cdr &cdr, std::string &suffix,
                     const std::string &memberName, int &index, bool step);
 
-            bool processDimensionsStorage(sqlite3_stmt *stmt, const ArrayTypeCode *typeCode, CDR &cdr,
+            bool processDimensionsStorage(sqlite3_stmt *stmt, const ArrayTypeCode *typeCode, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
 
             bool processArrayElementsStorage(sqlite3_stmt *stmt, const ArrayTypeCode *typeCode,
-                    CDR &cdr, arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
+                    Cdr &cdr, arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
 
-            bool processArrayPrimitiveStorage(sqlite3_stmt *stmt, const PrimitiveTypeCode *typeCode, CDR &cdr,
+            bool processArrayPrimitiveStorage(sqlite3_stmt *stmt, const PrimitiveTypeCode *typeCode, Cdr &cdr,
                     arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension);
 
             bool processPrimitiveStorage(const PrimitiveTypeCode *primitiveInfo,
-                    CDR &cdr, int &index, bool step);
+                    Cdr &cdr, int &index, bool step);
 
             bool processSequencesStorage(const SequenceTypeCode *typeCode,
-                    CDR &cdr, std::string &suffix,
+                    Cdr &cdr, std::string &suffix,
                     const std::string &memberName, int &index, bool step);
 
-            bool processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, const SequenceTypeCode *typeCode, CDR &cdr);
+            bool processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, const SequenceTypeCode *typeCode, Cdr &cdr);
 
-            bool processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref, const PrimitiveTypeCode *typeCode, CDR &cdr);
+            bool processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref, const PrimitiveTypeCode *typeCode, Cdr &cdr);
 
             eProsimaLog &m_log;
 

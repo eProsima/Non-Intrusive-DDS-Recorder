@@ -5,7 +5,7 @@
 
 namespace eProsima
 {
-    class CDR;
+    class Cdr;
 
     class EnumMember : public Member
     {
@@ -14,7 +14,7 @@ namespace eProsima
 
         virtual ~EnumMember(){}
 
-        bool deserialize(CDR &cdr);
+        bool deserialize(Cdr &cdr);
 
         /*!
          * @brief This function returns the ordinal value of the member.
@@ -45,7 +45,7 @@ namespace eProsima
          * @param Reference to the CDR stream.
          * @return if the operation works successfully then a true value is returned. In other case false value is returned.
          */
-        bool deserialize(CDR &cdr);
+        bool deserialize(Cdr &cdr);
 
         /*!
          * @brief This function returns a pointer to the member with the given ordinal.
@@ -60,7 +60,7 @@ namespace eProsima
 
     private:
         
-        Member* deserializeMemberInfo(std::string name, CDR &cdr);
+        Member* deserializeMemberInfo(std::string name, Cdr &cdr);
     };
 };
 

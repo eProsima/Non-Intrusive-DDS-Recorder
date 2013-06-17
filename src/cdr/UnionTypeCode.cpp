@@ -1,6 +1,7 @@
 #include "cdr/UnionTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "Cdr.h"
+#include "cpp/Cdr.h"
+#include "cpp/exceptions/Exception.h"
 
 using namespace eProsima;
 
@@ -38,41 +39,55 @@ int32_t UnionTypeCode::getDefaultIndex() const
     return m_defaultIndex;
 }
 
-bool UnionTypeCode::deserialize(CDR &cdr)
+bool UnionTypeCode::deserialize(Cdr &cdr)
 {
     bool returnedValue = true;
     uint16_t size = 0;
 
-    // Deserialize size.
-    returnedValue &= cdr >> size;
-    returnedValue &= deserializeName(cdr);
-    returnedValue &= cdr >> m_defaultIndex;
-    returnedValue &= (m_discriminatorTypeCode = TypeCode::deserializeTypeCode(cdr)) != NULL;
-    returnedValue &= deserializeMembers(cdr);
+    try
+    {
+        // Deserialize size.
+        cdr >> size;
+
+        if((returnedValue &= deserializeName(cdr)))
+        {
+            cdr >> m_defaultIndex;
+            returnedValue &= (m_discriminatorTypeCode = TypeCode::deserializeTypeCode(cdr)) != NULL;
+            returnedValue &= deserializeMembers(cdr);
+        }
+    }
+    catch(eProsima::Exception &ex)
+    {
+        returnedValue = false;
+    }
 
     return returnedValue;
 }
 
-Member* UnionTypeCode::deserializeMemberInfo(std::string name, CDR &cdr)
+Member* UnionTypeCode::deserializeMemberInfo(std::string name, Cdr &cdr)
 {
     Member *returnedValue = NULL;
     uint8_t mPointer = 0;
     uint32_t labelCount = 0;
     std::vector<int32_t> labels;
 
-    if((cdr >> mPointer) && (cdr >> labelCount))
+    try
     {
-        bool ret = true;
+        cdr >> mPointer;
+        cdr >> labelCount;
+
         int32_t label;
 
-        for(uint32_t count = 0; ret && (count < labelCount); ++count)
+        for(uint32_t count = 0; count < labelCount; ++count)
         {
-            ret = cdr >> label;
+            cdr >> label;
             labels.push_back(label);
         }
 
-        if(ret)
-            returnedValue = new UnionMember(name, labelCount, labels);
+        returnedValue = new UnionMember(name, labelCount, labels);
+    }
+    catch(eProsima::Exception &ex)
+    {
     }
 
     return returnedValue;

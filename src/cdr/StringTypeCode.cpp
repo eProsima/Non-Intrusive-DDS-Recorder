@@ -1,12 +1,21 @@
 #include "cdr/StringTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "Cdr.h"
+#include "cpp/Cdr.h"
+#include "cpp/exceptions/Exception.h"
 
 using namespace eProsima;
 
-bool StringTypeCode::deserialize(CDR &cdr)
+bool StringTypeCode::deserialize(Cdr &cdr)
 {
-    return (cdr >> m_dump) & (cdr >> m_maxLength);
+    try
+    {
+        cdr >> m_dump;
+        cdr >> m_maxLength;
+        return true;
+    }
+    catch(eProsima::Exception &ex) {}
+
+    return false;
 }
 
 bool StringTypeCode::print(IDLPrinter &printer, bool write) const

@@ -7,7 +7,7 @@
 
 namespace eProsima
 {
-    class CDR;
+    class Cdr;
 
     class ArrayTypeCode : public ContentTypeCode
     {
@@ -34,7 +34,7 @@ namespace eProsima
          * @param Reference to the CDR stream.
          * @return if the operation works successfully then a true value is returned. In other case false value is returned.
          */
-        bool deserialize(CDR &cdr);
+        bool deserialize(Cdr &cdr);
 
         bool print(IDLPrinter &printer, bool write) const;
 

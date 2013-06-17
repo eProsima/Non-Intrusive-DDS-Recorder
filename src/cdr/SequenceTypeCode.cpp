@@ -1,6 +1,7 @@
 #include "cdr/SequenceTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "Cdr.h"
+#include "cpp/Cdr.h"
+#include "cpp/exceptions/Exception.h"
 
 using namespace eProsima;
 
@@ -13,16 +14,23 @@ uint32_t SequenceTypeCode::getMaxLength() const
     return m_maxLength;
 }
 
-bool SequenceTypeCode::deserialize(CDR &cdr)
+bool SequenceTypeCode::deserialize(Cdr &cdr)
 {
     bool returnedValue = true;
     uint16_t size = 0;
 
-    // Deserialize size.
-    returnedValue &= cdr >> size;
-    returnedValue &= cdr >> m_maxLength;
+    try
+    {
+        // Deserialize size.
+        cdr >> size;
+        cdr >> m_maxLength;
 
-    returnedValue &= deserializeContent(cdr);
+        returnedValue &= deserializeContent(cdr);
+    }
+    catch(eProsima::Exception &ex)
+    {
+        returnedValue = false;
+    }
 
     return returnedValue;
 }

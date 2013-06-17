@@ -1,6 +1,7 @@
 #include "cdr/StructTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "Cdr.h"
+#include "cpp/Cdr.h"
+#include "cpp/exceptions/Exception.h"
 
 using namespace eProsima;
 
@@ -13,28 +14,41 @@ StructTypeCode::StructTypeCode() : MemberedTypeCode(TypeCode::KIND_STRUCT)
 {
 }
 
-bool StructTypeCode::deserialize(CDR &cdr)
+bool StructTypeCode::deserialize(Cdr &cdr)
 {
     bool returnedValue = true;
     uint16_t size = 0;
 
-    // Deserialize size.
-    returnedValue &= cdr >> size;
-    returnedValue &= deserializeName(cdr);
-    returnedValue &= deserializeMembers(cdr);
+    try
+    {
+        // Deserialize size.
+        cdr >> size;
+        returnedValue &= deserializeName(cdr);
+        returnedValue &= deserializeMembers(cdr);
+    }
+    catch(eProsima::Exception &ex)
+    {
+        returnedValue = false;
+    }
 
     return returnedValue;
 }
 
-Member* StructTypeCode::deserializeMemberInfo(std::string name, CDR &cdr)
+Member* StructTypeCode::deserializeMemberInfo(std::string name, Cdr &cdr)
 {
     Member *returnedValue = NULL;
     uint8_t mPointer = 0;
     uint16_t bits = 0;
     uint8_t flags = 0;
 
-    if((cdr >> mPointer) &&(cdr >> bits) && cdr >> flags)
+    try
+    {
+        cdr >> mPointer;
+        cdr >> bits;
+        cdr >> flags;
         returnedValue = new StructMember(name, bits, flags);
+    }
+    catch(eProsima::Exception &ex) {}
 
     return returnedValue;
 }

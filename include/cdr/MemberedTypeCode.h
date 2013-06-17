@@ -2,7 +2,8 @@
 #define _CDR_MEMBEREDTYPECODE_H_
 
 #include "cdr/TypeCode.h"
-#include "Cdr.h"
+#include "cpp/Cdr.h"
+#include "cpp/exceptions/Exception.h"
 
 #include <string>
 #include <vector>
@@ -34,7 +35,7 @@ namespace eProsima
         /*!
          * @brief This function deserializes the member's typecode.
          */
-        virtual bool deserialize(CDR &cdr);
+        virtual bool deserialize(Cdr &cdr);
 
         private:
 
@@ -73,17 +74,28 @@ namespace eProsima
         /*!
          * @brief This function deserializes the name of a membered typecode.
          */
-        inline bool deserializeName(CDR &cdr){return cdr >> m_name;}
+        inline bool deserializeName(Cdr &cdr)
+        {
+            try
+            {
+                cdr >> m_name;
+                return true;
+            }
+            catch(eProsima::Exception &ex)
+            {
+                return false;
+            }
+        }
 
         /*!
          * @brief This function deserializes the members of the type.
          */
-        bool deserializeMembers(CDR &cdr);
+        bool deserializeMembers(Cdr &cdr);
 
         /*!
          * @brief This function has to be implemented to deserialize the specific member.
          */
-        virtual Member* deserializeMemberInfo(std::string name, CDR &cdr) = 0;
+        virtual Member* deserializeMemberInfo(std::string name, Cdr &cdr) = 0;
 
         std::vector<Member*> m_members;
 

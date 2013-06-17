@@ -22,7 +22,7 @@ const TypeCode* Member::getTypeCode() const
     return m_typeCode;
 }
 
-bool Member::deserialize(CDR &cdr)
+bool Member::deserialize(Cdr &cdr)
 {
     return (m_typeCode = TypeCode::deserializeTypeCode(cdr)) != NULL;
 }
@@ -46,30 +46,35 @@ const Member* MemberedTypeCode::getMember(uint32_t index) const
     return m_members[index];
 }
 
-bool MemberedTypeCode::deserializeMembers(CDR &cdr)
+bool MemberedTypeCode::deserializeMembers(Cdr &cdr)
 {
     bool returnedValue = true;
     uint16_t msize = 0;
     std::string mname;
     Member *member = NULL;
 
-    returnedValue &= cdr >> m_memberCount;
-
-    for(uint32_t i = 0; returnedValue && (i < m_memberCount); ++i)
+    try
     {
-        returnedValue &= cdr >> msize;
-        returnedValue &= cdr >> mname;
-        member = deserializeMemberInfo(mname, cdr);
+        cdr >> m_memberCount;
 
-        if(member != NULL)
+        for(uint32_t i = 0; i < m_memberCount; ++i)
         {
-            returnedValue &= member->deserialize(cdr);
+            cdr >> msize;
+            cdr >> mname;
+            member = deserializeMemberInfo(mname, cdr);
 
-            if(returnedValue)
-                m_members.push_back(member);
-            else
-                delete member;
+            if(member != NULL)
+            {
+                if(member->deserialize(cdr))
+                    m_members.push_back(member);
+                else
+                    delete member;
+            }
         }
+    }
+    catch(eProsima::Exception &ex)
+    {
+        returnedValue = false;
     }
 
     return returnedValue;

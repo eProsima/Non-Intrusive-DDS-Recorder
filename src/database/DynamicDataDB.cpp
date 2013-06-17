@@ -1,6 +1,7 @@
 #include "database/DynamicDataDB.h"
 #include "eProsima_c/eProsimaMacros.h"
 #include "eProsima_cpp/eProsimaLog.h"
+#include "cpp/exceptions/Exception.h"
 #include "cdr/StructTypeCode.h"
 #include "cdr/ArrayTypeCode.h"
 #include "cdr/EnumTypeCode.h"
@@ -894,7 +895,7 @@ bool DynamicDataDB::processSequencePrimitiveInitialStatements(string &table_crea
     return returnedValue;
 }
 
-bool DynamicDataDB::processStructsStorage(const StructTypeCode *typeCode, CDR &cdr,
+bool DynamicDataDB::processStructsStorage(const StructTypeCode *typeCode, Cdr &cdr,
     std::string &suffix, int &index, bool step)
 {
     const char* const METHOD_NAME = "processStructsStorage";
@@ -930,7 +931,7 @@ bool DynamicDataDB::processStructsStorage(const StructTypeCode *typeCode, CDR &c
     return returnedValue;
 }
 
-bool DynamicDataDB::processUnionsStorage(const UnionTypeCode *typeCode, CDR &cdr,
+bool DynamicDataDB::processUnionsStorage(const UnionTypeCode *typeCode, Cdr &cdr,
     std::string &suffix, int &index, bool step)
 {
     const char* const METHOD_NAME = "processUnionsStorage";
@@ -942,8 +943,10 @@ bool DynamicDataDB::processUnionsStorage(const UnionTypeCode *typeCode, CDR &cdr
 
     if(typeCode != NULL)
     {
-        if(cdr >> discriminator)
+        try
         {
+            cdr >> discriminator;
+
             membersNumber = typeCode->getMemberCount();
             sqlite3_bind_int(m_addStmt, index++, discriminator);
 
@@ -986,13 +989,17 @@ bool DynamicDataDB::processUnionsStorage(const UnionTypeCode *typeCode, CDR &cdr
                 if(memberInfo != NULL)
                 {
                     returnedValue = processMembersStorage(static_cast<const Member*>(memberInfo), cdr,
-                        suffix, index, !discriminatorMatch || !(count == memberMatch));
+                            suffix, index, !discriminatorMatch || !(count == memberMatch));
                 }
                 else
                 {
                     logError(m_log, "Cannot obtain info about member %d", count);
                 }
             }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            logError(m_log, "Exception: ", ex.what());
         }
     }
     else
@@ -1008,7 +1015,7 @@ bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, 
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
         unsigned int destAppId, unsigned int destInstanceId,
-        const TypeCode *typeCode, CDR &cdr)
+        const TypeCode *typeCode, Cdr &cdr)
 {
     const char* const METHOD_NAME = "storeDynamicData";
     bool returnedValue = false;
@@ -1073,7 +1080,7 @@ bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, 
     return returnedValue;
 }
 
-bool DynamicDataDB::processMembersStorage(const Member *memberInfo, CDR &cdr,
+bool DynamicDataDB::processMembersStorage(const Member *memberInfo, Cdr &cdr,
     string &suffix, int &index, bool step)
 {
     const char* const METHOD_NAME = "processMembersStorage";
@@ -1141,7 +1148,7 @@ bool DynamicDataDB::processMembersStorage(const Member *memberInfo, CDR &cdr,
 }
 
 bool DynamicDataDB::processPrimitiveStorage(const PrimitiveTypeCode *primitiveInfo,
-        CDR &cdr, int &index, bool step)
+        Cdr &cdr, int &index, bool step)
 {
     bool returnedValue = false;
 
@@ -1149,7 +1156,7 @@ bool DynamicDataDB::processPrimitiveStorage(const PrimitiveTypeCode *primitiveIn
     {
         writePrimitiveStorageFunctions *writePrimitiveStorageFunctionsPointer =
             DynamicDataDB::writePrimitiveStorageFunctionsMap;
-        bool (*addToStream)(sqlite3_stmt *stmt, CDR &cdr, int & index) = NULL;
+        bool (*addToStream)(sqlite3_stmt *stmt, Cdr &cdr, int & index) = NULL;
 
         while(writePrimitiveStorageFunctionsPointer->_kind != TypeCode::KIND_NULL)
         {
@@ -1175,7 +1182,7 @@ bool DynamicDataDB::processPrimitiveStorage(const PrimitiveTypeCode *primitiveIn
     return returnedValue;
 }
 
-bool DynamicDataDB::addOctetStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addOctetStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addOctetStorage";
     bool returnedValue = false;
@@ -1183,12 +1190,13 @@ bool DynamicDataDB::addOctetStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     if(stmt != NULL)
     {
         uint8_t value;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the octet field");
         }
@@ -1201,7 +1209,7 @@ bool DynamicDataDB::addOctetStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addShortStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addShortStorage";
     bool returnedValue = false;
@@ -1209,12 +1217,13 @@ bool DynamicDataDB::addShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     if(stmt != NULL)
     {
         int16_t value;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the short field");
         }
@@ -1227,7 +1236,7 @@ bool DynamicDataDB::addShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addUShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addUShortStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addUShortStorage";
     bool returnedValue = false;
@@ -1235,12 +1244,13 @@ bool DynamicDataDB::addUShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     if(stmt != NULL)
     {
         uint16_t value;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the ushort field");
         }
@@ -1254,7 +1264,7 @@ bool DynamicDataDB::addUShortStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
 }
 
 
-bool DynamicDataDB::addLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addLongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addLongStorage";
     bool returnedValue = false;
@@ -1262,12 +1272,13 @@ bool DynamicDataDB::addLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     if(stmt != NULL)
     {
         int32_t value;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the long field");
         }
@@ -1280,7 +1291,7 @@ bool DynamicDataDB::addLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addULongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addULongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addULongStorage";
     bool returnedValue = false;
@@ -1288,12 +1299,13 @@ bool DynamicDataDB::addULongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     if(stmt != NULL)
     {
         uint32_t value;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the ulong field");
         }
@@ -1306,7 +1318,7 @@ bool DynamicDataDB::addULongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addLongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addLongLongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addLongLongStorage";
     bool returnedValue = false;
@@ -1314,12 +1326,13 @@ bool DynamicDataDB::addLongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     if(stmt != NULL)
     {
         int64_t value;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_int64(stmt, index++, value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the longlong field");
         }
@@ -1332,7 +1345,7 @@ bool DynamicDataDB::addLongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addULongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addULongLongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addULongLongStorage";
     bool returnedValue = false;
@@ -1340,12 +1353,13 @@ bool DynamicDataDB::addULongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index
     if(stmt != NULL)
     {
         uint64_t value;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_int64(stmt, index++, value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the ulonglong field");
         }
@@ -1358,7 +1372,7 @@ bool DynamicDataDB::addULongLongStorage(sqlite3_stmt *stmt, CDR &cdr, int &index
     return returnedValue;
 }
 
-bool DynamicDataDB::addCharStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addCharStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addCharStorage";
     bool returnedValue = false;
@@ -1366,10 +1380,15 @@ bool DynamicDataDB::addCharStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     if(stmt != NULL)
     {
         char value = 0;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_text(stmt, index++, &value, 1, SQLITE_STATIC);
             returnedValue = true;
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get the char field");
         }
     }
     else
@@ -1380,7 +1399,7 @@ bool DynamicDataDB::addCharStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addStringStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addStringStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addStringStorage";
     bool returnedValue = false;
@@ -1389,10 +1408,15 @@ bool DynamicDataDB::addStringStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     {
         std::string value;
 
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_text(stmt, index++, value.c_str(), (int)value.length(), SQLITE_TRANSIENT);
             returnedValue = true;
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get the string field");
         }
     }
     else
@@ -1403,7 +1427,7 @@ bool DynamicDataDB::addStringStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addFloatStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addFloatStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addFloatStorage";
     bool returnedValue = false;
@@ -1411,12 +1435,13 @@ bool DynamicDataDB::addFloatStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     if(stmt != NULL)
     {
         float value;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_double(stmt, index++, (double)value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the float field");
         }
@@ -1429,7 +1454,7 @@ bool DynamicDataDB::addFloatStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addDoubleStorage";
     bool returnedValue = false;
@@ -1437,12 +1462,13 @@ bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     if(stmt != NULL)
     {
         double value;
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_double(stmt, index++, value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the double field");
         }
@@ -1455,7 +1481,7 @@ bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
+bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
 {
     const char* const METHOD_NAME = "addBoolStorage";
     bool returnedValue = false;
@@ -1464,12 +1490,13 @@ bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     {
         uint8_t value;
 
-        if(cdr >> value)
+        try
         {
+            cdr >> value;
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        else
+        catch(eProsima::Exception &ex)
         {
             printError("Cannot get the boolean field");
         }
@@ -1482,7 +1509,7 @@ bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, CDR &cdr, int &index)
     return returnedValue;
 }
 
-bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr, int &index, bool step)
+bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, Cdr &cdr, int &index, bool step)
 {
     const char* const METHOD_NAME = "addEnumStorage";
     bool returnedValue = false;
@@ -1493,8 +1520,9 @@ bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumT
         {
             int32_t ordinal;
 
-            if(cdr >> ordinal)
+            try
             {
+                cdr >> ordinal;
                 const EnumMember *member = enumTC->getMemberWithOrdinal(ordinal);
 
                 if(member != NULL)
@@ -1506,6 +1534,10 @@ bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumT
                 {
                     printError("Cannot find ordinal of the enumerator");
                 }
+            }
+            catch(eProsima::Exception &ex)
+            {
+                printError("Cannot get the ordinal of the enumerator");
             }
         }
         else
@@ -1522,7 +1554,7 @@ bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumT
     return returnedValue;
 }
 
-bool DynamicDataDB::processArraysStorage(const ArrayTypeCode *typeCode, CDR &cdr, string &suffix,
+bool DynamicDataDB::processArraysStorage(const ArrayTypeCode *typeCode, Cdr &cdr, string &suffix,
         const string &memberName, int &index, bool step)
 {
     const char* const METHOD_NAME = "processArraysStorage";
@@ -1600,7 +1632,7 @@ bool DynamicDataDB::processArraysStorage(const ArrayTypeCode *typeCode, CDR &cdr
 }
 
 bool DynamicDataDB::processDimensionsStorage(sqlite3_stmt *stmt,
-        const ArrayTypeCode *typeCode, CDR &cdr,
+        const ArrayTypeCode *typeCode, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "processDimensionsStorage";
@@ -1653,7 +1685,7 @@ bool DynamicDataDB::processDimensionsStorage(sqlite3_stmt *stmt,
     return returnedValue;
 }
 
-bool DynamicDataDB::processArrayElementsStorage(sqlite3_stmt *stmt, const ArrayTypeCode* typeCode, CDR &cdr,
+bool DynamicDataDB::processArrayElementsStorage(sqlite3_stmt *stmt, const ArrayTypeCode* typeCode, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "processArrayElementsStorage";
@@ -1690,13 +1722,13 @@ bool DynamicDataDB::processArrayElementsStorage(sqlite3_stmt *stmt, const ArrayT
     return returnedValue;
 }
 
-bool DynamicDataDB::processArrayPrimitiveStorage(sqlite3_stmt *stmt, const PrimitiveTypeCode *typeCode, CDR &cdr,
+bool DynamicDataDB::processArrayPrimitiveStorage(sqlite3_stmt *stmt, const PrimitiveTypeCode *typeCode, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     bool returnedValue = false;
     writeArrayPrimitiveFunctions *writeArrayPrimitiveFunctionsPointer =
         DynamicDataDB::writeArrayPrimitiveFunctionsMap;
-    bool (*addToStream)(sqlite3_stmt *stmt, CDR &cdr, arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension) = NULL;
+    bool (*addToStream)(sqlite3_stmt *stmt, Cdr &cdr, arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension) = NULL;
 
     while(writeArrayPrimitiveFunctionsPointer->_kind != TypeCode::KIND_NULL)
     {
@@ -1717,7 +1749,7 @@ bool DynamicDataDB::processArrayPrimitiveStorage(sqlite3_stmt *stmt, const Primi
     return returnedValue;
 }
 
-bool DynamicDataDB::addOctetArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addOctetArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addOctetArrayStorage";
@@ -1772,7 +1804,7 @@ bool DynamicDataDB::addOctetArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addShortArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addShortArrayStorage";
@@ -1827,7 +1859,7 @@ bool DynamicDataDB::addShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addUShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addUShortArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addUShortArrayStorage";
@@ -1882,7 +1914,7 @@ bool DynamicDataDB::addUShortArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addLongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addLongArrayStorage";
@@ -1937,7 +1969,7 @@ bool DynamicDataDB::addLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addULongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addULongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addULongArrayStorage";
@@ -1992,7 +2024,7 @@ bool DynamicDataDB::addULongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addLongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addLongLongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addLongLongArrayStorage";
@@ -2047,7 +2079,7 @@ bool DynamicDataDB::addLongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addULongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addULongLongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addULongLongArrayStorage";
@@ -2102,7 +2134,7 @@ bool DynamicDataDB::addULongLongArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addCharArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addCharArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addCharArrayStorage";
@@ -2157,7 +2189,7 @@ bool DynamicDataDB::addCharArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addFloatArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addFloatArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addFloatArrayStorage";
@@ -2211,7 +2243,7 @@ bool DynamicDataDB::addFloatArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addDoubleArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addDoubleArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addDoubleArrayStorage";
@@ -2265,7 +2297,7 @@ bool DynamicDataDB::addDoubleArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
+bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
         arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addBoolArrayStorage";
@@ -2320,7 +2352,7 @@ bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, CDR &cdr,
     return returnedValue;
 }
 
-bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, CDR &cdr,
+bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, Cdr &cdr,
  arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addEnumArrayStorage";
@@ -2386,7 +2418,7 @@ bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *
 }
 
 bool DynamicDataDB::processSequencesStorage(const SequenceTypeCode *typeCode,
-        CDR &cdr, string &suffix,
+        Cdr &cdr, string &suffix,
         const string &memberName, int &index, bool step)
 {
     const char* const METHOD_NAME = "processSequencesStorage";
@@ -2443,7 +2475,7 @@ bool DynamicDataDB::processSequencesStorage(const SequenceTypeCode *typeCode,
     return returnedValue;
 }
 
-bool DynamicDataDB::processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, const SequenceTypeCode *typeCode, CDR &cdr)
+bool DynamicDataDB::processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, const SequenceTypeCode *typeCode, Cdr &cdr)
 {
     const char* const METHOD_NAME = "processSequenceElementsStorage";
     bool returnedValue = false;
@@ -2478,12 +2510,12 @@ bool DynamicDataDB::processSequenceElementsStorage(sqlite3_stmt *stmt, int ref, 
 }
 
 bool DynamicDataDB::processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref,
-        const PrimitiveTypeCode *typeCode, CDR &cdr)
+        const PrimitiveTypeCode *typeCode, Cdr &cdr)
 {
     bool returnedValue = false;
     writeSequencePrimitiveFunctions *writeSequencePrimitiveFunctionsPointer =
         DynamicDataDB::writeSequencePrimitiveFunctionsMap;
-    bool (*addToStream)(sqlite3_stmt *stmt, int ref, CDR &cdr) = NULL;
+    bool (*addToStream)(sqlite3_stmt *stmt, int ref, Cdr &cdr) = NULL;
 
     while(writeSequencePrimitiveFunctionsPointer->_kind != TypeCode::KIND_NULL)
     {
@@ -2504,7 +2536,7 @@ bool DynamicDataDB::processSequencePrimitiveStorage(sqlite3_stmt *stmt, int ref,
     return returnedValue;
 }
 
-bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addOctetSequenceStorage";
     bool returnedValue = false;
@@ -2544,389 +2576,25 @@ bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cd
     return returnedValue;
 }
 
-bool DynamicDataDB::addShortSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+bool DynamicDataDB::addShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addShortSequenceStorage";
-    bool returnedValue = false;
+    bool returnedValue = true;
     std::vector<int16_t> values;
 
     if(stmt != NULL)
     {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        try
         {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
+            cdr >> values;
+
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
             {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_int(stmt, 3, values[count]);
-
-                if(sqlite3_step(stmt) != SQLITE_DONE)
-                {
-                    printError("Cannot step the statement");
-                    returnedValue = false;
-                }
-            }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
-{
-    const char* const METHOD_NAME = "addUShortSequenceStorage";
-    bool returnedValue = false;
-    std::vector<uint16_t> values;
-
-    if(stmt != NULL)
-    {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count <  values.size()); count++)
-        {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_int(stmt, 3, values[count]);
-
-                if(sqlite3_step(stmt) != SQLITE_DONE)
-                {
-                    printError("Cannot step the statement");
-                    returnedValue = false;
-                }
-            }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
-{
-    const char* const METHOD_NAME = "addLongSequenceStorage";
-    bool returnedValue = false;
-    std::vector<int32_t> values;
-
-    if(stmt != NULL)
-    {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
-        {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_int(stmt, 3, values[count]);
-
-                if(sqlite3_step(stmt) != SQLITE_DONE)
-                {
-                    printError("Cannot step the statement");
-                    returnedValue = false;
-                }
-            }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addULongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
-{
-    const char* const METHOD_NAME = "addULongSequenceStorage";
-    bool returnedValue = false;
-    std::vector<uint32_t> values;
-
-    if(stmt != NULL)
-    {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
-        {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_int(stmt, 3, values[count]);
-
-                if(sqlite3_step(stmt) != SQLITE_DONE)
-                {
-                    printError("Cannot step the statement");
-                    returnedValue = false;
-                }
-            }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
-{
-    const char* const METHOD_NAME = "addLongLongSequenceStorage";
-    bool returnedValue = false;
-    std::vector<int64_t> values;
-
-    if(stmt != NULL)
-    {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
-        {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_int64(stmt, 3, values[count]);
-
-                if(sqlite3_step(stmt) != SQLITE_DONE)
-                {
-                    printError("Cannot step the statement");
-                    returnedValue = false;
-                }
-            }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
-{
-    const char* const METHOD_NAME = "addULongLongSequenceStorage";
-    bool returnedValue = false;
-    std::vector<uint64_t> values;
-
-    if(stmt != NULL)
-    {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
-        {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_int64(stmt, 3, values[count]);
-
-                if(sqlite3_step(stmt) != SQLITE_DONE)
-                {
-                    printError("Cannot step the statement");
-                    returnedValue = false;
-                }
-            }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addCharSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
-{
-    const char* const METHOD_NAME = "addCharSequenceStorage";
-    bool returnedValue = false;
-    std::vector<char> values;
-
-    if(stmt != NULL)
-    {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
-        {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_text(stmt, 3, &(values[count]), 1, SQLITE_STATIC);
-
-                if(sqlite3_step(stmt) != SQLITE_DONE)
-                {
-                    printError("Cannot step the statement");
-                    returnedValue = false;
-                }
-            }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
-{
-    const char* const METHOD_NAME = "addFloatSequenceStorage";
-    bool returnedValue = false;
-    std::vector<float> values;
-
-    if(stmt != NULL)
-    {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
-        {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_double(stmt, 3, (double)(values[count]));
-
-                if(sqlite3_step(stmt) != SQLITE_DONE)
-                {
-                    printError("Cannot step the statement");
-                    returnedValue = false;
-                }
-            }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
-{
-    const char* const METHOD_NAME = "addDoubleSequenceStorage";
-    bool returnedValue = false;
-    std::vector<double> values;
-
-    if(stmt != NULL)
-    {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
-        {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_double(stmt, 3, values[count]);
-
-                if(sqlite3_step(stmt) != SQLITE_DONE)
-                {
-                    printError("Cannot step the statement");
-                    returnedValue = false;
-                }
-            }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
-        }
-    }
-    else
-    {
-        printError("Bad parameters");
-    }
-
-    return returnedValue;
-}
-
-bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const EnumTypeCode *enumTC, CDR &cdr)
-{
-    const char* const METHOD_NAME = "addEnumSequenceStorage";
-    bool returnedValue = false;
-    std::vector<int32_t> ordinals;
-
-
-    if(stmt != NULL && enumTC != NULL)
-    {
-        cdr >> ordinals;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < ordinals.size()); count++)
-        {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                const EnumMember *member = enumTC->getMemberWithOrdinal(ordinals[count]);
-
-                if(member != NULL)
+                if(sqlite3_reset(stmt) == SQLITE_OK)
                 {
                     sqlite3_bind_int(stmt, 1, ref);
                     sqlite3_bind_int(stmt, 2, count);
-                    sqlite3_bind_text(stmt, 3, member->getName().c_str(), (int)member->getName().length(), SQLITE_STATIC);
+                    sqlite3_bind_int(stmt, 3, values[count]);
 
                     if(sqlite3_step(stmt) != SQLITE_DONE)
                     {
@@ -2934,12 +2602,16 @@ bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const En
                         returnedValue = false;
                     }
                 }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
             }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get short sequence values");
         }
     }
     else
@@ -2950,36 +2622,463 @@ bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const En
     return returnedValue;
 }
 
-bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, CDR &cdr)
+bool DynamicDataDB::addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
+{
+    const char* const METHOD_NAME = "addUShortSequenceStorage";
+    bool returnedValue = true;
+    std::vector<uint16_t> values;
+
+    if(stmt != NULL)
+    {
+        try
+        {
+            cdr >> values;
+
+            for(unsigned int count = 0; (returnedValue) && (count <  values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, values[count]);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get unsigned short sequence values");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
+{
+    const char* const METHOD_NAME = "addLongSequenceStorage";
+    bool returnedValue = false;
+    std::vector<int32_t> values;
+
+    if(stmt != NULL)
+    {
+        try
+        {
+            cdr >> values;
+
+            returnedValue = true;
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, values[count]);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get long sequence values");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
+{
+    const char* const METHOD_NAME = "addULongSequenceStorage";
+    bool returnedValue = true;
+    std::vector<uint32_t> values;
+
+    if(stmt != NULL)
+    {
+        try
+        {
+            cdr >> values;
+
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, values[count]);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get unsigned long sequence values");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
+{
+    const char* const METHOD_NAME = "addLongLongSequenceStorage";
+    bool returnedValue = true;
+    std::vector<int64_t> values;
+
+    if(stmt != NULL)
+    {
+        try
+        {
+            cdr >> values;
+
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int64(stmt, 3, values[count]);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get long long sequence values");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
+{
+    const char* const METHOD_NAME = "addULongLongSequenceStorage";
+    bool returnedValue = true;
+    std::vector<uint64_t> values;
+
+    if(stmt != NULL)
+    {
+        try
+        {
+            cdr >> values;
+
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int64(stmt, 3, values[count]);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get unsigned long long sequence values");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addCharSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
+{
+    const char* const METHOD_NAME = "addCharSequenceStorage";
+    bool returnedValue = true;
+    std::vector<char> values;
+
+    if(stmt != NULL)
+    {
+        try
+        {
+            cdr >> values;
+
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_text(stmt, 3, &(values[count]), 1, SQLITE_STATIC);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get char sequence values");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
+{
+    const char* const METHOD_NAME = "addFloatSequenceStorage";
+    bool returnedValue = true;
+    std::vector<float> values;
+
+    if(stmt != NULL)
+    {
+        try
+        {
+            cdr >> values;
+
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_double(stmt, 3, (double)(values[count]));
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get float sequence values");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
+{
+    const char* const METHOD_NAME = "addDoubleSequenceStorage";
+    bool returnedValue = true;
+    std::vector<double> values;
+
+    if(stmt != NULL)
+    {
+        try
+        {
+            cdr >> values;
+
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_double(stmt, 3, values[count]);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get double sequence values");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const EnumTypeCode *enumTC, Cdr &cdr)
+{
+    const char* const METHOD_NAME = "addEnumSequenceStorage";
+    bool returnedValue = true;
+    std::vector<int32_t> ordinals;
+
+
+    if(stmt != NULL && enumTC != NULL)
+    {
+        try
+        {
+            cdr >> ordinals;
+
+            for(unsigned int count = 0; (returnedValue) && (count < ordinals.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
+                {
+                    const EnumMember *member = enumTC->getMemberWithOrdinal(ordinals[count]);
+
+                    if(member != NULL)
+                    {
+                        sqlite3_bind_int(stmt, 1, ref);
+                        sqlite3_bind_int(stmt, 2, count);
+                        sqlite3_bind_text(stmt, 3, member->getName().c_str(), (int)member->getName().length(), SQLITE_STATIC);
+
+                        if(sqlite3_step(stmt) != SQLITE_DONE)
+                        {
+                            printError("Cannot step the statement");
+                            returnedValue = false;
+                        }
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
+                    returnedValue = false;
+                }
+            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get enum sequence values");
+        }
+    }
+    else
+    {
+        printError("Bad parameters");
+    }
+
+    return returnedValue;
+}
+
+bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addBoolSequenceStorage";
-    bool returnedValue = false;
+    bool returnedValue = true;
     std::vector<uint8_t> values;
 
     if(stmt != NULL)
     {
-        cdr >> values;
-
-        returnedValue = true;
-        for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+        try
         {
-            if(sqlite3_reset(stmt) == SQLITE_OK)
-            {
-                sqlite3_bind_int(stmt, 1, ref);
-                sqlite3_bind_int(stmt, 2, count);
-                sqlite3_bind_int(stmt, 3, values[count]);
+            cdr >> values;
 
-                if(sqlite3_step(stmt) != SQLITE_DONE)
+            for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
+            {
+                if(sqlite3_reset(stmt) == SQLITE_OK)
                 {
-                    printError("Cannot step the statement");
+                    sqlite3_bind_int(stmt, 1, ref);
+                    sqlite3_bind_int(stmt, 2, count);
+                    sqlite3_bind_int(stmt, 3, values[count]);
+
+                    if(sqlite3_step(stmt) != SQLITE_DONE)
+                    {
+                        printError("Cannot step the statement");
+                        returnedValue = false;
+                    }
+                }
+                else
+                {
+                    printError("Cannot reset statement");
                     returnedValue = false;
                 }
             }
-            else
-            {
-                printError("Cannot reset statement");
-                returnedValue = false;
-            }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get bool sequence values");
         }
     }
     else

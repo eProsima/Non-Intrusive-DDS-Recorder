@@ -5,7 +5,7 @@
 
 namespace eProsima
 {
-    class CDR;
+    class Cdr;
     class IDLPrinter;
 
     class TypeCode
@@ -59,7 +59,7 @@ namespace eProsima
          * @param cdr CDR stream that contains the serialized typecode.
          * @return Pointer to the new TypeCode object. If there was an error, then a NULL pointer is returned.
          */
-        static TypeCode*  deserializeTypeCode(CDR &cdr);
+        static TypeCode*  deserializeTypeCode(Cdr &cdr);
 
         /*!
          * @brief This function returns the kind of the type.

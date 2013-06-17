@@ -20,7 +20,7 @@ const TypeCode* ContentTypeCode::getContentTypeCode() const
     return m_contentTypeCode;
 }
 
-bool ContentTypeCode::deserializeContent(CDR &cdr)
+bool ContentTypeCode::deserializeContent(Cdr &cdr)
 {
     return (m_contentTypeCode = TypeCode::deserializeTypeCode(cdr)) != NULL;
 }

@@ -6,7 +6,7 @@
 
 namespace eProsima
 {
-    class CDR;
+    class Cdr;
     class IDLPrinter;
 
     class UnionMember : public Member
@@ -47,7 +47,7 @@ namespace eProsima
          * @param Reference to the CDR stream.
          * @return if the operation works successfully then a true value is returned. In other case false value is returned.
          */
-        bool deserialize(CDR &cdr);
+        bool deserialize(Cdr &cdr);
 
 		bool print(IDLPrinter &printer, bool write) const;
 
@@ -57,7 +57,7 @@ namespace eProsima
 
     private:
         
-        Member* deserializeMemberInfo(std::string name, CDR &cdr);
+        Member* deserializeMemberInfo(std::string name, Cdr &cdr);
 
         int32_t m_defaultIndex;
 

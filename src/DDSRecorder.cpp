@@ -1,5 +1,6 @@
 #include "DDSRecorder.h"
-#include "Cdr.h"
+#include "cpp/Cdr.h"
+#include "cpp/exceptions/Exception.h"
 #include "eProsima_cpp/eProsimaLog.h"
 #include "database/TypeCodeDB.h"
 #include "database/EntitiesDB.h"
@@ -264,11 +265,13 @@ void DDSRecorder::processDataNormal(const struct timeval &wts, string &ip_src, s
         if((typecode = m_typecodeDB->findTypecode(entity->getTopicName(),
                         entity->getTypeName())) != NULL)
         {
-            CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIANESS : CDRBuffer::BIG_ENDIANESS;
-            CDRBuffer buffer((char*)serializedData, serializedDataLen, _endianess);
-            CDR cdr(buffer, CDR::DDS_CDR);
+            Cdr::Endianness _endianess = endianess ? Cdr::LITTLE_ENDIANNESS : Cdr::BIG_ENDIANNESS;
+            FastBuffer buffer((char*)serializedData, serializedDataLen);
+            Cdr cdr(buffer, _endianess, Cdr::DDS_CDR);
             
-            if(cdr.read_encapsulation() && cdr.getDDSCdrPlFlag() == CDR::DDS_CDR_WITHOUT_PL)
+            cdr.read_encapsulation();
+
+            if(cdr.getDDSCdrPlFlag() == Cdr::DDS_CDR_WITHOUT_PL)
             {
 				// It is necessary reset the alignment in the CDR buffer.
 				cdr.resetAlignment();
@@ -304,52 +307,62 @@ void DDSRecorder::processDataNormal(const struct timeval &wts, string &ip_src, s
 bool DDSRecorder::deserializePublicationBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, DDSRecorder::PublicationBuiltinTopic &pubtopic)
 {
     const char* const METHOD_NAME = "deserializePublicationBuiltinTopic";
-    bool returnedValue = false;
+    bool returnedValue = true;
 
     if(serializedData != NULL)
     {
-        CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIANESS : CDRBuffer::BIG_ENDIANESS;
-        CDRBuffer buffer((char*)serializedData, serializedDataLength, _endianess);
-        CDR cdr(buffer, CDR::DDS_CDR);
+        Cdr::Endianness _endianess = endianess ? Cdr::LITTLE_ENDIANNESS : Cdr::BIG_ENDIANNESS;
+        FastBuffer buffer((char*)serializedData, serializedDataLength);
+        Cdr cdr(buffer, _endianess, Cdr::DDS_CDR);
 
-        if(cdr.read_encapsulation() && cdr.getDDSCdrPlFlag() == CDR::DDS_CDR_WITH_PL)
+        cdr.read_encapsulation();
+
+        if(cdr.getDDSCdrPlFlag() == Cdr::DDS_CDR_WITH_PL)
         {
             uint16_t parameterId, parameterLength;
 
-            returnedValue = cdr >> parameterId;
-            returnedValue &= cdr >> parameterLength;
-
-            while(returnedValue && parameterId != RTPS_PID_END)
+            try
             {
-                CDRBuffer::State currentState = cdr.getState();
+                cdr >> parameterId;
+                cdr >> parameterLength;
 
-                switch(parameterId)
+                while(parameterId != RTPS_PID_END)
                 {
-                case RTPS_PID_GUID:
-                    returnedValue &= cdr.deserialize(pubtopic.guid.hostId, CDRBuffer::BIG_ENDIANESS);
-                    returnedValue &= cdr.deserialize(pubtopic.guid.appId, CDRBuffer::BIG_ENDIANESS);
-                    returnedValue &= cdr.deserialize(pubtopic.guid.instanceId, CDRBuffer::BIG_ENDIANESS);
-                    returnedValue &= cdr.deserialize(pubtopic.guid.objectId, CDRBuffer::BIG_ENDIANESS);
-                    break;
-                case RTPS_PID_TOPIC_NAME:
-                    returnedValue &= cdr >> pubtopic.topic_name;
-                    break;
-                case RTPS_PID_TYPE_NAME:
-                    returnedValue &= cdr >> pubtopic.type_name;
-                    break;
-                case RTPS_PID_TYPECODE:
-                    pubtopic.typeCode = cdr.getCurrentPosition();
-                    pubtopic.typeCodeLength = parameterLength;
-                    break;
-                default:
-                    break;
+                    Cdr::state currentState = cdr.getState();
+
+                    switch(parameterId)
+                    {
+                        case RTPS_PID_GUID:
+                            cdr.deserialize(pubtopic.guid.hostId, Cdr::BIG_ENDIANNESS);
+                            cdr.deserialize(pubtopic.guid.appId, Cdr::BIG_ENDIANNESS);
+                            cdr.deserialize(pubtopic.guid.instanceId, Cdr::BIG_ENDIANNESS);
+                            cdr.deserialize(pubtopic.guid.objectId, Cdr::BIG_ENDIANNESS);
+                            break;
+                        case RTPS_PID_TOPIC_NAME:
+                            cdr >> pubtopic.topic_name;
+                            break;
+                        case RTPS_PID_TYPE_NAME:
+                            cdr >> pubtopic.type_name;
+                            break;
+                        case RTPS_PID_TYPECODE:
+                            pubtopic.typeCode = cdr.getCurrentPosition();
+                            pubtopic.typeCodeLength = parameterLength;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    cdr.setState(currentState);
+                    cdr.jump(parameterLength);
+
+                    cdr >> parameterId;
+                    cdr >> parameterLength;
                 }
-
-                cdr.setState(currentState);
-                returnedValue &= cdr.jump(parameterLength);
-
-                returnedValue &= cdr >> parameterId;
-                returnedValue &= cdr >> parameterLength;
+            }
+            catch(eProsima::Exception &ex)
+            {
+                logError(m_log, "Exception: ", ex.what());
+                returnedValue = false;
             }
         }
     }
@@ -364,52 +377,62 @@ bool DDSRecorder::deserializePublicationBuiltinTopic(bool endianess, char* seria
 bool DDSRecorder::deserializeSubscriptionBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, DDSRecorder::SubscriptionBuiltinTopic &subtopic)
 {
     const char* const METHOD_NAME = "deserializeSubscriptionBuiltinTopic";
-    bool returnedValue = false;
+    bool returnedValue = true;
 
     if(serializedData != NULL)
     {
-        CDRBuffer::Endianess _endianess = endianess ? CDRBuffer::LITTLE_ENDIANESS : CDRBuffer::BIG_ENDIANESS;
-        CDRBuffer buffer((char*)serializedData, serializedDataLength, _endianess);
-        CDR cdr(buffer, CDR::DDS_CDR);
+        Cdr::Endianness _endianess = endianess ? Cdr::LITTLE_ENDIANNESS : Cdr::BIG_ENDIANNESS;
+        FastBuffer buffer((char*)serializedData, serializedDataLength);
+        Cdr cdr(buffer, _endianess, Cdr::DDS_CDR);
 
-        if(cdr.read_encapsulation() && cdr.getDDSCdrPlFlag() == CDR::DDS_CDR_WITH_PL)
+        cdr.read_encapsulation();
+        
+        if(cdr.getDDSCdrPlFlag() == Cdr::DDS_CDR_WITH_PL)
         {
             uint16_t parameterId, parameterLength;
 
-            returnedValue = cdr >> parameterId;
-            returnedValue &= cdr >> parameterLength;
-
-            while(returnedValue && parameterId != RTPS_PID_END)
+            try
             {
-                CDRBuffer::State currentState = cdr.getState();
+                cdr >> parameterId;
+                cdr >> parameterLength;
 
-                switch(parameterId)
+                while(parameterId != RTPS_PID_END)
                 {
-                case RTPS_PID_GUID:
-                    returnedValue &= cdr.deserialize(subtopic.guid.hostId, CDRBuffer::BIG_ENDIANESS);
-                    returnedValue &= cdr.deserialize(subtopic.guid.appId, CDRBuffer::BIG_ENDIANESS);
-                    returnedValue &= cdr.deserialize(subtopic.guid.instanceId, CDRBuffer::BIG_ENDIANESS);
-                    returnedValue &= cdr.deserialize(subtopic.guid.objectId, CDRBuffer::BIG_ENDIANESS);
-                    break;
-                case RTPS_PID_TOPIC_NAME:
-                    returnedValue &= cdr >> subtopic.topic_name;
-                    break;
-                case RTPS_PID_TYPE_NAME:
-                    returnedValue &= cdr >> subtopic.type_name;
-                    break;
-                case RTPS_PID_TYPECODE:
-                    subtopic.typeCode = cdr.getCurrentPosition();
-                    subtopic.typeCodeLength = parameterLength;
-                    break;
-                default:
-                    break;
+                    Cdr::state currentState = cdr.getState();
+
+                    switch(parameterId)
+                    {
+                        case RTPS_PID_GUID:
+                            cdr.deserialize(subtopic.guid.hostId, Cdr::BIG_ENDIANNESS);
+                            cdr.deserialize(subtopic.guid.appId, Cdr::BIG_ENDIANNESS);
+                            cdr.deserialize(subtopic.guid.instanceId, Cdr::BIG_ENDIANNESS);
+                            cdr.deserialize(subtopic.guid.objectId, Cdr::BIG_ENDIANNESS);
+                            break;
+                        case RTPS_PID_TOPIC_NAME:
+                            cdr >> subtopic.topic_name;
+                            break;
+                        case RTPS_PID_TYPE_NAME:
+                            cdr >> subtopic.type_name;
+                            break;
+                        case RTPS_PID_TYPECODE:
+                            subtopic.typeCode = cdr.getCurrentPosition();
+                            subtopic.typeCodeLength = parameterLength;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    cdr.setState(currentState);
+                    cdr.jump(parameterLength);
+
+                    cdr >> parameterId;
+                    cdr >> parameterLength;
                 }
-
-                cdr.setState(currentState);
-                returnedValue &= cdr.jump(parameterLength);
-
-                returnedValue &= cdr >> parameterId;
-                returnedValue &= cdr >> parameterLength;
+            }
+            catch(eProsima::Exception &ex)
+            {
+                logError(m_log, "Exception: ", ex.what());
+                returnedValue = false;
             }
         }
     }

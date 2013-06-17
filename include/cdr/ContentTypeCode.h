@@ -22,7 +22,7 @@ namespace eProsima
         //! @brief Default destructor.
         virtual ~ContentTypeCode();
 
-        bool deserializeContent(CDR &cdr);
+        bool deserializeContent(Cdr &cdr);
 
     private:
 

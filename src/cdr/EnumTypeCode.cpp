@@ -1,6 +1,6 @@
 #include "cdr/EnumTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "Cdr.h"
+#include "cpp/Cdr.h"
 
 using namespace eProsima;
 
@@ -9,7 +9,7 @@ EnumMember::EnumMember(std::string &name, uint32_t ordinal) : Member(name),
 {
 }
 
-bool EnumMember::deserialize(CDR &cdr)
+bool EnumMember::deserialize(Cdr &cdr)
 {
     return true;
 }
@@ -23,26 +23,39 @@ EnumTypeCode::EnumTypeCode() : MemberedTypeCode(TypeCode::KIND_ENUM)
 {
 }
 
-bool EnumTypeCode::deserialize(CDR &cdr)
+bool EnumTypeCode::deserialize(Cdr &cdr)
 {
     bool returnedValue = true;
     uint16_t size = 0;
 
     // Deserialize size.
-    returnedValue &= cdr >> size;
-    returnedValue &= deserializeName(cdr);
-    returnedValue &= deserializeMembers(cdr);
+    try
+    {
+        cdr >> size;
+        returnedValue &= deserializeName(cdr);
+        returnedValue &= deserializeMembers(cdr);
+    }
+    catch(eProsima::Exception &ex)
+    {
+        returnedValue = false;
+    }
 
     return returnedValue;
 }
 
-Member* EnumTypeCode::deserializeMemberInfo(std::string name, CDR &cdr)
+Member* EnumTypeCode::deserializeMemberInfo(std::string name, Cdr &cdr)
 {
     Member *returnedValue = NULL;
     uint32_t ordinal;
 
-    if(cdr >> ordinal)
+    try
+    {
+        cdr >> ordinal;
         returnedValue = new EnumMember(name, ordinal);
+    }
+    catch(eProsima::Exception &ex)
+    {
+    }
 
     return returnedValue;
 }
