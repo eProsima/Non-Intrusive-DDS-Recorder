@@ -2544,6 +2544,8 @@ bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
 
     if(stmt != NULL)
     {
+        try
+        {
             cdr >> values;
 
             returnedValue = true;
@@ -2567,6 +2569,11 @@ bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
                     returnedValue = false;
                 }
             }
+        }
+        catch(eProsima::Exception &ex)
+        {
+            printError("Cannot get octet sequence values");
+        }
     }
     else
     {
@@ -2579,7 +2586,7 @@ bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
 bool DynamicDataDB::addShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addShortSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<int16_t> values;
 
     if(stmt != NULL)
@@ -2588,6 +2595,7 @@ bool DynamicDataDB::addShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
         {
             cdr >> values;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
@@ -2625,7 +2633,7 @@ bool DynamicDataDB::addShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
 bool DynamicDataDB::addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addUShortSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<uint16_t> values;
 
     if(stmt != NULL)
@@ -2634,6 +2642,7 @@ bool DynamicDataDB::addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &c
         {
             cdr >> values;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count <  values.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
@@ -2718,7 +2727,7 @@ bool DynamicDataDB::addLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr
 bool DynamicDataDB::addULongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addULongSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<uint32_t> values;
 
     if(stmt != NULL)
@@ -2727,6 +2736,7 @@ bool DynamicDataDB::addULongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
         {
             cdr >> values;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
@@ -2764,7 +2774,7 @@ bool DynamicDataDB::addULongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
 bool DynamicDataDB::addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addLongLongSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<int64_t> values;
 
     if(stmt != NULL)
@@ -2773,6 +2783,7 @@ bool DynamicDataDB::addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr 
         {
             cdr >> values;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
@@ -2810,7 +2821,7 @@ bool DynamicDataDB::addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr 
 bool DynamicDataDB::addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addULongLongSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<uint64_t> values;
 
     if(stmt != NULL)
@@ -2819,6 +2830,7 @@ bool DynamicDataDB::addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr
         {
             cdr >> values;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
@@ -2856,7 +2868,7 @@ bool DynamicDataDB::addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr
 bool DynamicDataDB::addCharSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addCharSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<char> values;
 
     if(stmt != NULL)
@@ -2865,6 +2877,7 @@ bool DynamicDataDB::addCharSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr
         {
             cdr >> values;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
@@ -2902,7 +2915,7 @@ bool DynamicDataDB::addCharSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr
 bool DynamicDataDB::addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addFloatSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<float> values;
 
     if(stmt != NULL)
@@ -2911,6 +2924,7 @@ bool DynamicDataDB::addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
         {
             cdr >> values;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
@@ -2948,7 +2962,7 @@ bool DynamicDataDB::addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
 bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addDoubleSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<double> values;
 
     if(stmt != NULL)
@@ -2957,6 +2971,7 @@ bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &c
         {
             cdr >> values;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
@@ -2994,7 +3009,7 @@ bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &c
 bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const EnumTypeCode *enumTC, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addEnumSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<int32_t> ordinals;
 
 
@@ -3004,6 +3019,7 @@ bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const En
         {
             cdr >> ordinals;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count < ordinals.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
@@ -3046,7 +3062,7 @@ bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const En
 bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr)
 {
     const char* const METHOD_NAME = "addBoolSequenceStorage";
-    bool returnedValue = true;
+    bool returnedValue = false;
     std::vector<uint8_t> values;
 
     if(stmt != NULL)
@@ -3055,6 +3071,7 @@ bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr
         {
             cdr >> values;
 
+            returnedValue = true;
             for(unsigned int count = 0; (returnedValue) && (count < values.size()); count++)
             {
                 if(sqlite3_reset(stmt) == SQLITE_OK)
