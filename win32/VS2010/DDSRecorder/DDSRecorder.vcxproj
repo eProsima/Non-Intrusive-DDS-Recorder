@@ -85,8 +85,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include\cpp;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EPROSIMA_WIN32;EPROSIMA_CPP_DLL_VARIABLE;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -107,8 +107,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include\cpp;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EPROSIMA_WIN32;EPROSIMA_CPP_DLL_VARIABLE;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -126,8 +126,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include\cpp;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EPROSIMA_WIN32;EPROSIMA_CPP_DLL_VARIABLE;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -147,8 +147,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include\cpp;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\cdr\include;$(EPROSIMADIR)\code;$(HOME)\programas\WinPcap\WpdPack-4.1.1\Include;$(HOME)\programas\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EPROSIMA_WIN32;EPROSIMA_CPP_DLL_VARIABLE;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)</ObjectFileName>
