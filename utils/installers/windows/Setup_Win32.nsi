@@ -59,6 +59,9 @@ Section -Main SEC0000
     SetOutPath $INSTDIR\doc
     File "..\..\..\doc\Users Manual.pdf"
     File "..\..\..\doc\Installation Manual.pdf"
+    SetOutPath $INSTDIR\examples\HelloWorld
+    File "..\..\..\examples\HelloWorld\HelloWorld.db"
+    File "..\..\..\examples\HelloWorld\HelloWorld.pcap"
     SetOutPath $INSTDIR
     File ..\..\..\doc\licencias\DDSRECORDER_LICENSE.txt
     File ..\..\..\doc\licencias\LGPLv3_LICENSE.txt
@@ -98,6 +101,8 @@ Section /o -un.Main UNSEC0000
     Delete /REBOOTOK $INSTDIR\DDSRECORDER_LICENSE.txt
     Delete /REBOOTOK "$INSTDIR\doc\Installation Manual.pdf"
     Delete /REBOOTOK "$INSTDIR\doc\Users Manual.pdf"
+    Delete /REBOOTOK "$INSTDIR\examples\HelloWorld\HelloWorld.db"
+    Delete /REBOOTOK "$INSTDIR\examples\HelloWorld\HelloWorld.pcap"
     Delete /REBOOTOK $INSTDIR\bin\CDR.dll
     Delete /REBOOTOK $INSTDIR\bin\DDSRecorder.exe
     DeleteRegValue HKLM "${REGKEY}\Components" Main

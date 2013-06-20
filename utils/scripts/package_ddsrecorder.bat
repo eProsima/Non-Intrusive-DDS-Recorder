@@ -1,4 +1,11 @@
 :: This script pack DDSRecorder library for any platform.
+::
+:: This script needs the next environment variables to be run.
+:: - SVN_BIN_DIR: Directory with the subversion binaries.
+:: - LIBREOFFICE_BIN_DIR: Directory with the LibreOffice binaries.
+:: - NSIS_BIN_DIR: Directory with the NSIS installer libraries.
+:: - EPROSIMADIR: URL to the directory with common sources of eProsima.
+:: Also this script needs the eProsima.documentation.changeVersion macro installed in the system.
 
 setlocal EnableDelayedExpansion
 setlocal EnableExpansion
@@ -38,11 +45,11 @@ if not %errorstatus%==0 goto :exit
 :: Create PDFS from documentation.
 cd "..\..\doc"
 :: Installation manual
-soffice.exe --headless --convert-to pdf "Installation Manual.odt"
+soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\Installation Manual.odt,%VERSION%)"
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 :: User manual
-soffice.exe --headless --convert-to pdf "Users Manual.odt"
+soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\Users Manual.odt,%VERSION%)"
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 
