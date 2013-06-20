@@ -121,7 +121,7 @@ SectionEnd
 Function .onInit
     InitPluginsDir
     Push $R1
-    File /oname=$PLUGINSDIR\spltmp.jpg "${EPROSIMADIR}\logo\eProsimaLogoAndNameFinal_wBorder_460.jpg"
+    File /oname=$PLUGINSDIR\spltmp.jpg "$%EPROSIMADIR%\logo\eProsimaLogoAndNameFinal_wBorder_460.jpg"
     newadvsplash::show 1000 600 400 -1 "$PLUGINSDIR\spltmp.jpg"
     Pop $R1
     Pop $R1

@@ -56,11 +56,11 @@ if not %errorstatus%==0 goto :exit
 :: Create installers.
 cd "..\utils\installers\windows"
 :: Win32 installer.
-makensis.exe /DEPROSIMADIR=%EPROSIMADIR% /DVERSION="%VERSION%" Setup_Win32.nsi
+makensis.exe /DVERSION="%VERSION%" Setup_Win32.nsi
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 :: Win64 installer.
-makensis.exe /DEPROSIMADIR=%EPROSIMADIR% /DVERSION="%VERSION%" Setup_Win64.nsi
+makensis.exe /DVERSION="%VERSION%" Setup_Win64.nsi
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 
