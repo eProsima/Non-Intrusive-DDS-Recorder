@@ -12,7 +12,7 @@ function installer
 	cp "../../../doc/Installation Manual.pdf" tmp/$project/doc
 	errorstatus=$?
 	if [ $errorstatus != 0 ]; then return; fi
-	cp "../../../doc/Users Manual.pdf" tmp/$project/doc
+	cp "../../../doc/User Manual.pdf" tmp/$project/doc
 	errorstatus=$?
 	if [ $errorstatus != 0 ]; then return; fi
 

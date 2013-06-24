@@ -49,7 +49,7 @@ soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\Inst
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 :: User manual
-soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\Users Manual.odt,%VERSION%)"
+soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\User Manual.odt,%VERSION%)"
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 

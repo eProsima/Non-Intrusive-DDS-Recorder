@@ -72,7 +72,7 @@ function package
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
     # User manual
-    soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/Users Manual.odt,$version)"
+    soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/User Manual.odt,$version)"
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
     cd ..
