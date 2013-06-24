@@ -126,7 +126,7 @@ extern "C" int publisher_main(int domainId, int sample_count)
     }
 
     /* Register type before creating topic */
-    type_name = HelloWorldTypeSupport::get_type_name();
+    type_name = strdup("HelloWorld");
     retcode = HelloWorldTypeSupport::register_type(
         participant, type_name);
     if (retcode != DDS_RETCODE_OK) {

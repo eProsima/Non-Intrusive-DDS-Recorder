@@ -202,7 +202,7 @@ extern "C" int subscriber_main(int domainId, int sample_count, int argc, char *a
 
     /* Register the type before creating the topic */
     HelloWorldTypeSupportImpl *type_support = new HelloWorldTypeSupportImpl();
-    type_name = type_support->get_type_name();
+    type_name = strdup("HelloWorld");
     retcode = type_support->register_type(
         participant, type_name);
     if (retcode != DDS::RETCODE_OK) {

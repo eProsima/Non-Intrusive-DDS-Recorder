@@ -136,7 +136,7 @@ extern "C" int publisher_main(int domainId, int sample_count, int argc, char *ar
 
     /* Register type before creating topic */
     HelloWorldTypeSupportImpl *typesupport = new HelloWorldTypeSupportImpl();
-    type_name = typesupport->get_type_name();
+    type_name = strdup("HelloWorld");
     retcode = typesupport->register_type(
         participant, type_name);
     if (retcode != DDS::RETCODE_OK) {
