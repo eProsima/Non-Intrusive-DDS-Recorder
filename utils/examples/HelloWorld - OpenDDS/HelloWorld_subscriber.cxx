@@ -160,7 +160,7 @@ static int subscriber_shutdown(
     return status;
 }
 
-extern "C" int subscriber_main(int domainId, int sample_count)
+extern "C" int subscriber_main(int domainId, int sample_count, int argc, char *argv[])
 {
     DDS::DomainParticipant *participant = NULL;
     DDS::Subscriber *subscriber = NULL;
@@ -172,6 +172,8 @@ extern "C" int subscriber_main(int domainId, int sample_count)
     int count = 0;
     int receive_period = 4000;
     int status = 0;
+
+    TheParticipantFactoryWithArgs(argc, argv);
 
     /* To customize the participant QoS, use 
        the configuration file USER_QOS_PROFILES.xml */
@@ -284,13 +286,6 @@ int main(int argc, char *argv[])
     int domainId = 0;
     int sample_count = 0; /* infinite loop */
 
-    if (argc >= 2) {
-        domainId = atoi(argv[1]);
-    }
-    if (argc >= 3) {
-        sample_count = atoi(argv[2]);
-    }
-
 
     /* Uncomment this to turn on additional logging
     NDDSConfigLogger::get_instance()->
@@ -298,22 +293,8 @@ int main(int argc, char *argv[])
                                   NDDS_CONFIG_LOG_VERBOSITY_STATUS_ALL);
     */
                                   
-    return subscriber_main(domainId, sample_count);
+    return subscriber_main(domainId, sample_count, argc, argv);
 }
 #endif
 
-#ifdef RTI_VX653
-const unsigned char* __ctype = *(__ctypePtrGet());
-
-extern "C" void usrAppInit ()
-{
-#ifdef  USER_APPL_INIT
-    USER_APPL_INIT;         /* for backwards compatibility */
-#endif
-    
-    /* add application specific code here */
-    taskSpawn("sub", RTI_OSAPI_THREAD_PRIORITY_NORMAL, 0x8, 0x150000, (FUNCPTR)subscriber_main, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-   
-}
-#endif
 
