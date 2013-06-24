@@ -1,4 +1,4 @@
-:: This script pack DDSRecorder library for any platform.
+:: This script pack DDSRecorder library for any platform in Windows.
 ::
 :: This script needs the next environment variables to be run.
 :: - SVN_BIN_DIR: Directory with the subversion binaries.

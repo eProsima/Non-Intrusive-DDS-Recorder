@@ -15,8 +15,12 @@ DDSRECORDER_INCLUDE_DIRS= $(INCLUDE_DIRS) -I$(BASEDIR)/include \
 		       -I$(BASEDIR)/../CDR/include \
 		       -I$(EPROSIMADIR)/code
 
-DDSRECORDER_LIBS_DEBUG= $(LIBS_DEBUG) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) -ldl -lpcap -lsqlite3 -lboost_system-mt -lcdrd
-DDSRECORDER_LIBS_RELEASE= $(LIBS) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) -ldl -lpcap -lsqlite3 -lboost_system-mt -lcdr
+DDSRECORDER_LIBS_DEBUG= $(LIBS_DEBUG) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) \
+			-Bdynamic -ldl -lpcap -lsqlite3 -lboost_system-mt \
+			-Bstatic -lcdrd
+DDSRECORDER_LIBS_RELEASE= $(LIBS) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) \
+			  -Bdynamic -ldl -lpcap -lsqlite3 -lboost_system-mt \
+			  -Bstatic -lcdr
 
 DDSRECORDER_SRC_CFILES=
 
@@ -65,6 +69,8 @@ checkDDSRecorderDirectories:
 	@mkdir -p $(DDSRECORDER_OUTDIR)
 	@mkdir -p $(DDSRECORDER_OUTDIR_DEBUG)
 	@mkdir -p $(DDSRECORDER_OUTDIR_RELEASE)
+	@mkdir -p lib
+	@mkdir -p lib/$(EPROSIMA_TARGET)
 
 $(DDSRECORDER_TARGET_DEBUG): $(DDSRECORDER_OBJS_DEBUG)
 	$(LN) $(LDFLAGS) -o $(DDSRECORDER_TARGET_DEBUG) $(LIBRARY_PATH) $(DDSRECORDER_LIBS_DEBUG) $(DDSRECORDER_OBJS_DEBUG) $(DDSRECORDER_STATIC_LIBS)
