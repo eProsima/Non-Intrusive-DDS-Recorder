@@ -75,6 +75,10 @@ function package
     soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/User Manual.odt,$version)"
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
+    # Release notes
+    soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/Release Notes.odt,$version)"
+    errorstatus=$?
+    if [ $errorstatus != 0 ]; then return; fi
     cd ..
 
     # Create installers

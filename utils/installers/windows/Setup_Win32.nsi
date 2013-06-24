@@ -57,6 +57,7 @@ Section -Main SEC0000
     File ..\..\..\lib\i86Win32VS2010\DDSRecorder.exe
     File ..\..\..\..\CDR\lib\i86Win32VS2010\CDR.dll
     SetOutPath $INSTDIR\doc
+    File "..\..\..\doc\Release Notes.pdf"
     File "..\..\..\doc\User Manual.pdf"
     File "..\..\..\doc\Installation Manual.pdf"
     SetOutPath $INSTDIR\examples\HelloWorld
@@ -101,6 +102,7 @@ Section /o -un.Main UNSEC0000
     Delete /REBOOTOK $INSTDIR\DDSRECORDER_LICENSE.txt
     Delete /REBOOTOK "$INSTDIR\doc\Installation Manual.pdf"
     Delete /REBOOTOK "$INSTDIR\doc\User Manual.pdf"
+    Delete /REBOOTOK "$INSTDIR\doc\Release Notes.pdf"
     Delete /REBOOTOK "$INSTDIR\examples\HelloWorld\HelloWorld.db"
     Delete /REBOOTOK "$INSTDIR\examples\HelloWorld\HelloWorld.pcap"
     Delete /REBOOTOK $INSTDIR\bin\CDR.dll

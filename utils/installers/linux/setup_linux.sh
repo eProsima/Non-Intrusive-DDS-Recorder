@@ -9,10 +9,16 @@ function installer
 {
 	# Copy documentation.
 	mkdir -p tmp/$project/doc
+	# Installation Manual
 	cp "../../../doc/Installation Manual.pdf" tmp/$project/doc
 	errorstatus=$?
 	if [ $errorstatus != 0 ]; then return; fi
+	# User Manual
 	cp "../../../doc/User Manual.pdf" tmp/$project/doc
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+	# Release Notes
+	cp "../../../doc/Release Notes.pdf" tmp/$project/doc
 	errorstatus=$?
 	if [ $errorstatus != 0 ]; then return; fi
 

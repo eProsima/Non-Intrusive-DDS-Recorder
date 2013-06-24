@@ -1,0 +1,7 @@
+#pragma DCPS_DATA_TYPE "HelloWorld"
+
+struct HelloWorld
+{
+    long counter;
+    string message;
+};

@@ -14,8 +14,11 @@ setlocal EnableExpansion
 :: Initialize the returned value to 0 (all succesfully)
 set errorstatus=0
 
+:: Go to root directory
+cd "..\.."
+
 :: Update and compile CDR library.
-cd "..\..\..\CDR"
+cd "..\CDR"
 :: Update CDR library.
 svn update
 set errorstatus=%ERRORLEVEL%
@@ -25,7 +28,6 @@ cd "utils\scripts"
 call build_cdr.bat
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
-
 cd "..\..\..\DDSRecorder"
 
 :: Get the current vesion of DDSRecorder
@@ -41,9 +43,10 @@ cd "utils\scripts"
 call build_ddsrecorder.bat
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
+cd "..\.."
 
 :: Create PDFS from documentation.
-cd "..\..\doc"
+cd "doc"
 :: Installation manual
 soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\Installation Manual.odt,%VERSION%)"
 set errorstatus=%ERRORLEVEL%
@@ -52,9 +55,14 @@ if not %errorstatus%==0 goto :exit
 soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\User Manual.odt,%VERSION%)"
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
+:: Release notes
+soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\Release Notes.odt,%VERSION%)"
+set errorstatus=%ERRORLEVEL%
+if not %errorstatus%==0 goto :exit
+cd ".."
 
 :: Create installers.
-cd "..\utils\installers\windows"
+cd "utils\installers\windows"
 :: Win32 installer.
 makensis.exe /DVERSION="%VERSION%" Setup_Win32.nsi
 set errorstatus=%ERRORLEVEL%
@@ -63,6 +71,7 @@ if not %errorstatus%==0 goto :exit
 makensis.exe /DVERSION="%VERSION%" Setup_Win64.nsi
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
+cd "..\..\.."
 
 goto :exit
 
