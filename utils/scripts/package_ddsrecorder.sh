@@ -9,23 +9,7 @@
 
 errorstatus=0
 
-function getVersion
-{
-    version=`head -n 1 src/version.cpp`
-    version=${version:21: -2}
-}
-
-function getGccVersion
-{
-	gcc -v  &> gccversion.txt
-	gccversion=`tail -n 1 gccversion.txt | cut -d \  -f 3`
-	rm gccversion.txt
-}
-
-function getTarget
-{
-	etarget=${EPROSIMA_TARGET:0:3}
-}
+source $EPROSIMADIR/scripts/common_pack_functions.sh
 
 function package
 {
@@ -33,7 +17,7 @@ function package
     getGccVersion
 
 	# Get the initials of the target.
-	getTarget
+	getTargetFromEprosimaTarget
 
 	#Change EPROSIMA_TARGET
 	EPROSIMA_TARGET="${etarget}Linux2.6gcc${gccversion}"
@@ -52,7 +36,7 @@ function package
     cd ../DDSRecorder
 
     # Get the current version of DDSRecorder
-    getVersion
+    getVersionFromCPP
 
     # Update and compile DDSRecorder application.
     # Update DDSRecorder application
