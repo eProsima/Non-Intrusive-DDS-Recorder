@@ -14,6 +14,12 @@ setlocal EnableExpansion
 :: Initialize the returned value to 0 (all succesfully)
 set errorstatus=0
 
+if "%EPROSIMADIR%"=="" (
+    echo "EPROSIMADIR environment variable has to be set"
+    set errorstatus=-1
+    goto :exit
+)
+
 :: Go to root directory
 cd "..\.."
 
@@ -31,7 +37,7 @@ if not %errorstatus%==0 goto :exit
 cd "..\..\..\DDSRecorder"
 
 :: Get the current vesion of DDSRecorder
-call :getVersion
+call %EPROSIMADIR%\scripts\common_pack_functions.bat :getVersionFromCPP
 
 :: Update and compile DDSRecoder application.
 :: Update DDSRecorder application.
@@ -74,16 +80,6 @@ if not %errorstatus%==0 goto :exit
 cd "..\..\.."
 
 goto :exit
-
-:: Function to get the current version of the product ::
-:getVersion
-echo Getting version
-set /p "VERSION="<"src\version.cpp"
-set errorstatus=%ERRORLEVEL%
-if not %errorstatus%==0 goto :exit
-set VERSION=%VERSION:~21,-1%
-echo Current version %VERSION%
-goto :EOF
 
 :: Function exit ::
 :exit
