@@ -142,8 +142,17 @@ void RTPSPacketAnalyzer::processRTPSPacket(const struct timeval &wts, string &ip
             while(auxPointerLen > 0)
             {
                 submessageLen = processRTPSSubmessage(wts, ip_src, ip_dst, auxPointer);
-                JUMP(auxPointer, submessageLen);
-                auxPointerLen -= submessageLen;
+
+                if(submessageLen != 0)
+                {
+                    JUMP(auxPointer, submessageLen);
+                    auxPointerLen -= submessageLen;
+                }
+                else
+                {
+                    // Last submessage.
+                    auxPointerLen = 0;
+                }
             }
         }
 
@@ -195,9 +204,13 @@ unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const struct timeval &w
                     submessageSize, endianess, dataInside);
         }
 
-        // Add submessage identifier, flags and submessage size
-        submessageSize += SUBMESSAGE_HEADER_ID_SIZE + SUBMESSAGE_HEADER_FLAGS_SIZE +
-            SUBMESSAGE_HEADER_OCTECTSTONEXTHEADER_SIZE;
+        if(submessageSize > 0)
+        {
+            // Add submessage identifier, flags and submessage size
+            submessageSize += SUBMESSAGE_HEADER_ID_SIZE + SUBMESSAGE_HEADER_FLAGS_SIZE +
+                SUBMESSAGE_HEADER_OCTECTSTONEXTHEADER_SIZE;
+        }
+        // Return 0 to advertise that this is the last submessage.
     }
     else
     {
