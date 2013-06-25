@@ -9,8 +9,6 @@
 
 errorstatus=0
 
-source $EPROSIMADIR/scripts/common_pack_functions.sh
-
 function package
 {
     # Get current version of GCC.
@@ -78,6 +76,9 @@ if [ "$EPROSIMADIR" == "" ]; then
     echo "environment.sh must to be run."
     exit -1
 fi
+
+# Load common packaging functions.
+source $EPROSIMADIR/scripts/common_pack_functions.sh
 
 # Go to root directory
 cd ../..
