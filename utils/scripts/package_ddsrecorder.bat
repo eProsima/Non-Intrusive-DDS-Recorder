@@ -38,6 +38,7 @@ cd "..\..\..\DDSRecorder"
 
 :: Get the current vesion of DDSRecorder
 call %EPROSIMADIR%\scripts\common_pack_functions.bat :getVersionFromCPP
+if not %errorstatus%==0 goto :exit
 
 :: Update and compile DDSRecoder application.
 :: Update DDSRecorder application.
