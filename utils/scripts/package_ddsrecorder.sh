@@ -14,11 +14,11 @@ function package
     # Get current version of GCC.
     getGccVersion
 
-	# Get the initials of the target.
-	getTargetFromEprosimaTarget
+    # Get the initials of the target.
+    getTargetFromEprosimaTarget
 
-	#Change EPROSIMA_TARGET
-	EPROSIMA_TARGET="${etarget}Linux2.6gcc${gccversion}"
+    #Change EPROSIMA_TARGET
+    EPROSIMA_TARGET="${etarget}Linux2.6gcc${gccversion}"
 
     # Update and compile CDR library.
     cd ../CDR
@@ -28,13 +28,16 @@ function package
     if [ $errorstatus != 0 ]; then return; fi
     # Compile CDR library for target.
     rm -rf output
+    rm -r lib/$EPROSIMA_TARGET
     make
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
     cd ../DDSRecorder
 
     # Get the current version of DDSRecorder
-    getVersionFromCPP
+    getVersionFromCPP recorderversion src/version.cpp
+    errorstatus=$?
+    if [ $errorstatus != 0 ]; then return; fi
 
     # Update and compile DDSRecorder application.
     # Update DDSRecorder application
@@ -50,22 +53,22 @@ function package
     # Create PDFS from documentation.
     cd doc
     # Installation manual
-    soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/Installation Manual.odt,$version)"
+    soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/Installation Manual.odt,$recorderversion)"
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
     # User manual
-    soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/User Manual.odt,$version)"
+    soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/User Manual.odt,$recorderversion)"
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
     # Release notes
-    soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/Release Notes.odt,$version)"
+    soffice --headless "macro:///eProsima.documentation.changeVersion($PWD/Release Notes.odt,$recorderversion)"
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
     cd ..
 
     # Create installers
     cd utils/installers/linux
-    ./setup_linux.sh $version
+    ./setup_linux.sh $recorderversion
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
     cd ../../..
