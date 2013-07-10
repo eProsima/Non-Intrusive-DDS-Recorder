@@ -37,7 +37,7 @@ if not %errorstatus%==0 goto :exit
 cd "..\..\..\DDSRecorder"
 
 :: Get the current vesion of DDSRecorder
-call %EPROSIMADIR%\scripts\common_pack_functions.bat :getVersionFromCPP
+call %EPROSIMADIR%\scripts\common_pack_functions.bat :getVersionFromCPP VERSION src\version.cpp
 if not %errorstatus%==0 goto :exit
 
 :: Update and compile DDSRecoder application.

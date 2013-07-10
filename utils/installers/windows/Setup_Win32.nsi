@@ -55,7 +55,6 @@ Section -Main SEC0000
     SetOutPath $INSTDIR\bin
     SetOverwrite on
     File ..\..\..\lib\i86Win32VS2010\DDSRecorder.exe
-    File ..\..\..\..\CDR\lib\i86Win32VS2010\CDR.dll
     SetOutPath $INSTDIR\doc
     File "..\..\..\doc\Release Notes.pdf"
     File "..\..\..\doc\User Manual.pdf"
@@ -105,7 +104,6 @@ Section /o -un.Main UNSEC0000
     Delete /REBOOTOK "$INSTDIR\doc\Release Notes.pdf"
     Delete /REBOOTOK "$INSTDIR\examples\HelloWorld\HelloWorld.db"
     Delete /REBOOTOK "$INSTDIR\examples\HelloWorld\HelloWorld.pcap"
-    Delete /REBOOTOK $INSTDIR\bin\CDR.dll
     Delete /REBOOTOK $INSTDIR\bin\DDSRecorder.exe
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 SectionEnd
