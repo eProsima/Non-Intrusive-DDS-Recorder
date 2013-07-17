@@ -12,10 +12,10 @@ errorstatus=0
 function package
 {
     # Get current version of GCC.
-    getGccVersion
+    . $EPROSIMADIR/scripts/common_pack_functions.sh getGccVersion
 
     # Get the initials of the target.
-    getTargetFromEprosimaTarget
+    . $EPROSIMADIR/scripts/common_pack_functions.sh getTargetFromEprosimaTarget
 
     #Change EPROSIMA_TARGET
     EPROSIMA_TARGET="${etarget}Linux2.6gcc${gccversion}"
@@ -35,7 +35,7 @@ function package
     cd ../DDSRecorder
 
     # Get the current version of DDSRecorder
-    getVersionFromCPP recorderversion src/version.cpp
+    . $EPROSIMADIR/scripts/common_pack_functions.sh getVersionFromCPP recorderversion src/version.cpp
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
 
@@ -79,9 +79,6 @@ if [ "$EPROSIMADIR" == "" ]; then
     echo "environment.sh must to be run."
     exit -1
 fi
-
-# Load common packaging functions.
-source $EPROSIMADIR/scripts/common_pack_functions.sh
 
 # Go to root directory
 cd ../..
