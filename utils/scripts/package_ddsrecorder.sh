@@ -2,6 +2,9 @@
 
 #: This script pack DDSRecorder library for any platform in Linux.
 #
+# To compile DDSRecorder is needed to install libpcap-devel and sqlite-devel packages.
+#    Example in Fedora: yum install libpcap-devel sqlite-devel
+#
 # This script needs the next programs to be run.
 # - subversion
 # - libreoffice

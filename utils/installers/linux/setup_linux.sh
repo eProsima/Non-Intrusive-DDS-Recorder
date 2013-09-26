@@ -3,7 +3,6 @@
 # This scripts creates a tar.gz file with all the linux installation in 64
 
 project="DDSRecorder"
-version=$1
 
 function installer
 {
@@ -46,7 +45,7 @@ function installer
 	if [ $errorstatus != 0 ]; then return; fi
 
 	cd tmp
-	tar cvzf "../${project}_${version}_Fedora17_${EPROSIMA_TARGET:0:3}.tar.gz" $project
+	tar cvzf "../${project}_${version}_${distroversion}_${EPROSIMA_TARGET:0:3}.tar.gz" $project
 	errorstatus=$?
 	cd ..
 	if [ $errorstatus != 0 ]; then return; fi
@@ -56,6 +55,11 @@ if [ -z $1 ]; then
 	echo "Needs as parameter the version of the product $project"
 	exit -1
 fi
+
+version=$1
+
+# Get distro version
+. $EPROSIMADIR/scripts/common_pack_functions.sh getDistroVersion
 
 # Create the temporaly directory.
 mkdir tmp
