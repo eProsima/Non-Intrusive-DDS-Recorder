@@ -1,5 +1,6 @@
 #include "util/IDLPrinter.h"
 #include <algorithm>
+#include <vector>
 
 using namespace eProsima;
 
