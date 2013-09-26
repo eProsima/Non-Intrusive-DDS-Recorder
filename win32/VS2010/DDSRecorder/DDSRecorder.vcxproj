@@ -183,7 +183,7 @@
     <ClCompile Include="..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\src\DDSRecorder.cpp" />
     <ClCompile Include="..\..\..\src\RTPSPacketAnalyzer.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\eProsima\code\eProsima_cpp\eProsimaLog.cpp" />
+    <ClCompile Include="$(EPROSIMADIR)\code\eProsima_cpp\eProsimaLog.cpp" />
     <ClCompile Include="..\..\..\src\reader\ipDefragmenter.cpp" />
     <ClCompile Include="..\..\..\src\reader\pcapReader.cpp" />
     <ClCompile Include="..\..\..\src\database\DynamicDataDB.cpp" />
@@ -204,7 +204,7 @@
     <ClInclude Include="..\..\..\include\cdr\UnionTypeCode.h" />
     <ClInclude Include="..\..\..\include\DDSRecorder.h" />
     <ClInclude Include="..\..\..\include\RTPSPacketAnalyzer.h" />
-    <ClInclude Include="..\..\..\..\..\..\eProsima\code\eProsima_cpp\eProsimaLog.h" />
+    <ClInclude Include="$(EPROSIMADIR)\code\eProsima_cpp\eProsimaLog.h" />
     <ClInclude Include="..\..\..\include\reader\ipDefragmenter.h" />
     <ClInclude Include="..\..\..\include\reader\pcapReader.h" />
     <ClInclude Include="..\..\..\include\database\DynamicDataDB.h" />

@@ -54,7 +54,7 @@
     <ClCompile Include="..\..\..\src\RTPSPacketAnalyzer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\..\eProsima\code\eProsima_cpp\eProsimaLog.cpp">
+    <ClCompile Include="$(EPROSIMADIR)\code\eProsima_cpp\eProsimaLog.cpp">
       <Filter>Source Files\eProsima</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\reader\ipDefragmenter.cpp">
@@ -113,7 +113,7 @@
     <ClInclude Include="..\..\..\include\RTPSPacketAnalyzer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\..\eProsima\code\eProsima_cpp\eProsimaLog.h">
+    <ClInclude Include="$(EPROSIMADIR)\code\eProsima_cpp\eProsimaLog.h">
       <Filter>Header Files\eProsima</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\reader\ipDefragmenter.h">
