@@ -42,6 +42,8 @@ ntohl(((unsigned int*)(buffer))[0])
 #define SUBMESSAGE_INFOTS_SEC 4
 #define SUBMESSAGE_INFOTS_NANOSEC 4
 
+#define RTPS_PID_END (0x0001)
+
 enum RtpsSubmessageId
 {
     RTPS_INFOTS_ID = 0x9,
@@ -172,6 +174,7 @@ unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const struct timeval &w
     const char* const METHOD_NAME = "processRTPSSubmessage";
     char submessageId = 0;
     bool endianess = false;
+	bool inlineQos = false;
     bool dataInside = false;
     const char *auxPointer = submessage;
     unsigned short submessageSize = 0;
@@ -181,6 +184,7 @@ unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const struct timeval &w
         // Submessage identifier.
         submessageId = auxPointer[0];
         endianess = 0x1 & auxPointer[1];
+		inlineQos = 0x2 & auxPointer[1];
         dataInside = 0x4 & auxPointer[1];
 
         // Jump submessage identifier and flags
@@ -201,7 +205,7 @@ unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const struct timeval &w
         else if(submessageId == RTPS_DATA_ID && m_getDataCallback != NULL)
         {
             processDATASubmessage(wts, ip_src, ip_dst, auxPointer,
-                    submessageSize, endianess, dataInside);
+                    submessageSize, endianess, dataInside, inlineQos);
         }
 
         if(submessageSize > 0)
@@ -258,7 +262,7 @@ void RTPSPacketAnalyzer::processINFODSTSubmessage(const char *dataSubmessage, bo
 
 void RTPSPacketAnalyzer::processDATASubmessage(const struct timeval &wts,
         string &ip_src, string &ip_dst, const char *dataSubmessage,
-        unsigned short dataSubmessageLen, bool endianess, bool dataInside)
+        unsigned short dataSubmessageLen, bool endianess, bool dataInside, bool inlineQos)
 {
     const char* const METHOD_NAME = "processDATASubmessage";
     const char *auxPointer = dataSubmessage;
@@ -267,24 +271,57 @@ void RTPSPacketAnalyzer::processDATASubmessage(const struct timeval &wts,
     unsigned long long sequencenum = 0;
     const char *serializedData = NULL;
     unsigned int serializedDataLen = 0;
+	uint16_t toInlineQos = 0;
 
     if(dataSubmessage != NULL)
     {
-        JUMP(auxPointer, SUBMESSAGE_BODY_EXTRAFLAGS_SIZE + SUBMESSAGE_BODY_OCTETSTOINLINEQOS_SIZE);
-        auxPointerLen -= SUBMESSAGE_BODY_EXTRAFLAGS_SIZE + SUBMESSAGE_BODY_OCTETSTOINLINEQOS_SIZE;
+		JUMP(auxPointer, SUBMESSAGE_BODY_EXTRAFLAGS_SIZE);
+        auxPointerLen -= SUBMESSAGE_BODY_EXTRAFLAGS_SIZE;
+
+		toInlineQos = GET_USHORT_ENDIAN(endianess, auxPointer);
+        JUMP(auxPointer, SUBMESSAGE_BODY_OCTETSTOINLINEQOS_SIZE);
+        auxPointerLen -= SUBMESSAGE_BODY_OCTETSTOINLINEQOS_SIZE;
 
         // Get readerId and writerId.
         readerId = GET_ENTITYID(auxPointer);
         writerId = GET_ENTITYID((char*)&((unsigned int*)auxPointer)[1]);
         JUMP(auxPointer, SUBMESSAGE_BODY_ENTITIESID_SIZE);
         auxPointerLen -= SUBMESSAGE_BODY_ENTITIESID_SIZE;
+		toInlineQos -= SUBMESSAGE_BODY_ENTITIESID_SIZE;
 
         // Get sequence number.
         sequencenum = GET_ULONGLONG_ENDIAN(endianess, auxPointer);
         JUMP(auxPointer, SUBMESSAGE_BODY_SEQUENCENUMBER_SIZE);
         auxPointerLen -= SUBMESSAGE_BODY_SEQUENCENUMBER_SIZE;
+		toInlineQos -= SUBMESSAGE_BODY_SEQUENCENUMBER_SIZE;
         
-        // TODO: Detect inlineQos
+        if(toInlineQos != 0)
+		{
+			JUMP(auxPointer, toInlineQos);
+			auxPointerLen -= toInlineQos;
+		}
+
+		// Jump inlineQos parameter list.
+		if(inlineQos)
+		{
+			uint16_t parameterId = GET_USHORT_ENDIAN(endianess, auxPointer);
+			JUMP(auxPointer, sizeof(uint16_t));
+			uint16_t parameterLength = GET_USHORT_ENDIAN(endianess, auxPointer);
+			JUMP(auxPointer, sizeof(uint16_t));
+			auxPointerLen -= sizeof(uint16_t) * 2;
+
+			while(parameterId != RTPS_PID_END)
+			{
+				JUMP(auxPointer, parameterLength);
+				auxPointerLen -= parameterLength;
+
+				parameterId = GET_USHORT_ENDIAN(endianess, auxPointer);
+				JUMP(auxPointer, sizeof(uint16_t));
+				parameterLength = GET_USHORT_ENDIAN(endianess, auxPointer);
+				JUMP(auxPointer, sizeof(uint16_t));
+				auxPointerLen -= sizeof(uint16_t) * 2;
+			}
+		}
 
         if(dataInside)
         {

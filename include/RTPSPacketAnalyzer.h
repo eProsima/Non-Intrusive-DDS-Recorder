@@ -87,10 +87,11 @@ namespace eProsima
              * \param endianess False value indicates that DATA submessage uses big-endian.
              * True value indicates that DATA submessage uses little-endian.
              * \param dataInside Indicates if the DATA submessage contains serialized data.
+			 * \param inlineQos Indicates if the DATA submessage contains inlineQos.
              */
             void processDATASubmessage(const struct timeval &wts, std::string &ip_src,
                     std::string &ip_dst, const char *dataSubmessage, unsigned short dataSubmessageLen,
-                    bool endianess, bool dataInside);
+                    bool endianess, bool dataInside, bool inlineQos);
 
             void processINFOTSSubmessage(const char *dataSubmessage, bool endianess);
 
