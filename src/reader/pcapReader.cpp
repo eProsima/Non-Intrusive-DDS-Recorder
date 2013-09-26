@@ -5,7 +5,7 @@
 #include <string.h>
 #include <malloc.h>
 
-#ifdef EPROSIMA_WIN32
+#ifdef _WIN32
 #include <winsock.h>
 
 /* Ethernet header */

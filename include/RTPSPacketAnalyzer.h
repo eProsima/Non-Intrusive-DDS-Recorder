@@ -6,7 +6,7 @@
 #include <string>
 #include <stdint.h>
 
-#ifdef EPROSIMA_WIN32
+#ifdef _WIN32
 #include <winsock.h>
 #else
 #include <netinet/in.h>

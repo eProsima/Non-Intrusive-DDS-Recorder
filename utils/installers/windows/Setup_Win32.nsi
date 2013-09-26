@@ -11,12 +11,14 @@ Name "Non-Intrusive DDS Recorder"
 # MUI Symbol Definitions
 !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install-colorful.ico"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
+!define MUI_FINISHPAGE_SHOWREADME $INSTDIR\README.html
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall-colorful.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 # Included files
 !include Sections.nsh
 !include MUI2.nsh
+!include EnvVarUpdate.nsh
 
 # Reserved Files
 ReserveFile "${NSISDIR}\Plugins\AdvSplash.dll"
@@ -52,19 +54,31 @@ ShowUninstDetails show
 
 # Installer sections
 Section -Main SEC0000
+    # Copy binary
     SetOutPath $INSTDIR\bin
     SetOverwrite on
     File ..\..\..\lib\i86Win32VS2010\DDSRecorder.exe
+    # Copy documentation
     SetOutPath $INSTDIR\doc
     File "..\..\..\doc\Release Notes.pdf"
     File "..\..\..\doc\User Manual.pdf"
     File "..\..\..\doc\Installation Manual.pdf"
+    # Copy logo
+    SetOutPath $INSTDIR\doc\logo
+    File "..\..\logo\eProsimaLogo.png"
+    # Copy example
     SetOutPath $INSTDIR\examples\HelloWorld
     File "..\..\..\examples\HelloWorld\HelloWorld.db"
     File "..\..\..\examples\HelloWorld\HelloWorld.pcap"
+    File "..\..\..\examples\HelloWorld\HelloWorld.idl"
+    # Copy licenses
     SetOutPath $INSTDIR
     File ..\..\..\doc\licencias\DDSRECORDER_LICENSE.txt
     File ..\..\..\doc\licencias\LGPLv3_LICENSE.txt
+    # Copy README
+    File "..\..\..\README.html"
+    # Add directory to PATH
+    ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
     WriteRegStr HKLM "${REGKEY}\Components" Main 1
 SectionEnd
 
@@ -97,13 +111,22 @@ done${UNSECTION_ID}:
 
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
+    # Delete Readme
+    Delete /REBOOTOK $INSTDIR\Readme.html
+    # Delete Licenses
     Delete /REBOOTOK $INSTDIR\LGPLv3_LICENSE.txt
     Delete /REBOOTOK $INSTDIR\DDSRECORDER_LICENSE.txt
+    # Delete documentation
     Delete /REBOOTOK "$INSTDIR\doc\Installation Manual.pdf"
     Delete /REBOOTOK "$INSTDIR\doc\User Manual.pdf"
     Delete /REBOOTOK "$INSTDIR\doc\Release Notes.pdf"
+    # Delete example
     Delete /REBOOTOK "$INSTDIR\examples\HelloWorld\HelloWorld.db"
     Delete /REBOOTOK "$INSTDIR\examples\HelloWorld\HelloWorld.pcap"
+    Delete /REBOOTOK "$INSTDIR\examples\HelloWorld\HelloWorld.idl"
+    # Delete logo 
+    Delete /REBOOTOK "$INSTDIR\doc\logo\eProsimaLogo.png"
+    # Delete binary
     Delete /REBOOTOK $INSTDIR\bin\DDSRecorder.exe
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 SectionEnd

@@ -29,6 +29,8 @@ cd "..\CDR"
 svn update
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
+rmdir /S /Q lib\i86Win32VS2010
+rmdir /S /Q lib\x64Win64VS2010
 :: Compile CDR library.
 cd "utils\scripts"
 call build_cdr.bat
@@ -45,6 +47,8 @@ if not %errorstatus%==0 goto :exit
 svn update
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
+rmdir /S /Q lib\i86Win32VS2010
+rmdir /S /Q lib\x64Win64VS2010
 :: Compile DDSRecorder application.
 cd "utils\scripts"
 call build_ddsrecorder.bat
@@ -67,6 +71,11 @@ soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\Rele
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 cd ".."
+
+:: Create README
+soffice.exe --headless "macro:///eProsima.documentation.changeVersionToHTML(%CD%\README.odt,%VERSION%)"
+set errorstatus=%ERRORLEVEL%
+if not %errorstatus%==0 goto :exit
 
 :: Create installers.
 cd "utils\installers\windows"

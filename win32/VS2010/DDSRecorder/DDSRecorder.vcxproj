@@ -85,8 +85,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\CDR\include;$(EPROSIMADIR)\code;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Include;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;EPROSIMA_CPP_DLL_VARIABLE;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\CDR\include;$(EPROSIMADIR)\code;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Include;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_53_0</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -99,7 +99,7 @@
     <Link>
       <AdditionalDependencies>libpcap.lib;Packet.lib;Version.lib;Iphlpapi.lib;sqlite3.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\CDR\lib\i86Win32VS2010;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Prj\Release\i86;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\packetNtx\Dll\Project\Release\x86;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0\lib\i86Win32VS2010;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0\lib\i86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\CDR\lib\i86Win32VS2010;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Prj\Release\i86;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\packetNtx\Dll\Project\Release\x86;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0\lib\i86Win32VS2010;$(EPROSIMA_LIBRARY_PATH)\boost_1_53_0\lib\i86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
@@ -107,8 +107,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\CDR\include;$(EPROSIMADIR)\code;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Include;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;EPROSIMA_CPP_DLL_VARIABLE;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\CDR\include;$(EPROSIMADIR)\code;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Include;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_53_0</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -120,14 +120,14 @@
     <Link>
       <AdditionalDependencies>libpcap.lib;Packet.lib;Version.lib;Iphlpapi.lib;sqlite3.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\CDR\lib\x64Win64VS2010;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Prj\Release\x64;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\packetNtx\Dll\Project\Release\x64;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0\lib\x64Win64VS2010;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\CDR\lib\x64Win64VS2010;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Prj\Release\x64;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\packetNtx\Dll\Project\Release\x64;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0\lib\x64Win64VS2010;$(EPROSIMA_LIBRARY_PATH)\boost_1_53_0\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\CDR\include;$(EPROSIMADIR)\code;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Include;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;EPROSIMA_CPP_DLL_VARIABLE;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\CDR\include;$(EPROSIMADIR)\code;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Include;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_53_0</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -138,7 +138,7 @@
     <Link>
       <AdditionalDependencies>libpcap.lib;Packet.lib;Version.lib;Iphlpapi.lib;sqlite3.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\CDR\lib\i86Win32VS2010;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Prj\Release\i86;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\packetNtx\Dll\Project\Release\x86;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0\lib\i86Win32VS2010;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0\lib\i86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\CDR\lib\i86Win32VS2010;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Prj\Release\i86;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\packetNtx\Dll\Project\Release\x86;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0\lib\i86Win32VS2010;$(EPROSIMA_LIBRARY_PATH)\boost_1_53_0\lib\i86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -149,8 +149,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\CDR\include;$(EPROSIMADIR)\code;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Include;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EPROSIMA_WIN32;EPROSIMA_CPP_DLL_VARIABLE;__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\..\CDR\include;$(EPROSIMADIR)\code;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Include;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0;$(EPROSIMA_LIBRARY_PATH)\boost_1_53_0</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>__LITTLE_ENDIAN__;SQLITE_PREPARE_V2;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -161,7 +161,7 @@
     <Link>
       <AdditionalDependencies>libpcap.lib;Packet.lib;Version.lib;Iphlpapi.lib;sqlite3.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\CDR\lib\x64Win64VS2010;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Prj\Release\x64;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\packetNtx\Dll\Project\Release\x64;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0\lib\x64Win64VS2010;$(EPROSIMA_LIBRARY_PATH)\boost_1_51_0\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\CDR\lib\x64Win64VS2010;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\wpcap\libpcap\Win32\Prj\Release\x64;$(EPROSIMA_LIBRARY_PATH)\winpcap-4.1.1\packetNtx\Dll\Project\Release\x64;$(EPROSIMA_LIBRARY_PATH)\sqlite-3.7.0\lib\x64Win64VS2010;$(EPROSIMA_LIBRARY_PATH)\boost_1_53_0\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
