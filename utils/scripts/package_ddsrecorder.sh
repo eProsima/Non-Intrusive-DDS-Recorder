@@ -69,6 +69,11 @@ function package
     if [ $errorstatus != 0 ]; then return; fi
     cd ..
 
+    # Create README
+    soffice --headless "macro:///eProsima.documentation.changeVersionToHTML($PWD/README.odt,$recorderversion)"
+    errorstatus=$?
+    if [ $errorstatus != 0 ]; then return; fi
+
     # Create installers
     cd utils/installers/linux
     ./setup_linux.sh $recorderversion
