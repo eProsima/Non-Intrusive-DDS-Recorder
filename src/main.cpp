@@ -14,11 +14,15 @@ using namespace eProsima;
 
 void printHelp()
 {
-    printf("DDSRecorder usage: DDSRecorder.exe [--db database] [--tcMaxSize size] [pcap file]\n");
+	/* 80 colunms: */
+	/*      12345678901234567890123456789012345678901234567890123456789012345678901234567890*/
+    printf("DDSRecorder usage: DDSRecorder.exe [<pcapFile>] [-db <database>] \n");
+	printf("                                   [-tcMaxSize <size>]\n");
+	printf("                                   [-help]\n");
     printf("Options:\n");
-    printf("    --db file: Database file where information will be dumped (Default: dump.db).\n");
-    printf("    --tcMaxSize size: Maximum size of typecode that is supported (Default: 2048).\n");
-    printf("    --help: Print help information.\n");
+    printf("    -db <database>: Database file to store the DDS traffic (Default: dump.db)\n");
+    printf("    -tcMaxSize <size>: TypeCode maximum allowed size (Default: 2048)\n");
+    printf("    -help: Print help information.\n");
 }
 
 int main(int argc, char *argv[])
@@ -36,12 +40,12 @@ int main(int argc, char *argv[])
     /* Check options */
     for(int i = 1; i < argc; i++)
     {
-        if(strcmp(argv[i], "--help") == 0)
+        if(strcmp(argv[i], "-help") == 0)
         {
             printHelp();
             return returnedValue;
         }
-        else if(strcmp(argv[i], "--db") == 0)
+        else if(strcmp(argv[i], "-db") == 0)
         {
             if(i+1 < argc)
                 db = argv[++i];
@@ -51,7 +55,7 @@ int main(int argc, char *argv[])
                 return returnedValue;
             }
         }
-        else if(strcmp(argv[i], "--tcMaxSize") == 0)
+        else if(strcmp(argv[i], "-tcMaxSize") == 0)
         {
             if(i+1 < argc)
             {
