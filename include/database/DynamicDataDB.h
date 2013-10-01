@@ -146,7 +146,7 @@ namespace eProsima
             DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, std::string &tableName,
                     const TypeCode*typeCode);
 
-            bool storeDynamicData(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+            bool storeDynamicData(const unsigned int npacket, const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,

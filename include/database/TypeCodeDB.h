@@ -28,9 +28,11 @@ namespace eProsima
              *
              * \param topicName The topic's name. Cannot be NULL.
              * \param typeName The type's name. Cannot be NULL.
+             * \param error Return whether was an error. This occurs when
+             * the topic name is the same but they differ in the type name.
              * \return True if they're equal or false in other case.
              */
-            bool equal(std::string &topicName, std::string &typeName);
+            bool equal(std::string &topicName, std::string &typeName, bool &error);
 
             /**
              * \brief This function return the typecode.
@@ -74,10 +76,12 @@ namespace eProsima
              *
              * \param topicName Pointer to the topic's name. Cannot be NULL.
              * \param typeName Pointer to the type's name. Cannot be NULL.
+             * \param error Return whether was an error. This occurs when
+             * it's found a eTypeCode whose topic name is the same but they differ in the type name.
              * \return Return the pointer to the eTypeCode structure if this was found.
              * In other case NULL pointer is returned. Don't free this pointer.
              */
-            eTypeCode* findTypecode(std::string &topicName, std::string &typeName);
+            eTypeCode* findTypecode(std::string &topicName, std::string &typeName, bool &error);
 
         private:
 

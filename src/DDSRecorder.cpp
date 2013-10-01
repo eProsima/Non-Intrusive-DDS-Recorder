@@ -69,7 +69,7 @@ DDSRecorder::~DDSRecorder()
         sqlite3_close(m_databaseH);
 }
 
-void DDSRecorder::processDataCallback(void *user, const struct timeval &wts,
+void DDSRecorder::processDataCallback(void *user, const unsigned int npacket, const struct timeval &wts,
         std::string &ip_src, std::string &ip_dst, unsigned int hostId,
         unsigned int appId, unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSequenceNum,
@@ -82,7 +82,7 @@ void DDSRecorder::processDataCallback(void *user, const struct timeval &wts,
 
     if(user != NULL)
     {
-        rtpsdumper->processData(wts, ip_src, ip_dst, hostId, appId, instanceId,
+        rtpsdumper->processData(npacket, wts, ip_src, ip_dst, hostId, appId, instanceId,
                 readerId, writerId, writerSequenceNum, sourceTmp,
                 destHostId, destAppId, destInstanceId, endianess,
                 serializedData, serializedDataLen);
@@ -93,7 +93,7 @@ void DDSRecorder::processDataCallback(void *user, const struct timeval &wts,
     }
 }
 
-void DDSRecorder::processData(const struct timeval &wts, string &ip_src, string &ip_dst,
+void DDSRecorder::processData(const unsigned int npacket, const struct timeval &wts, string &ip_src, string &ip_dst,
         unsigned int hostId, unsigned int appId,
         unsigned int instanceId, unsigned int readerId,
         unsigned int writerId, unsigned long long writerSeqNum,
@@ -105,7 +105,7 @@ void DDSRecorder::processData(const struct timeval &wts, string &ip_src, string 
     if(writerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_WRITER ||
             readerId == ENTITYID_SEDP_BUILTIN_PUBLICATIONS_READER)
     {
-        processDataW(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
+        processDataW(npacket, wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
                 writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId, endianess,
                 serializedData, serializedDataLen);
     }
@@ -113,20 +113,20 @@ void DDSRecorder::processData(const struct timeval &wts, string &ip_src, string 
     else if(writerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_WRITER ||
             readerId == ENTITYID_SEDP_BUILTIN_SUBSCRIPTIONS_READER)
     {
-        processDataR(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
+        processDataR(npacket, wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
                 writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId, endianess,
                 serializedData, serializedDataLen);
     }
     // It's not a Data(p)
     else if(writerId != ENTITYID_SPDP_BUILTIN_PARTICIPANT_WRITER)
     {
-        processDataNormal(wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
+        processDataNormal(npacket, wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
                 writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId, endianess,
                 serializedData, serializedDataLen);
     }
 }
 
-void DDSRecorder::processDataW(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+void DDSRecorder::processDataW(const unsigned int npacket, const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
@@ -156,7 +156,7 @@ void DDSRecorder::processDataW(const struct timeval &wts, std::string &ip_src, s
 
                 // Add entity.
                 if(m_entitiesDB != NULL)
-                    m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                    m_entitiesDB->addEntity(npacket, wts, ip_src, ip_dst, hostId,
                             appId, instanceId, readerId, writerId, writerSeqNum,
                             sourceTmp, destHostId, destAppId, destInstanceId, pubtopic.guid.hostId,
                             pubtopic.guid.appId, pubtopic.guid.instanceId,
@@ -172,7 +172,7 @@ void DDSRecorder::processDataW(const struct timeval &wts, std::string &ip_src, s
             logInfo(m_log, "the datawriter of topic %s doesn't send the typecode", pubtopic.topic_name.c_str());
 
             if(m_entitiesDB != NULL)
-                m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                m_entitiesDB->addEntity(npacket, wts, ip_src, ip_dst, hostId,
                         appId, instanceId, readerId, writerId, writerSeqNum,
                         sourceTmp, destHostId, destAppId, destInstanceId, pubtopic.guid.hostId,
                         pubtopic.guid.appId, pubtopic.guid.instanceId,
@@ -185,7 +185,7 @@ void DDSRecorder::processDataW(const struct timeval &wts, std::string &ip_src, s
     }
 }
 
-void DDSRecorder::processDataR(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+void DDSRecorder::processDataR(const unsigned int npacket, const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
                     unsigned int hostId, unsigned int appId, unsigned int instanceId,
                     unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
@@ -215,7 +215,7 @@ void DDSRecorder::processDataR(const struct timeval &wts, std::string &ip_src, s
 
                 // Add entity.
                 if(m_entitiesDB != NULL)
-                    m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                    m_entitiesDB->addEntity(npacket, wts, ip_src, ip_dst, hostId,
                             appId, instanceId, readerId, writerId, writerSeqNum,
                             sourceTmp, destHostId, destAppId, destInstanceId, subtopic.guid.hostId,
                             subtopic.guid.appId, subtopic.guid.instanceId,
@@ -231,7 +231,7 @@ void DDSRecorder::processDataR(const struct timeval &wts, std::string &ip_src, s
             logInfo(m_log, "the datareader of topic %s doesn't send the typecode", subtopic.topic_name.c_str());
 
             if(m_entitiesDB != NULL)
-                m_entitiesDB->addEntity(wts, ip_src, ip_dst, hostId,
+                m_entitiesDB->addEntity(npacket, wts, ip_src, ip_dst, hostId,
                         appId, instanceId, readerId, writerId, writerSeqNum,
                         sourceTmp, destHostId, destAppId, destInstanceId, subtopic.guid.hostId,
                         subtopic.guid.appId, subtopic.guid.instanceId,
@@ -244,7 +244,7 @@ void DDSRecorder::processDataR(const struct timeval &wts, std::string &ip_src, s
     }
 }
 
-void DDSRecorder::processDataNormal(const struct timeval &wts, string &ip_src, string &ip_dst,
+void DDSRecorder::processDataNormal(const unsigned int npacket, const struct timeval &wts, string &ip_src, string &ip_dst,
         unsigned int hostId, unsigned int appId, unsigned int instanceId,
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
@@ -255,6 +255,7 @@ void DDSRecorder::processDataNormal(const struct timeval &wts, string &ip_src, s
     eEntity *entity = NULL;
     eTypeCode *typecode = NULL;
     DynamicDataDB *dynamicDB = NULL;
+    bool error = false;
 
     // Check the writer or reader has associated a typecode.
     if((entity = m_entitiesDB->findEntity(hostId, appId,
@@ -263,7 +264,7 @@ void DDSRecorder::processDataNormal(const struct timeval &wts, string &ip_src, s
                                                instanceId, readerId)) != NULL)
     {
         if((typecode = m_typecodeDB->findTypecode(entity->getTopicName(),
-                        entity->getTypeName())) != NULL)
+                        entity->getTypeName(), error)) != NULL && !error)
         {
             Cdr::Endianness _endianess = endianess ? Cdr::LITTLE_ENDIANNESS : Cdr::BIG_ENDIANNESS;
             FastBuffer buffer((char*)serializedData, serializedDataLen);
@@ -279,7 +280,7 @@ void DDSRecorder::processDataNormal(const struct timeval &wts, string &ip_src, s
                         
                 if(dynamicDB != NULL)
                 {
-                    if(!dynamicDB->storeDynamicData(wts, ip_src, ip_dst, hostId,
+                    if(!dynamicDB->storeDynamicData(npacket, wts, ip_src, ip_dst, hostId,
                                 appId, instanceId, readerId, writerId, writerSeqNum,
                                 sourceTmp, destHostId, destAppId, destInstanceId,
                                 typecode->getCdrTypecode(), cdr))

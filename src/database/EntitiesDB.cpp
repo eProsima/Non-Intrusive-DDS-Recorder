@@ -13,15 +13,15 @@
 #define SQLITE_PREPARE sqlite3_prepare
 #endif
 
-#define ENTITIES_TABLE "entities"
-#define MESSAGES_TABLE "discovery_messages"
-#define READER_TEXT "reader"
-#define WRITER_TEXT "writer"
+#define ENTITIES_TABLE "_endpoints"
+#define MESSAGES_TABLE "_endpointDiscoveryMessages"
+#define READER_TEXT "DataReader"
+#define WRITER_TEXT "DataWriter"
 
 static const char* const CLASS_NAME = "EntitiesDB";
-static const char* const ENTITY_ADD = "INSERT INTO " ENTITIES_TABLE " VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-static const char* const MESSAGES_ADD = "INSERT INTO " MESSAGES_TABLE " VALUES(?, ?, ?, ?, ?, ?, ?, ?, "\
-                                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+static const char* const ENTITY_ADD = "INSERT INTO " ENTITIES_TABLE " VALUES(?, ?, ?, ?, ?, ?)";
+static const char* const MESSAGES_ADD = "INSERT INTO " MESSAGES_TABLE " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, "\
+                                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 using namespace eProsima;
 using namespace std;
@@ -76,21 +76,21 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     const char* const METHOD_NAME = "EntitiesDB";
     const char* const TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='" ENTITIES_TABLE "'";
     const char* const TABLE_TRUNCATE = "DELETE FROM " ENTITIES_TABLE;
-    const char* const TABLE_CREATE = "CREATE TABLE " ENTITIES_TABLE " (host_id BIGINT UNSIGNED," \
-                                      "app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, entity_id BIGINT UNSIGNED," \
-                                      "type TEXT, topic_name TEXT, type_name TEXT, exists_typecode TINYINT UNSIGNED," \
-                                      "PRIMARY KEY(host_id, app_id, instance_id, entity_id))";
+    const char* const TABLE_CREATE = "CREATE TABLE " ENTITIES_TABLE " (rtps_host_id BIGINT UNSIGNED, " \
+                                      "rtps_app_id BIGINT UNSIGNED, rtps_instance_id BIGINT UNSIGNED, rtps_entity_id BIGINT UNSIGNED, " \
+                                      "endpoint_type CHARACTER(10), topic_name VARCHAR(255), " \
+                                      "PRIMARY KEY(rtps_host_id, rtps_app_id, rtps_instance_id, rtps_entity_id))";
     const char* const TABLE_MESSAGES_CHECK = "SELECT name FROM sqlite_master WHERE name='" MESSAGES_TABLE "'";
     const char* const TABLE_MESSAGES_TRUNCATE = "DELETE FROM " MESSAGES_TABLE;
     const char* const TABLE_MESSAGES_CREATE = "CREATE TABLE " MESSAGES_TABLE \
-        " (wireshark_timestamp_sec BIGINT, wireshark_timestamp_usec BIGINT UNSIGNED, " \
-        "ip_src TEXT, ip_dst TEXT, " \
-        "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
-        "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED, " \
-        "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED, " \
-        "dest_host_Id BIGINT UNSIGNED, dest_app_id BIGINT UNSIGNED, dest_instance_id BIGINT UNSIGNED, " \
-        "entity_host_id BIGINT UNSIGNED, entity_app_id BIGINT UNSIGNED, entity_instance_id BIGINT UNSIGNED," \
-        "entity_id BIGINT UNSIGNED, type TEXT, topic_name TEXT, type_name TEXT, exists_typecode TINYINT UNSIGNED)";
+        " (message_id INT, sniffer_timestamp_sec INT, sniffer_timestamp_usec INT, " \
+        "ip_src VARCHAR(15), ip_dst VARCHAR(15), " \
+        "src_rtps_host_id BIGINT UNSIGNED, src_rtps_app_id BIGINT UNSIGNED, src_rtps_instance_id BIGINT UNSIGNED, " \
+        "src_timestamp_sec INT, src_timestamp_nanosec INT, " \
+        "dst_rtps_host_Id BIGINT UNSIGNED, dst_rtps_app_id BIGINT UNSIGNED, dst_rtps_instance_id BIGINT UNSIGNED, " \
+        "endpoint_rtps_host_id BIGINT UNSIGNED, endpoint_rtps_app_id BIGINT UNSIGNED, endpoint_rtps_instance_id BIGINT UNSIGNED," \
+        "endpoint_rtps_entity_id BIGINT UNSIGNED, endpoint_type CHARACTER(10), topic_name VARCHAR(255), contains_typecode TINYINT UNSIGNED, " \
+        "PRIMARY KEY(message_id))";
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
 
@@ -169,7 +169,7 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
                             sqlite3_finalize(stmt);
                         }
                         else
-                            logError(m_log, "Cannot prepare statement to create entities table");
+                            logError(m_log, "Cannot prepare statement to create messages table");
                     }
                     else
                     {
@@ -230,7 +230,7 @@ EntitiesDB::~EntitiesDB()
     }
 }
 
-bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
+bool EntitiesDB::addEntity(const unsigned int npacket, const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
         unsigned int hostId, unsigned int appId, unsigned int instanceId,
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
@@ -257,11 +257,6 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
                 else
                     sqlite3_bind_text(m_addStmt, 5, WRITER_TEXT, (int)strlen(WRITER_TEXT), SQLITE_STATIC);
                 sqlite3_bind_text(m_addStmt, 6, topicName.c_str(), (int)topicName.length(), SQLITE_STATIC);
-                sqlite3_bind_text(m_addStmt, 7, typeName.c_str(), (int)typeName.length(), SQLITE_STATIC);
-                if(existsTypecode)
-                    sqlite3_bind_int(m_addStmt, 8, 1);
-                else
-                    sqlite3_bind_int(m_addStmt, 8, 0);
 
                 if(sqlite3_step(m_addStmt) == SQLITE_DONE)
                 {
@@ -290,47 +285,44 @@ bool EntitiesDB::addEntity(const struct timeval &wts, std::string &ip_src, std::
             returnedValue = false;
             if(sqlite3_reset(m_addMsgStmt) == SQLITE_OK)
             {
-                sqlite3_bind_int64(m_addMsgStmt, 1, wts.tv_sec);
-                sqlite3_bind_int64(m_addMsgStmt, 2, wts.tv_usec);
-                sqlite3_bind_text(m_addMsgStmt, 3, ip_src.c_str(), (int)ip_src.length(), SQLITE_STATIC);
-                sqlite3_bind_text(m_addMsgStmt, 4, ip_dst.c_str(), (int)ip_dst.length(), SQLITE_STATIC);
-                sqlite3_bind_int64(m_addMsgStmt, 5, hostId);
-                sqlite3_bind_int64(m_addMsgStmt, 6, appId);
-                sqlite3_bind_int64(m_addMsgStmt, 7, instanceId);
-                sqlite3_bind_int64(m_addMsgStmt, 8, readerId);
-                sqlite3_bind_int64(m_addMsgStmt, 9, writerId);
-                sqlite3_bind_int64(m_addMsgStmt, 10, writerSeqNum);
-                sqlite3_bind_int64(m_addMsgStmt, 11, sourceTmp.seconds);
-                sqlite3_bind_int64(m_addMsgStmt, 12, sourceTmp.nanoseconds);
+                sqlite3_bind_int(m_addMsgStmt, 1, npacket);
+                sqlite3_bind_int(m_addMsgStmt, 2, wts.tv_sec);
+                sqlite3_bind_int(m_addMsgStmt, 3, wts.tv_usec);
+                sqlite3_bind_text(m_addMsgStmt, 4, ip_src.c_str(), (int)ip_src.length(), SQLITE_STATIC);
+                sqlite3_bind_text(m_addMsgStmt, 5, ip_dst.c_str(), (int)ip_dst.length(), SQLITE_STATIC);
+                sqlite3_bind_int64(m_addMsgStmt, 6, hostId);
+                sqlite3_bind_int64(m_addMsgStmt, 7, appId);
+                sqlite3_bind_int64(m_addMsgStmt, 8, instanceId);
+                sqlite3_bind_int(m_addMsgStmt, 9, sourceTmp.seconds);
+                sqlite3_bind_int(m_addMsgStmt, 10, sourceTmp.nanoseconds);
 
                 if(destHostId != 0 || destAppId != 0 ||
                         destInstanceId != 0)
                 {
-                    sqlite3_bind_int64(m_addMsgStmt, 13, destHostId);
-                    sqlite3_bind_int64(m_addMsgStmt, 14, destAppId);
-                    sqlite3_bind_int64(m_addMsgStmt, 15, destInstanceId);
+                    sqlite3_bind_int64(m_addMsgStmt, 11, destHostId);
+                    sqlite3_bind_int64(m_addMsgStmt, 12, destAppId);
+                    sqlite3_bind_int64(m_addMsgStmt, 13, destInstanceId);
                 }
                 else
                 {
+                    sqlite3_bind_null(m_addMsgStmt, 11);
+                    sqlite3_bind_null(m_addMsgStmt, 12);
                     sqlite3_bind_null(m_addMsgStmt, 13);
-                    sqlite3_bind_null(m_addMsgStmt, 14);
-                    sqlite3_bind_null(m_addMsgStmt, 15);
                 }
 
-                sqlite3_bind_int64(m_addMsgStmt, 16, entity_hostId);
-                sqlite3_bind_int64(m_addMsgStmt, 17, entity_appId);
-                sqlite3_bind_int64(m_addMsgStmt, 18, entity_instanceId);
-                sqlite3_bind_int64(m_addMsgStmt, 19, entityId);
+                sqlite3_bind_int64(m_addMsgStmt, 14, entity_hostId);
+                sqlite3_bind_int64(m_addMsgStmt, 15, entity_appId);
+                sqlite3_bind_int64(m_addMsgStmt, 16, entity_instanceId);
+                sqlite3_bind_int64(m_addMsgStmt, 17, entityId);
                 if(type == 0)
-                    sqlite3_bind_text(m_addMsgStmt, 20, READER_TEXT, (int)strlen(READER_TEXT), SQLITE_STATIC);
+                    sqlite3_bind_text(m_addMsgStmt, 18, READER_TEXT, (int)strlen(READER_TEXT), SQLITE_STATIC);
                 else
-                    sqlite3_bind_text(m_addMsgStmt, 20, WRITER_TEXT, (int)strlen(WRITER_TEXT), SQLITE_STATIC);
-                sqlite3_bind_text(m_addMsgStmt, 21, topicName.c_str(), (int)topicName.length(), SQLITE_STATIC);
-                sqlite3_bind_text(m_addMsgStmt, 22, typeName.c_str(), (int)typeName.length(), SQLITE_STATIC);
+                    sqlite3_bind_text(m_addMsgStmt, 18, WRITER_TEXT, (int)strlen(WRITER_TEXT), SQLITE_STATIC);
+                sqlite3_bind_text(m_addMsgStmt, 19, topicName.c_str(), (int)topicName.length(), SQLITE_STATIC);
                 if(existsTypecode)
-                    sqlite3_bind_int(m_addMsgStmt, 23, 1);
+                    sqlite3_bind_int(m_addMsgStmt, 20, 1);
                 else
-                    sqlite3_bind_int(m_addMsgStmt, 23, 0);
+                    sqlite3_bind_int(m_addMsgStmt, 20, 0);
 
                 if(sqlite3_step(m_addMsgStmt) == SQLITE_DONE)
                 {

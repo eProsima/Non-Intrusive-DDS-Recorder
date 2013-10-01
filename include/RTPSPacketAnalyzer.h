@@ -17,7 +17,7 @@ namespace eProsima
 {
     class eProsimaLog;
 
-    typedef void (*getDataCallback)(void *user, const struct timeval &wts,
+    typedef void (*getDataCallback)(void *user, const unsigned int npacket, const struct timeval &wts,
             std::string &ip_src, std::string &ip_dst, unsigned int hostId,
             unsigned int appId, unsigned int instanceId, unsigned int readerId, unsigned int writerId,
             unsigned long long writerSequenceNum, struct DDS_Time_t &sourceTmp,
@@ -43,7 +43,7 @@ namespace eProsima
              * \param rtpsPayload The RTPS packet. Cannot be NULL.
              * \param rtpsPayloadLen The length of the RTPS packet.
              */
-            static void processRTPSPacketCallback(void *user, const struct timeval &wts,
+            static void processRTPSPacketCallback(void *user, const unsigned int npacket, const struct timeval &wts,
                     std::string &ip_src, std::string &ip_dst, 
                     const char *rtpsPayload, const unsigned short rtpsPayloadLen);
 
@@ -53,7 +53,7 @@ namespace eProsima
              * \param rtpsPayload The RTPS packet that will be processed. Cannot be NULL.
              * \param rtpsPayloadLen The length of th RTPS packet.
              */
-            void processRTPSPacket(const struct timeval &wts, std::string &ip_src,
+            void processRTPSPacket(const unsigned int npacket, const struct timeval &wts, std::string &ip_src,
                     std::string &ip_dst, const char *rtpsPayload, const unsigned short rtpsPayloadLen);
 
             /**
@@ -76,7 +76,7 @@ namespace eProsima
              * \param submessage The pointer to the submessage inside RTPS packet payload. Cannot be NULL.
              * \return The length of the submessage that was processed.
              */
-            unsigned short processRTPSSubmessage(const struct timeval &wts,
+            unsigned short processRTPSSubmessage(const unsigned int npacket, const struct timeval &wts,
                     std::string ip_src, std::string ip_dst, const char *submessage);
 
             /**
@@ -89,7 +89,7 @@ namespace eProsima
              * \param dataInside Indicates if the DATA submessage contains serialized data.
 			 * \param inlineQos Indicates if the DATA submessage contains inlineQos.
              */
-            void processDATASubmessage(const struct timeval &wts, std::string &ip_src,
+            void processDATASubmessage(const unsigned int npacket, const struct timeval &wts, std::string &ip_src,
                     std::string &ip_dst, const char *dataSubmessage, unsigned short dataSubmessageLen,
                     bool endianess, bool dataInside, bool inlineQos);
 

@@ -12,7 +12,7 @@ namespace eProsima
     class eProsimaLog;
     class ipDefragmenter;
 
-    typedef void (*processRTPSPacketCallback)(void *user, const struct timeval &wts,
+    typedef void (*processRTPSPacketCallback)(void *user, const unsigned int npacket, const struct timeval &wts,
             std::string &ip_src, std::string &ip_dst,
             const char *rtpsPayload, const unsigned short rtpsPayloadLen);
 

@@ -37,12 +37,12 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
     int ret = SQLITE_ERROR;
     string TABLE_CHECK, TABLE_DROP, TABLE_CREATE, DYNAMICDATA_ADD;
 
-	// Erase '::' from m_tableName.
-	std::replace(m_tableName.begin(), m_tableName.end(), ':', '_');
-	// Erase '.' from m_tableName;
-	std::replace(m_tableName.begin(), m_tableName.end(), '.', '_');
-	// Erase '-' from m_tableName;
-	std::replace(m_tableName.begin(), m_tableName.end(), '-', '_');
+    // Erase '::' from m_tableName.
+    std::replace(m_tableName.begin(), m_tableName.end(), ':', '_');
+    // Erase '.' from m_tableName;
+    std::replace(m_tableName.begin(), m_tableName.end(), '.', '_');
+    // Erase '-' from m_tableName;
+    std::replace(m_tableName.begin(), m_tableName.end(), '-', '_');
 
     TABLE_CHECK = TABLE_CHECK_INIT;
     TABLE_CHECK.append(m_tableName);
@@ -97,11 +97,11 @@ DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &table
 
             if(SQLITE_PREPARE(m_databaseH, DYNAMICDATA_ADD.c_str(), (int)DYNAMICDATA_ADD.length(), &m_addStmt, NULL) == SQLITE_OK)
             {
-                    m_ready = true;
+                m_ready = true;
             }
             else
                 logError(m_log, "Cannot create add statement");
-                
+
         }
     }
     else
@@ -327,28 +327,27 @@ bool DynamicDataDB::createInitialStatements(string &table_create, string &dynami
 
     table_create = "CREATE TABLE ";
     table_create += m_tableName;
-    table_create += " (wireshark_timestamp_sec BIGINT, wireshark_timestamp_usec BIGINT UNSIGNED, " \
-                     "ip_src TEXT, ip_dst TEXT, " \
-                     "host_id BIGINT UNSIGNED, app_id BIGINT UNSIGNED, instance_id BIGINT UNSIGNED, " \
-                     "reader_id BIGINT UNSIGNED, writer_id BIGINT UNSIGNED, writer_seq_num BIGINT UNSIGNED, " \
-                     "sourcetimestamp_sec BIGINT, sourcetimestamp_nanosec BIGINT UNSIGNED, " \
-                     "dest_host_id BIGINT UNSIGNED, dest_app_id BIGINT UNSIGNED, dest_instance_id BIGINT UNSIGNED";
+    table_create += " (message_id INT, sniffer_timestamp_sec INT, sniffer_timestamp_usec INT, " \
+                     "ip_src VARCHAR(15), ip_dst VARCHAR(15), " \
+                     "src_rtps_host_id BIGINT UNSIGNED, src_rtps_app_id BIGINT UNSIGNED, src_rtps_instance_id BIGINT UNSIGNED, " \
+                     "src_timestamp_sec INT, src_timestamp_nanosec INT, " \
+                     "dst_rtps_host_id BIGINT UNSIGNED, dst_rtps_app_id BIGINT UNSIGNED, dst_rtps_instance_id BIGINT UNSIGNED";
 
     dynamicDataAdd = "INSERT INTO ";
     dynamicDataAdd += m_tableName;
-    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+    dynamicDataAdd += " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
 
     if(typeCode->getKind() == TypeCode::KIND_STRUCT)
         returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const StructTypeCode*>(typeCode), suffix);
 
-    table_create += ")";
+    table_create += ", PRIMARY KEY(message_id))";
     dynamicDataAdd += ")";
 
     return returnedValue;
 }
 
 bool DynamicDataDB::processStructsInitialStatements(string &table_create, string &dynamicDataAdd,
-                    const StructTypeCode *structTC, string &suffix)
+        const StructTypeCode *structTC, string &suffix)
 {
     const char* const METHOD_NAME = "processStructsInitialStatements";
     bool returnedValue = false;
@@ -384,7 +383,6 @@ bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string 
 {
     const char* const METHOD_NAME = "processUnionsInitialStatements";
     bool returnedValue = false;
-    const char *memberName = NULL;
     string smemberName;
     string newSuffix = suffix;
 
@@ -404,7 +402,7 @@ bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string 
             if(memberInfo != NULL)
             {
                 returnedValue = processMembersInitialStatements(table_create, dynamicDataAdd,
-                    memberInfo, suffix);
+                        memberInfo, suffix);
             }
             else
             {
@@ -437,14 +435,14 @@ bool DynamicDataDB::processMembersInitialStatements(string &table_create, string
             {
                 newSuffix = suffix;
                 newSuffix += memberInfo->getName();
-                newSuffix += "__";
+                newSuffix += "_";
                 returnedValue = processStructsInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const StructTypeCode*>(mTypeCode), newSuffix);
             }
             else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
             {
                 newSuffix = suffix;
                 newSuffix += memberInfo->getName();
-                newSuffix += "__";
+                newSuffix += "_";
                 returnedValue = processUnionsInitialStatements(table_create, dynamicDataAdd, dynamic_cast<const UnionTypeCode*>(mTypeCode), newSuffix);
             }
             else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
@@ -468,7 +466,7 @@ bool DynamicDataDB::processMembersInitialStatements(string &table_create, string
             else if(TypeCode::kindIsPrimitive(mTypeCode->getKind()))
             {
                 returnedValue = processPrimitiveInitialStatements(table_create, dynamicDataAdd,
-                    dynamic_cast<const PrimitiveTypeCode*>(mTypeCode), memberInfo->getName(), suffix);
+                        dynamic_cast<const PrimitiveTypeCode*>(mTypeCode), memberInfo->getName(), suffix);
             }
             else
             {
@@ -536,12 +534,22 @@ bool DynamicDataDB::processArraysInitialStatements(string &table_create, string 
 
     if(typeCode != NULL)
     {
+        TABLE_CREATE += m_tableName;
+        TABLE_CREATE += "_";
         TABLE_CREATE += suffix;
-        TABLE_CREATE += " (ref INT";
+        TABLE_CREATE += " (";
+        TABLE_CREATE += suffix;
+        TABLE_CREATE += "_id INT";
+        TABLE_INSERT += m_tableName;
+        TABLE_INSERT += "_";
         TABLE_INSERT += suffix;
         TABLE_INSERT += " VALUES(?";
+        TABLE_CHECK += m_tableName;
+        TABLE_CHECK += "_";
         TABLE_CHECK += suffix;
         TABLE_CHECK += "'";
+        TABLE_DROP += m_tableName;
+        TABLE_DROP += "_";
         TABLE_DROP += suffix;
 
         if(processDimensionsInitialStatements(TABLE_CREATE, TABLE_INSERT, typeCode,
@@ -605,6 +613,7 @@ bool DynamicDataDB::processArraysInitialStatements(string &table_create, string 
 
         table_create += ", ";
         table_create += suffix;
+        table_create += "_id";
         table_create += " INT";
         dynamicDataAdd += ", ?";
     }
@@ -621,27 +630,27 @@ bool DynamicDataDB::processDimensionsInitialStatements(string &table_create, str
 {
     bool returnedValue = false;
     const char* const METHOD_NAME = "processDimensionsInitialStatements";
-    string field;
+    ostringstream field;
 
     if(typeCode != NULL)
     {
-            field = "indice_" + currentDimension;
+        field << "indice_" << currentDimension;
 
-            table_create += ", ";
-            table_create += field;
-            table_create += " INT";
-            dynamicDataAdd += ", ?";
+        table_create += ", ";
+        table_create += field.str();
+        table_create += " INT";
+        dynamicDataAdd += ", ?";
 
-            if(currentDimension == typeCode->getDimensionCount() -1)
-            {
-                returnedValue = processArrayElementsInitialStatements(table_create, dynamicDataAdd,
-                        typeCode);
-            }
-            else
-            {
-                returnedValue = processDimensionsInitialStatements(table_create, dynamicDataAdd,
-                        typeCode, suffix, currentDimension + 1);
-            }
+        if(currentDimension == typeCode->getDimensionCount() -1)
+        {
+            returnedValue = processArrayElementsInitialStatements(table_create, dynamicDataAdd,
+                    typeCode);
+        }
+        else
+        {
+            returnedValue = processDimensionsInitialStatements(table_create, dynamicDataAdd,
+                    typeCode, suffix, currentDimension + 1);
+        }
     }
     else
     {
@@ -742,12 +751,22 @@ bool DynamicDataDB::processSequencesInitialStatements(string &table_create, stri
 
     if(typeCode != NULL)
     {
+        TABLE_CREATE += m_tableName;
+        TABLE_CREATE += "_";
         TABLE_CREATE += suffix;
-        TABLE_CREATE += " (ref INT, indice INT";
+        TABLE_CREATE += " (";
+        TABLE_CREATE += suffix;
+        TABLE_CREATE += "_id INT, indice INT";
+        TABLE_INSERT += m_tableName;
+        TABLE_INSERT += "_";
         TABLE_INSERT += suffix;
         TABLE_INSERT += " VALUES(?, ?";
+        TABLE_CHECK += m_tableName;
+        TABLE_CHECK += "_";
         TABLE_CHECK += suffix;
         TABLE_CHECK += "'";
+        TABLE_DROP += m_tableName;
+        TABLE_DROP += "_";
         TABLE_DROP += suffix;
 
         if(processSequenceElementsInitialStatements(TABLE_CREATE, TABLE_INSERT, typeCode,
@@ -811,6 +830,7 @@ bool DynamicDataDB::processSequencesInitialStatements(string &table_create, stri
 
         table_create += ", ";
         table_create += suffix;
+        table_create += "_id";
         table_create += " INT";
         dynamicDataAdd += ", ?";
     }
@@ -896,7 +916,7 @@ bool DynamicDataDB::processSequencePrimitiveInitialStatements(string &table_crea
 }
 
 bool DynamicDataDB::processStructsStorage(const StructTypeCode *typeCode, Cdr &cdr,
-    std::string &suffix, int &index, bool step)
+        std::string &suffix, int &index, bool step)
 {
     const char* const METHOD_NAME = "processStructsStorage";
     bool returnedValue = true;
@@ -932,7 +952,7 @@ bool DynamicDataDB::processStructsStorage(const StructTypeCode *typeCode, Cdr &c
 }
 
 bool DynamicDataDB::processUnionsStorage(const UnionTypeCode *typeCode, Cdr &cdr,
-    std::string &suffix, int &index, bool step)
+        std::string &suffix, int &index, bool step)
 {
     const char* const METHOD_NAME = "processUnionsStorage";
     bool returnedValue = false;
@@ -1010,7 +1030,7 @@ bool DynamicDataDB::processUnionsStorage(const UnionTypeCode *typeCode, Cdr &cdr
     return returnedValue;
 }
 
-bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, string &ip_dst,
+bool DynamicDataDB::storeDynamicData(const unsigned int npacket, const struct timeval &wts, string &ip_src, string &ip_dst,
         unsigned int hostId, unsigned int appId, unsigned int instanceId,
         unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
         struct DDS_Time_t &sourceTmp, unsigned int destHostId,
@@ -1028,18 +1048,16 @@ bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, 
         {
             if(sqlite3_reset(m_addStmt) == SQLITE_OK)
             {
-                sqlite3_bind_int64(m_addStmt, index++, wts.tv_sec);
-                sqlite3_bind_int64(m_addStmt, index++, wts.tv_usec);
+                sqlite3_bind_int(m_addStmt, index++, npacket);
+                sqlite3_bind_int(m_addStmt, index++, wts.tv_sec);
+                sqlite3_bind_int(m_addStmt, index++, wts.tv_usec);
                 sqlite3_bind_text(m_addStmt, index++, ip_src.c_str(), (int)ip_src.length(), SQLITE_STATIC);
                 sqlite3_bind_text(m_addStmt, index++, ip_dst.c_str(), (int)ip_dst.length(), SQLITE_STATIC);
                 sqlite3_bind_int64(m_addStmt, index++, hostId);
                 sqlite3_bind_int64(m_addStmt, index++, appId);
                 sqlite3_bind_int64(m_addStmt, index++, instanceId);
-                sqlite3_bind_int64(m_addStmt, index++, readerId);
-                sqlite3_bind_int64(m_addStmt, index++, writerId);
-                sqlite3_bind_int64(m_addStmt, index++, writerSeqNum);
-                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.seconds);
-                sqlite3_bind_int64(m_addStmt, index++, sourceTmp.nanoseconds);
+                sqlite3_bind_int(m_addStmt, index++, sourceTmp.seconds);
+                sqlite3_bind_int(m_addStmt, index++, sourceTmp.nanoseconds);
 
                 if(destHostId != 0 || destAppId != 0 ||
                         destInstanceId != 0)
@@ -1081,7 +1099,7 @@ bool DynamicDataDB::storeDynamicData(const struct timeval &wts, string &ip_src, 
 }
 
 bool DynamicDataDB::processMembersStorage(const Member *memberInfo, Cdr &cdr,
-    string &suffix, int &index, bool step)
+        string &suffix, int &index, bool step)
 {
     const char* const METHOD_NAME = "processMembersStorage";
     bool returnedValue = false;
@@ -1097,17 +1115,17 @@ bool DynamicDataDB::processMembersStorage(const Member *memberInfo, Cdr &cdr,
             {
                 newSuffix = suffix;
                 newSuffix += memberInfo->getName();
-                newSuffix += "__";
+                newSuffix += "_";
                 returnedValue = processStructsStorage(dynamic_cast<const StructTypeCode*>(mTypeCode), cdr,
                         newSuffix, index, step);
             }
             else if(mTypeCode->getKind() == TypeCode::KIND_UNION)
             {
-                    newSuffix = suffix;
-                    newSuffix += memberInfo->getName();
-                    newSuffix += "__";
-                    returnedValue = processUnionsStorage(dynamic_cast<const UnionTypeCode*>(mTypeCode), cdr,
-                            newSuffix, index, step);
+                newSuffix = suffix;
+                newSuffix += memberInfo->getName();
+                newSuffix += "_";
+                returnedValue = processUnionsStorage(dynamic_cast<const UnionTypeCode*>(mTypeCode), cdr,
+                        newSuffix, index, step);
             }
             else if(mTypeCode->getKind() == TypeCode::KIND_ARRAY)
             {
@@ -1170,7 +1188,7 @@ bool DynamicDataDB::processPrimitiveStorage(const PrimitiveTypeCode *primitiveIn
 
         if(addToStream != NULL)
         {
-                returnedValue = addToStream(m_addStmt, cdr, index);
+            returnedValue = addToStream(m_addStmt, cdr, index);
         }
     }
     else
@@ -1178,7 +1196,7 @@ bool DynamicDataDB::processPrimitiveStorage(const PrimitiveTypeCode *primitiveIn
         sqlite3_bind_null(m_addStmt, index++);
         returnedValue = true;
     }
-    
+
     return returnedValue;
 }
 
@@ -1759,7 +1777,7 @@ bool DynamicDataDB::addOctetArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (uint8_t*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (uint8_t*)calloc(sizeof(uint8_t)*arrayProcessingInfo->numberOfElements,
@@ -1814,7 +1832,7 @@ bool DynamicDataDB::addShortArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (int16_t*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (int16_t*)calloc(sizeof(int16_t)*arrayProcessingInfo->numberOfElements,
@@ -1869,7 +1887,7 @@ bool DynamicDataDB::addUShortArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (uint16_t*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (uint16_t*)calloc(sizeof(uint16_t)*arrayProcessingInfo->numberOfElements,
@@ -1924,7 +1942,7 @@ bool DynamicDataDB::addLongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (int32_t*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (int32_t*)calloc(sizeof(int32_t)*arrayProcessingInfo->numberOfElements,
@@ -1979,7 +1997,7 @@ bool DynamicDataDB::addULongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (uint32_t*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (uint32_t*)calloc(sizeof(uint32_t)*arrayProcessingInfo->numberOfElements,
@@ -2034,7 +2052,7 @@ bool DynamicDataDB::addLongLongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (int64_t*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (int64_t*)calloc(sizeof(int64_t)*arrayProcessingInfo->numberOfElements,
@@ -2089,7 +2107,7 @@ bool DynamicDataDB::addULongLongArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (uint64_t*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (uint64_t*)calloc(sizeof(uint64_t)*arrayProcessingInfo->numberOfElements,
@@ -2144,7 +2162,7 @@ bool DynamicDataDB::addCharArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (char*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (char*)calloc(sizeof(char)*arrayProcessingInfo->numberOfElements,
@@ -2199,7 +2217,7 @@ bool DynamicDataDB::addFloatArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (float*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (float*)calloc(sizeof(float)*arrayProcessingInfo->numberOfElements, sizeof(float));
@@ -2253,7 +2271,7 @@ bool DynamicDataDB::addDoubleArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (double*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (double*)calloc(sizeof(double)*arrayProcessingInfo->numberOfElements, sizeof(double));
@@ -2307,11 +2325,11 @@ bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = reinterpret_cast<uint8_t*>(arrayProcessingInfo->buffer);
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (uint8_t*)calloc(sizeof(uint8_t)*arrayProcessingInfo->numberOfElements,
-                sizeof(uint8_t));
+                    sizeof(uint8_t));
 
             if(auxPointerBuffer != NULL)
             {
@@ -2353,7 +2371,7 @@ bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
 }
 
 bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumTC, Cdr &cdr,
- arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
+        arrayProcessInfo *arrayProcessingInfo, uint32_t currentDimension)
 {
     const char* const METHOD_NAME = "addEnumArrayStorage";
     bool returnedValue = false;
@@ -2363,7 +2381,7 @@ bool DynamicDataDB::addEnumArrayStorage(sqlite3_stmt *stmt, const EnumTypeCode *
     if(stmt != NULL && arrayProcessingInfo != NULL)
     {
         auxPointerBuffer = (int32_t*)arrayProcessingInfo->buffer;
-        
+
         if(auxPointerBuffer == NULL)
         {
             auxPointerBuffer = (int32_t*)calloc(sizeof(int32_t)*arrayProcessingInfo->numberOfElements,

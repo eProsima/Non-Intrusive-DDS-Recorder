@@ -69,7 +69,7 @@ void RTPSPacketAnalyzer::setGetDataCallback(void *user, getDataCallback callback
     m_getDataCallback = callback;
 }
 
-void RTPSPacketAnalyzer::processRTPSPacketCallback(void *user, const struct timeval &wts,
+void RTPSPacketAnalyzer::processRTPSPacketCallback(void *user, const unsigned int npacket, const struct timeval &wts,
         string &ip_src, string &ip_dst, const char *rtpsPayload,
         const unsigned short rtpsPayloadLen)
 {
@@ -79,7 +79,7 @@ void RTPSPacketAnalyzer::processRTPSPacketCallback(void *user, const struct time
     if(user != NULL && rtpsPayload != NULL)
     {
         analyzer = (RTPSPacketAnalyzer*)user;
-        analyzer->processRTPSPacket(wts, ip_src, ip_dst, rtpsPayload, rtpsPayloadLen);
+        analyzer->processRTPSPacket(npacket, wts, ip_src, ip_dst, rtpsPayload, rtpsPayloadLen);
     }
     else
     {
@@ -101,7 +101,7 @@ void RTPSPacketAnalyzer::initialize()
     m_guidDestinationPrefix[2] = 0;
 }
 
-void RTPSPacketAnalyzer::processRTPSPacket(const struct timeval &wts, string &ip_src,
+void RTPSPacketAnalyzer::processRTPSPacket(const unsigned int npacket, const struct timeval &wts, string &ip_src,
         string &ip_dst, const char *rtpsPayload,
         const unsigned short rtpsPayloadLen)
 {
@@ -143,7 +143,7 @@ void RTPSPacketAnalyzer::processRTPSPacket(const struct timeval &wts, string &ip
 
             while(auxPointerLen > 0)
             {
-                submessageLen = processRTPSSubmessage(wts, ip_src, ip_dst, auxPointer);
+                submessageLen = processRTPSSubmessage(npacket, wts, ip_src, ip_dst, auxPointer);
 
                 if(submessageLen != 0)
                 {
@@ -168,7 +168,7 @@ void RTPSPacketAnalyzer::processRTPSPacket(const struct timeval &wts, string &ip
     }
 }
 
-unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const struct timeval &wts,
+unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const unsigned int npacket, const struct timeval &wts,
         string ip_src, string ip_dst, const char *submessage)
 {
     const char* const METHOD_NAME = "processRTPSSubmessage";
@@ -204,7 +204,7 @@ unsigned short RTPSPacketAnalyzer::processRTPSSubmessage(const struct timeval &w
         }
         else if(submessageId == RTPS_DATA_ID && m_getDataCallback != NULL)
         {
-            processDATASubmessage(wts, ip_src, ip_dst, auxPointer,
+            processDATASubmessage(npacket, wts, ip_src, ip_dst, auxPointer,
                     submessageSize, endianess, dataInside, inlineQos);
         }
 
@@ -260,7 +260,7 @@ void RTPSPacketAnalyzer::processINFODSTSubmessage(const char *dataSubmessage, bo
     }
 }
 
-void RTPSPacketAnalyzer::processDATASubmessage(const struct timeval &wts,
+void RTPSPacketAnalyzer::processDATASubmessage(const unsigned int npacket, const struct timeval &wts,
         string &ip_src, string &ip_dst, const char *dataSubmessage,
         unsigned short dataSubmessageLen, bool endianess, bool dataInside, bool inlineQos)
 {
@@ -330,7 +330,7 @@ void RTPSPacketAnalyzer::processDATASubmessage(const struct timeval &wts,
             serializedDataLen = auxPointerLen;
 
             if(m_getDataCallback != NULL)
-                m_getDataCallback(m_getDataUser, wts, ip_src, ip_dst, m_guidPrefix[0], m_guidPrefix[1],
+                m_getDataCallback(m_getDataUser, npacket, wts, ip_src, ip_dst, m_guidPrefix[0], m_guidPrefix[1],
                         m_guidPrefix[2], readerId, writerId, sequencenum, m_lastSourceTmp, m_guidDestinationPrefix[0],
                         m_guidDestinationPrefix[1], m_guidDestinationPrefix[2], endianess, serializedData, serializedDataLen);
         }

@@ -12,7 +12,7 @@
 #define SQLITE_PREPARE sqlite3_prepare
 #endif
 
-#define TYPECODE_TABLE "typecodes"
+#define TYPECODE_TABLE "_topics"
 
 using namespace eProsima;
 using namespace std;
@@ -35,12 +35,17 @@ eTypeCode::~eTypeCode()
         delete m_dynamicDB;
 }
 
-bool eTypeCode::equal(std::string &topicName, std::string &typeName)
+bool eTypeCode::equal(std::string &topicName, std::string &typeName, bool &error)
 {
     bool returnedValue = false;
 
-    if(m_topicName == topicName && m_typeName == typeName)
+    if(m_topicName == topicName)
+    {
+        if(m_typeName == typeName)
             returnedValue = true;
+        else
+            error = true;
+    }
 
     return returnedValue;
 }
@@ -64,8 +69,8 @@ TypeCodeDB::TypeCodeDB(eProsimaLog &log, sqlite3 *databaseH, int tcMaxSize) : m_
     const char* const METHOD_NAME = "TypeCodeDB";
     const char* const TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='" TYPECODE_TABLE "'";
     const char* const TABLE_TRUNCATE = "DELETE FROM " TYPECODE_TABLE;
-    const char* const TABLE_CREATE = "CREATE TABLE " TYPECODE_TABLE " (topic_name TEXT," \
-                                      "type_name TEXT, typecode TEXT)";
+    const char* const TABLE_CREATE = "CREATE TABLE " TYPECODE_TABLE " (topic_name VARCHAR(255)," \
+                                      "type_name VARCHAR(255), typecode TEXT)";
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
 
@@ -154,15 +159,14 @@ bool TypeCodeDB::addTypecode(std::string &topicName, std::string &typeName, Type
     const char* const METHOD_NAME = "addTypeCode";
     DynamicDataDB *dynamicDB;
     string dynamicTableName;
+    bool error = false;
 
     if(m_ready)
     {
-        if(findTypecode(topicName, typeName) == NULL)
+        if(findTypecode(topicName, typeName, error) == NULL && !error)
         {
             // Create the dynamic data database.
             dynamicTableName = topicName;
-            dynamicTableName += "__";
-            dynamicTableName += typeName;
             DynamicDataDB::eraseSpacesInTableName(dynamicTableName);
             dynamicDB = new DynamicDataDB(m_log, m_databaseH, dynamicTableName, typeCode);
 
@@ -197,19 +201,24 @@ bool TypeCodeDB::addTypecode(std::string &topicName, std::string &typeName, Type
                 logError(m_log, "Cannot create the DynamicDataDB to topic %s", topicName.c_str());
             }
         }
+        else
+        {
+            if(error)
+                logError(m_log, "Discovered two Topics with the same topic name (%s) but different type name.", topicName.c_str());
+        }
     }
 
     return false;
 }
 
-eTypeCode* TypeCodeDB::findTypecode(std::string &topicName, std::string &typeName)
+eTypeCode* TypeCodeDB::findTypecode(std::string &topicName, std::string &typeName, bool &error)
 {
     eTypeCode *returnedValue = NULL;
     list<eTypeCode*>::iterator it;
 
-    for(it = m_typecodes.begin(); it != m_typecodes.end(); it++)
+    for(it = m_typecodes.begin(); !error && it != m_typecodes.end(); it++)
     {
-        if((*it)->equal(topicName, typeName))
+        if((*it)->equal(topicName, typeName, error))
         {
             returnedValue = (*it);
             break;
