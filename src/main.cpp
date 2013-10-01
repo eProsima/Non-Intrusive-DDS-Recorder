@@ -16,7 +16,7 @@ void printHelp()
 {
 	/* 80 colunms: */
 	/*      12345678901234567890123456789012345678901234567890123456789012345678901234567890*/
-    printf("DDSRecorder usage: DDSRecorder.exe [<pcapFile>] [-db <database>] \n");
+    printf("DDSRecorder usage: DDSRecorder.exe [<pcapFile>] [-db <database>]\n");
 	printf("                                   [-tcMaxSize <size>]\n");
 	printf("                                   [-help]\n");
     printf("Options:\n");
