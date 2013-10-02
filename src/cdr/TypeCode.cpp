@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 
+const char* const CLASS_NAME = "TypeCode";
+
 using namespace eProsima;
 
 TypeCode::TypeCode(uint32_t kind) : m_kind(kind)
@@ -19,6 +21,7 @@ TypeCode::TypeCode(uint32_t kind) : m_kind(kind)
 
 TypeCode* TypeCode::deserializeTypeCode(char *cdrTypeCode, uint32_t cdrTypeCodeLength)
 {
+    const char* const METHOD_NAME = "deserializeTypeCode";
     TypeCode *returnedValue = NULL;
 
     if(cdrTypeCode != NULL)
@@ -54,7 +57,7 @@ TypeCode* TypeCode::deserializeTypeCode(char *cdrTypeCode, uint32_t cdrTypeCodeL
     }
     else
     {
-        // TODO Return error.
+        printf("ERROR<%s::%s>: Bad parameter\n", CLASS_NAME, METHOD_NAME);
     }
 
     return returnedValue;

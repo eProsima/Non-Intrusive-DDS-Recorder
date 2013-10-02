@@ -2333,7 +2333,7 @@ bool DynamicDataDB::addBoolArrayStorage(sqlite3_stmt *stmt, Cdr &cdr,
 
             if(auxPointerBuffer != NULL)
             {
-                // TODO deserialization.
+                cdr.deserializeArray(auxPointerBuffer, arrayProcessingInfo->numberOfElements);
                 arrayProcessingInfo->buffer = (void*)auxPointerBuffer;
             }
         }

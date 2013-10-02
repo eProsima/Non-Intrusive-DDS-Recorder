@@ -31,6 +31,22 @@ MemberedTypeCode::MemberedTypeCode(uint32_t kind) : TypeCode(kind)
 {
 }
 
+MemberedTypeCode::~MemberedTypeCode()
+{
+    std::vector<Member*>::iterator it = m_members.begin();
+    Member *member = NULL;
+
+    while(it != m_members.end())
+    {
+        member = *it;
+
+        if(member != NULL)
+            delete member;
+
+        it = m_members.erase(it);
+    }
+}
+
 std::string MemberedTypeCode::getName() const
 {
     return m_name;
@@ -66,9 +82,15 @@ bool MemberedTypeCode::deserializeMembers(Cdr &cdr)
             if(member != NULL)
             {
                 if(member->deserialize(cdr))
+                {
                     m_members.push_back(member);
+                }
                 else
+                {
                     delete member;
+                    returnedValue = false;
+                    break;
+                }
             }
         }
     }

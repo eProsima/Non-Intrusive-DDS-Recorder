@@ -69,7 +69,7 @@ namespace eProsima
         MemberedTypeCode(uint32_t kind);
 
         //! @brief Default destructor.
-        virtual ~MemberedTypeCode(){}
+        virtual ~MemberedTypeCode();
 
         /*!
          * @brief This function deserializes the name of a membered typecode.
