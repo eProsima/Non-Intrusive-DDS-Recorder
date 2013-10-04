@@ -329,9 +329,9 @@ bool DynamicDataDB::createInitialStatements(string &table_create, string &dynami
     table_create += m_tableName;
     table_create += " (message_id INT, sniffer_timestamp_sec INT, sniffer_timestamp_usec INT, " \
                      "ip_src VARCHAR(15), ip_dst VARCHAR(15), " \
-                     "src_rtps_host_id BIGINT UNSIGNED, src_rtps_app_id BIGINT UNSIGNED, src_rtps_instance_id BIGINT UNSIGNED, " \
+                     "src_rtps_host_id UNSIGNED INT, src_rtps_app_id UNSIGNED INT, src_rtps_instance_id UNSIGNED INT, " \
                      "src_timestamp_sec INT, src_timestamp_nanosec INT, " \
-                     "dst_rtps_host_id BIGINT UNSIGNED, dst_rtps_app_id BIGINT UNSIGNED, dst_rtps_instance_id BIGINT UNSIGNED";
+                     "dst_rtps_host_id UNSIGNED INT, dst_rtps_app_id UNSIGNED INT, dst_rtps_instance_id UNSIGNED INT";
 
     dynamicDataAdd = "INSERT INTO ";
     dynamicDataAdd += m_tableName;

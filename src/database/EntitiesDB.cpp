@@ -76,8 +76,8 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     const char* const METHOD_NAME = "EntitiesDB";
     const char* const TABLE_CHECK = "SELECT name FROM sqlite_master WHERE name='" ENTITIES_TABLE "'";
     const char* const TABLE_TRUNCATE = "DELETE FROM " ENTITIES_TABLE;
-    const char* const TABLE_CREATE = "CREATE TABLE " ENTITIES_TABLE " (rtps_host_id BIGINT UNSIGNED, " \
-                                      "rtps_app_id BIGINT UNSIGNED, rtps_instance_id BIGINT UNSIGNED, rtps_entity_id BIGINT UNSIGNED, " \
+    const char* const TABLE_CREATE = "CREATE TABLE " ENTITIES_TABLE " (rtps_host_id UNSIGNED INT, " \
+                                      "rtps_app_id UNSIGNED INT, rtps_instance_id UNSIGNED INT, rtps_entity_id UNSIGNED INT, " \
                                       "endpoint_type CHARACTER(10), topic_name VARCHAR(255), " \
                                       "PRIMARY KEY(rtps_host_id, rtps_app_id, rtps_instance_id, rtps_entity_id))";
     const char* const TABLE_MESSAGES_CHECK = "SELECT name FROM sqlite_master WHERE name='" MESSAGES_TABLE "'";
@@ -85,10 +85,10 @@ EntitiesDB::EntitiesDB(eProsimaLog &log, sqlite3 *databaseH) : m_log(log), m_rea
     const char* const TABLE_MESSAGES_CREATE = "CREATE TABLE " MESSAGES_TABLE \
         " (message_id INT, sniffer_timestamp_sec INT, sniffer_timestamp_usec INT, " \
         "ip_src VARCHAR(15), ip_dst VARCHAR(15), " \
-        "src_rtps_host_id BIGINT UNSIGNED, src_rtps_app_id BIGINT UNSIGNED, src_rtps_instance_id BIGINT UNSIGNED, " \
+        "src_rtps_host_id UNSIGNED INT, src_rtps_app_id UNSIGNED INT, src_rtps_instance_id UNSIGNED INT, " \
         "src_timestamp_sec INT, src_timestamp_nanosec INT, " \
-        "dst_rtps_host_Id BIGINT UNSIGNED, dst_rtps_app_id BIGINT UNSIGNED, dst_rtps_instance_id BIGINT UNSIGNED, " \
-        "endpoint_rtps_entity_id BIGINT UNSIGNED, endpoint_type CHARACTER(10), topic_name VARCHAR(255), contains_typecode TINYINT UNSIGNED, " \
+        "dst_rtps_host_Id UNSIGNED INT, dst_rtps_app_id UNSIGNED INT, dst_rtps_instance_id UNSIGNED INT, " \
+        "endpoint_rtps_entity_id UNSIGNED INT, endpoint_type CHARACTER(10), topic_name VARCHAR(255), contains_typecode TINYINT UNSIGNED, " \
         "PRIMARY KEY(message_id))";
     sqlite3_stmt *stmt = NULL;
     int ret = SQLITE_ERROR;
