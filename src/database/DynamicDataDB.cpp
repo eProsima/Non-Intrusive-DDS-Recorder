@@ -388,7 +388,7 @@ bool DynamicDataDB::processUnionsInitialStatements(string &table_create, string 
 
     if(unionTC != NULL)
     {
-        newSuffix += "_discriminator";
+        newSuffix += "discriminator";
         table_create += ", ";
         table_create += newSuffix;
         table_create += " INT";
