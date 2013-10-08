@@ -634,7 +634,7 @@ bool DynamicDataDB::processDimensionsInitialStatements(string &table_create, str
 
     if(typeCode != NULL)
     {
-        field << "indice_" << currentDimension;
+        field << "index_" << currentDimension;
 
         table_create += ", ";
         table_create += field.str();
@@ -756,7 +756,7 @@ bool DynamicDataDB::processSequencesInitialStatements(string &table_create, stri
         TABLE_CREATE += suffix;
         TABLE_CREATE += " (";
         TABLE_CREATE += suffix;
-        TABLE_CREATE += "_id INT, indice INT";
+        TABLE_CREATE += "_id INT, index_0 INT";
         TABLE_INSERT += m_tableName;
         TABLE_INSERT += "_";
         TABLE_INSERT += suffix;
