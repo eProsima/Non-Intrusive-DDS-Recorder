@@ -16,10 +16,12 @@ void printHelp()
 {
 	/* 80 colunms: */
 	/*      12345678901234567890123456789012345678901234567890123456789012345678901234567890*/
-    printf("DDSRecorder usage: DDSRecorder.exe [<pcapFile>] [-db <database>]\n");
-	printf("                                   [-tcMaxSize <size>]\n");
-	printf("                                   [-help]\n");
+    printf("DDSRecorder usage: DDSRecorder [<pcapFile>]\n");
+	printf("                               [-db <database>]\n");
+	printf("                               [-tcMaxSize <size>]\n");
+	printf("                               [-help]\n");
     printf("Options:\n");
+	printf("    <pcapFile>: The sniffer file to process (PCAP format required)");
     printf("    -db <database>: Database file to store the DDS traffic (Default: dump.db)\n");
     printf("    -tcMaxSize <size>: TypeCode maximum allowed size (Default: 2048)\n");
     printf("    -help: Print help information.\n");
@@ -82,7 +84,8 @@ int main(int argc, char *argv[])
 
     if(!filename.empty())
     {
-        log = new eProsimaLog(NULL);
+        printf("Processing file...\n");
+		log = new eProsimaLog(NULL);
 
         if(log != NULL)
         {
