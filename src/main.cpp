@@ -21,7 +21,7 @@ void printHelp()
 	printf("                               [-tcMaxSize <size>]\n");
 	printf("                               [-help]\n");
     printf("Options:\n");
-	printf("    <pcapFile>: The sniffer file to process (PCAP format required)");
+	printf("    <pcapFile>: The sniffer file to process (PCAP format required)\n");
     printf("    -db <database>: Database file to store the DDS traffic (Default: dump.db)\n");
     printf("    -tcMaxSize <size>: TypeCode maximum allowed size (Default: 2048)\n");
     printf("    -help: Print help information.\n");
