@@ -14,6 +14,8 @@ namespace eProsima
     public:
         //! @brief Default constructor.
         ArrayTypeCode();
+        //! @brief Dimension-constructor
+        ArrayTypeCode(std::vector<uint32_t>&);
 
         //! @brief Default destructor.
         virtual ~ArrayTypeCode(){}
@@ -37,6 +39,8 @@ namespace eProsima
         bool deserialize(Cdr &cdr);
 
         bool print(IDLPrinter &printer, bool write) const;
+
+
 
     private:
 

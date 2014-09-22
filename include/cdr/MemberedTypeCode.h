@@ -2,8 +2,8 @@
 #define _CDR_MEMBEREDTYPECODE_H_
 
 #include "cdr/TypeCode.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
 #include <string>
 #include <vector>
@@ -52,6 +52,11 @@ namespace eProsima
          * @brief This function returns the name of the membered type.
          */
         std::string getName() const;
+        /**
+         * This functions sets the name of the MemberedTypeCode
+         * @param name
+         */
+        void setName(std::string& name);
 
         /*!
          * @brief This function returns the member count of the membered type.

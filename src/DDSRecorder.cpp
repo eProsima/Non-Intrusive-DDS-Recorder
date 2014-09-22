@@ -1,6 +1,6 @@
 #include "DDSRecorder.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 #include "eProsima_cpp/eProsimaLog.h"
 #include "database/TypeCodeDB.h"
 #include "database/EntitiesDB.h"

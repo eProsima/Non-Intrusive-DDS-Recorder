@@ -14,6 +14,8 @@ namespace eProsima
          */
         const TypeCode* getContentTypeCode() const;
 
+        void setContentTypeCode(TypeCode*);
+
     protected:
 
         //! @brief Default constructor.

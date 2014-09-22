@@ -12,13 +12,13 @@ DDSRECORDER_TARGET_DEBUG= $(BASEDIR)/lib/$(EPROSIMA_TARGET)/DDSRecorderd
 DDSRECORDER_TARGET= $(BASEDIR)/lib/$(EPROSIMA_TARGET)/DDSRecorder
 
 DDSRECORDER_INCLUDE_DIRS= $(INCLUDE_DIRS) -I$(BASEDIR)/include \
-		       -I$(BASEDIR)/../CDR/include \
+		       -I$(BASEDIR)/../fastcdr/include \
 		       -I$(EPROSIMADIR)/code
 
-DDSRECORDER_LIBS_DEBUG= $(LIBS_DEBUG) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) \
+DDSRECORDER_LIBS_DEBUG= $(LIBS_DEBUG) -L$(BASEDIR)/../fastcdr/lib/$(EPROSIMA_TARGET) \
 			-Wl,-Bstatic -lcdrd \
 			-Wl,-Bdynamic -ldl -lpcap -lsqlite3 -lboost_system-mt
-DDSRECORDER_LIBS_RELEASE= $(LIBS) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) \
+DDSRECORDER_LIBS_RELEASE= $(LIBS) -L$(BASEDIR)/../fastcdr/lib/$(EPROSIMA_TARGET) \
 			  -Wl,-Bstatic -lcdr \
 			  -Wl,-Bdynamic -ldl -lpcap -lsqlite3 -lboost_system-mt
 

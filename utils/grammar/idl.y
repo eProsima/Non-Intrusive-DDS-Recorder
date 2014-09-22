@@ -1,0 +1,478 @@
+	/* @(#)idl.y 0.1 92/07/04 Copyright (C) 1992 MITRE */
+	/******** DEFINITIONS SECTION *******/
+
+/* Just to see how, explicitly show the default type, namely Integer */
+%union {YYnonterminal ; YYterminal ; YYtoken ; default Object}
+
+%token <Integer> INTEGER_LITERAL LONG_LITERAL
+%token <Integer> FLOAT_LITERAL DOUBLE_LITERAL
+%token <Integer> BOOLEAN_LITERAL
+%token <Integer> STRING_LITERAL CHARACTER_LITERAL
+%token <Integer> IDENTIFIER
+%token <Integer> ANY_TOKEN ATTRIBUTE_TOKEN BOOLEAN_TOKEN CASE_TOKEN
+%token <Integer> CHAR_TOKEN CONST_TOKEN CONTEXT_TOKEN DEFAULT_TOKEN
+%token <Integer> DOUBLE_TOKEN ENUM_TOKEN EXCEPTION_TOKEN FLOAT_TOKEN
+%token <Integer> IN_TOKEN INOUT_TOKEN INTERFACE_TOKEN LONG_TOKEN
+%token <Integer> MODULE_TOKEN OCTET_TOKEN ONEWAY_TOKEN OUT_TOKEN
+%token <Integer> RAISES_TOKEN READONLY_TOKEN SEQUENCE_TOKEN SHORT_TOKEN
+%token <Integer> STRING_TOKEN STRUCT_TOKEN SWITCH_TOKEN TYPEDEF_TOKEN
+%token <Integer> UNSIGNED_TOKEN UNION_TOKEN VOID_TOKEN OBJECT_TOKEN
+%token <Integer> RESOLVE_TOKEN SHIFTLEFT_TOKEN SHIFTRIGHT_TOKEN
+%token <Integer> ';' '{' '}' ':' ',' '=' '+' '-' '(' ')' '<' '>' '[' ']' '|'
+%token <Integer> '^' '&' '*' '/' '%' '~'
+%token <Integer> '\'' '"' '\\' /* apparently not used */
+%token <YYtoken> PRAGMA_INFO IDENT_INFO LINE_AND_FILE_INFO
+
+%left '|'
+%left '^'
+%left '&'
+%left SHIFTLEFT_TOKEN SHIFTRIGHT_TOKEN
+%left '-' '+'
+%left '*' '/' '%'
+%left NEG POS NOT    /* unary minus,plus,not */
+
+%type <YYterminal> param_attribute sharp_declaratives
+%type <YYnonterminal> specification definition_list definition interface
+%type <YYnonterminal> module interface_dcl forward_dcl interface_header
+%type <YYnonterminal> interface_body export inheritance_spec scoped_name_list
+%type <YYnonterminal> scoped_name res_scoped_name const_dcl const_type
+%type <YYnonterminal> const_exp expr literal positive_int_const
+%type <YYnonterminal> type_dcl type_declarator type_spec simple_type_spec
+%type <YYnonterminal> base_type_spec object_type template_type_spec constr_type_spec
+%type <YYnonterminal> declarators declarator simple_declarator complex_declarator
+%type <YYnonterminal> floating_pt_type integer_type signed_int signed_long_int
+%type <YYnonterminal> signed_short_int unsigned_int unsigned_long_int unsigned_short_int
+%type <YYnonterminal> char_type boolean_type octet_type any_type
+%type <YYnonterminal> struct_type member_list member union_type
+%type <YYnonterminal> switch_type_spec switch_body case case_label_list
+%type <YYnonterminal> case_label element_spec enum_type enumerator_list
+%type <YYnonterminal> enumerator sequence_type string_type array_declarator
+%type <YYnonterminal> fixed_array_size_list fixed_array_size attr_dcl simple_declarators
+%type <YYnonterminal> except_dcl member_star op_dcl op_dcl_cont
+%type <YYnonterminal> op_attribute op_type_spec parameter_dcls param_dcl_list
+%type <YYnonterminal> param_dcl raises_expr context_expr
+%type <YYnonterminal> string_literal_list param_type_spec
+
+%start specification
+
+%%
+	/******* RULES SECTION *******/
+
+specification : definition_list
+    ;
+definition_list : 
+    definition
+	{$$ = new YYnonterminal(nt_definition_list,$1);}
+    | definition definition_list
+	{$2.append($1); $$ = $2;}
+    ;
+definition : 
+    type_dcl ';' {$$ = $1;}
+    | const_dcl ';' {$$ = $1;}
+    | except_dcl ';' {$$ = $1;}
+    | interface ';' {$$ = $1;}
+    | module ';' {$$ = $1;}
+    | sharp_declaratives {$$ = $1;}
+
+sharp_declaratives:
+      PRAGMA_INFO
+	{$$ = new YYterminal($1);}
+    | IDENT_INFO
+	{$$ = new YYterminal($1);}
+    | LINE_AND_FILE_INFO
+	{$$ = new YYterminal($1);}
+    ;
+    
+interface:
+      interface_dcl
+    | forward_dcl 
+    ;
+
+module : MODULE_TOKEN IDENTIFIER '{' definition_list '}'
+	{$$ = new YYnonterminal(nt_module,$2,$4);}
+    ;
+
+interface_dcl : interface_header '{' interface_body '}'
+	{$$ = new YYnonterminal(nt_interface_dcl,$1,$3);}
+    ;
+forward_dcl : INTERFACE_TOKEN IDENTIFIER
+	{$$ = new YYnonterminal(nt_forward_dcl,$2);}
+    ;
+interface_header : 
+    INTERFACE_TOKEN IDENTIFIER
+	{$$ = new YYnonterminal(nt_interface_header,$2);}
+    | INTERFACE_TOKEN IDENTIFIER inheritance_spec
+	{$$ = new YYnonterminal(nt_interface_header,$2,$3);}
+    ;
+interface_body  :  /*NULL*/
+	{$$ = new YYnonterminal(nt_interface_body);}
+    | export interface_body
+	{$2.append($1); $$ = $2;}
+    ;
+export : 
+    type_dcl ';'
+    | const_dcl ';'
+    | except_dcl ';'
+    | attr_dcl ';'
+    | op_dcl ';'
+    ;
+inheritance_spec : ':' scoped_name_list
+	{$$ = new YYnonterminal(nt_inheritance_spec,$2);}
+	;
+scoped_name_list : 
+    scoped_name
+	{$$ = new YYnonterminal(nt_scoped_name_list,$1);}
+    | scoped_name ',' scoped_name_list
+	{$3.append($1); $$ = $3;}
+    ;
+scoped_name : 
+    IDENTIFIER
+	{$$ = new YYnonterminal(nt_scoped_name,$1);}
+    | IDENTIFIER RESOLVE_TOKEN scoped_name
+	{$$ = new YYnonterminal(nt_scoped_name,$1,$3);}
+    | res_scoped_name
+    ;
+res_scoped_name : 
+    RESOLVE_TOKEN IDENTIFIER
+	{$$ = new YYnonterminal(nt_res_scoped_name,$2);}
+    | RESOLVE_TOKEN IDENTIFIER res_scoped_name
+	{$$ = new YYnonterminal(nt_res_scoped_name,$2,$3);}
+    ;
+const_dcl : CONST_TOKEN const_type IDENTIFIER '=' const_exp
+	{$$ = new YYnonterminal(nt_const_dcl,$2,$3,$5);}
+    ;
+const_type : 
+    integer_type
+    | char_type
+    | boolean_type
+    | floating_pt_type
+    | string_type
+    ;
+const_exp: expr
+	{$$ = new YYnonterminal(nt_const_exp,$1);} /* used for semantic check */
+    ;
+expr :
+      scoped_name
+	{$$ = new YYnonterminal(nt_expr,null,$1);}
+    | literal
+	{$$ = new YYnonterminal(nt_expr,null,$1);}
+    | '('  expr  ')'
+	{$$ = new YYnonterminal(nt_expr,null,$2);}
+    | expr '|' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '^' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '&' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr SHIFTLEFT_TOKEN expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr SHIFTRIGHT_TOKEN expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '+' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '-' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '*' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '/' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '%' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | '-' expr  %prec NEG
+	{$$ = new YYnonterminal(nt_expr,$1,$2);}
+    | '+' expr  %prec POS
+	{$$ = new YYnonterminal(nt_expr,$1,$2);}
+    | '~' expr  %prec NOT
+	{$$ = new YYnonterminal(nt_expr,$1,$2);}
+    ;
+literal	: 
+    INTEGER_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);}
+    | STRING_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);}
+    | CHARACTER_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);};
+    | FLOAT_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);};
+    | BOOLEAN_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);}
+    ;
+
+positive_int_const : expr
+	{$$ = new YYnonterminal(nt_positive_int_const,$1);} /* used for semantic check */
+    ;
+type_dcl : 
+    TYPEDEF_TOKEN type_declarator
+	{$$ = new YYnonterminal(nt_type_dcl,$2);}
+    | struct_type
+    | union_type
+    | enum_type
+    ;
+type_declarator	: type_spec declarators
+	{$$ = new YYnonterminal(nt_type_declarator,$1,$2);}
+    ;
+type_spec : 
+    simple_type_spec
+    | constr_type_spec
+    ;
+simple_type_spec : 
+    base_type_spec
+    | template_type_spec
+    | scoped_name
+    ;
+base_type_spec	: 
+    floating_pt_type
+    | integer_type
+    | char_type
+    | boolean_type
+    | octet_type
+    | any_type
+    | object_type
+    ;
+object_type : OBJECT_TOKEN
+	{$$ = new YYnonterminal(nt_object_type);}
+    ;
+template_type_spec : 
+    sequence_type
+    | string_type
+    ;
+constr_type_spec : 
+    struct_type
+    | union_type
+    | enum_type
+    ;
+declarators : 
+    declarator
+	{$$ = new YYnonterminal(nt_declarators,$1);}
+    | declarator  ','  declarators
+	{$3.append($1); $$ = $3;}
+    ;
+declarator : 
+    simple_declarator
+    | complex_declarator
+    ;
+simple_declarator : IDENTIFIER
+	{$$ = new YYnonterminal(nt_simple_declarator,$1);}
+    ;
+complex_declarator : array_declarator
+    ;
+floating_pt_type : 
+    FLOAT_TOKEN
+	{$$ = new YYnonterminal(nt_floating_pt_type,FLOAT_TOKEN);}
+    |  DOUBLE_TOKEN
+	{$$ = new YYnonterminal(nt_floating_pt_type,DOUBLE_TOKEN);}
+    ;
+integer_type : 
+    signed_int
+    | unsigned_int
+    ;
+signed_int : 
+    signed_long_int
+    | signed_short_int
+    ;
+signed_long_int	: LONG_TOKEN
+	{$$ = new YYnonterminal(nt_signed_long_int);}
+    ;
+signed_short_int : SHORT_TOKEN
+	{$$ = new YYnonterminal(nt_signed_short_int);}
+    ;
+unsigned_int : 
+    unsigned_long_int
+    | unsigned_short_int
+    ;
+unsigned_long_int : UNSIGNED_TOKEN LONG_TOKEN
+	{$$ = new YYnonterminal(nt_unsigned_long_int);}
+    ;
+unsigned_short_int : UNSIGNED_TOKEN SHORT_TOKEN
+	{$$ = new YYnonterminal(nt_unsigned_short_int);}
+    ;
+char_type : CHAR_TOKEN
+	{$$ = new YYnonterminal(nt_char_type);}
+    ;
+boolean_type : BOOLEAN_TOKEN
+	{$$ = new YYnonterminal(nt_boolean_type);}
+    ;
+octet_type : OCTET_TOKEN
+	{$$ = new YYnonterminal(nt_octet_type);}
+    ;
+any_type : ANY_TOKEN
+	{$$ = new YYnonterminal(nt_any_type);}
+    ;
+struct_type : STRUCT_TOKEN  IDENTIFIER '{'  member_list  '}'
+	{$$ = new YYnonterminal(nt_struct_type,$2,$4);}
+    ;
+member_list : 
+    member
+	{$$ = new YYnonterminal(nt_member_list,$1);}
+    | member member_list
+	{$2.append($1); $$ = $2;}
+    ;
+member : type_spec declarators ';'
+	{$$ = new YYnonterminal(nt_member,$1,$2);}
+    ;
+union_type : UNION_TOKEN IDENTIFIER SWITCH_TOKEN '(' switch_type_spec  ')' 
+    '{' switch_body '}'
+	{$$ = new YYnonterminal(nt_union_type,$2,$5,$8);}
+    ;
+switch_type_spec : 
+    integer_type
+    | char_type
+    | boolean_type
+    | enum_type
+    | scoped_name
+    ;
+switch_body : 
+    case
+	{$$ = new YYnonterminal(nt_switch_body,$1);}
+    | case switch_body
+	{$2.append($1); $$ = $2;}
+    ;
+case : case_label_list element_spec  ';'
+	{$$ = new YYnonterminal(nt_case,$1,$2);} /* avoid keyword conflict */
+    ;
+case_label_list : 
+    case_label
+	{$$ = new YYnonterminal(nt_case_label_list,$1);}
+    | case_label case_label_list
+	{$2.append($1); $$ = $2;}
+    ;
+case_label : 
+    CASE_TOKEN  const_exp  ':'
+	{$$ = new YYnonterminal(nt_case_label,$2);} /* semantic */
+    | DEFAULT_TOKEN ':'	/* NULL=DEFAULT */
+	{$$ = new YYnonterminal(nt_case_label);}
+    ;
+element_spec : type_spec  declarator
+	{$$ = new YYnonterminal(nt_element_spec,$1,$2);}
+    ;
+enum_type : ENUM_TOKEN IDENTIFIER '{' enumerator_list  '}'
+	{$$ = new YYnonterminal(nt_enum_type,$2,$4);}
+    ;
+enumerator_list	: enumerator
+	{$$ = new YYnonterminal(nt_enumerator_list,$1);}
+    | enumerator ',' enumerator_list
+	{$3.append($1); $$ = $3;}
+    ;
+enumerator : IDENTIFIER
+	{$$ = new YYnonterminal(nt_enumerator,$1);}
+    ;
+sequence_type : 
+    SEQUENCE_TOKEN '<' simple_type_spec ',' positive_int_const '>'
+	{$$ = new YYnonterminal(nt_sequence_type,$3,$5);}	
+    | SEQUENCE_TOKEN  '<'  simple_type_spec  '>'
+	{$$ = new YYnonterminal(nt_sequence_type,$3);}	
+    ;
+string_type : 
+    STRING_TOKEN  '<'  positive_int_const  '>'
+	{$$ = new YYnonterminal(nt_string_type,$3);}	
+    | STRING_TOKEN		/* NULL=UNBOUNDED */
+	{$$ = new YYnonterminal(nt_string_type);}	
+    ;
+array_declarator : IDENTIFIER  fixed_array_size_list
+	{$$ = new YYnonterminal(nt_array_declarator,$1,$2);}	
+    ;
+fixed_array_size_list : 
+    fixed_array_size
+	{$$ = new YYnonterminal(nt_fixed_array_size_list,$1);}	
+    | fixed_array_size fixed_array_size_list
+	{$2.append($1); $$ = $2;}
+    ;
+fixed_array_size : '['  positive_int_const  ']'
+	{$$ = $2;}
+    ;
+attr_dcl : 
+    ATTRIBUTE_TOKEN  param_type_spec  simple_declarators
+	{$$ = new YYnonterminal(nt_attr_dcl,$2,$3,null);}	
+    | READONLY_TOKEN ATTRIBUTE_TOKEN  param_type_spec  simple_declarators
+	{$$ = new YYnonterminal(nt_attr_dcl,$3,$4,READONLY_TOKEN);}
+    ;
+simple_declarators :
+    simple_declarator
+    | simple_declarator ',' simple_declarators
+	{$3.append($1); $$ = $3;}
+    ;
+except_dcl : EXCEPTION_TOKEN IDENTIFIER '{' member_star '}'
+	{$$ = new YYnonterminal(nt_except_dcl,$2,$4);}	
+    ;
+member_star : 
+    /* empty */	/* NULL==EMPTY */
+	{$$ = new YYnonterminal(nt_member_list);}
+    | member_list
+    ;
+op_dcl : 
+    op_type_spec  IDENTIFIER  op_dcl_cont
+	{$$ = new YYnonterminal(nt_op_dcl,$1,$2,$3);}
+    | op_attribute  op_type_spec  IDENTIFIER op_dcl_cont
+	{$$ = new YYnonterminal(nt_op_dcl,$2,$3,$4,$1);}
+    ;
+op_dcl_cont :  parameter_dcls raises_expr context_expr
+	{$$ = new YYnonterminal(nt_op_dcl_cont,$1,$2,$3);}
+    ;
+op_attribute : ONEWAY_TOKEN /* does CORBA2 specify others ? */
+	{$$ = new YYnonterminal(nt_op_attribute,ONEWAY_TOKEN);}
+    ;
+op_type_spec : 
+    param_type_spec
+    | VOID_TOKEN		/* NULL==VOID */
+	{$$ = null;}
+    ;
+parameter_dcls : 
+    '(' param_dcl_list ')'
+	{$$ = $2;}
+    | '('  ')'	/* NULL==EMPTY */
+	{$$ = new YYnonterminal(nt_param_dcl_list);}
+    ;
+param_dcl_list : 
+    param_dcl
+	{$$ = new YYnonterminal(nt_param_dcl_list,$1);}
+    | param_dcl ',' param_dcl_list
+	{$3.append($1); $$ = $3;}
+    ;
+param_dcl : param_attribute  param_type_spec  simple_declarator
+	{$$ = new YYnonterminal(nt_param_dcl,$1,$2,$3);}
+    ;
+param_attribute	: 
+    IN_TOKEN
+	{$$ = new YYterminal($1);}
+    | OUT_TOKEN
+	{$$ = new YYterminal($1);}
+    | INOUT_TOKEN
+	{$$ = new YYterminal($1);}
+    ;
+raises_expr : 
+    /* empty */	/* NULL==EMPTY */
+	{$$ = new YYnonterminal(nt_raises_expr);} /*semantic*/
+    | RAISES_TOKEN  '('  scoped_name_list ')'
+	{$$ = new YYnonterminal(nt_raises_expr,$3);}
+    ;
+context_expr : 
+    /* empty */	/* NULL==EMPTY */
+	{$$ = new YYnonterminal(nt_context_expr);} /*semantic*/
+    | CONTEXT_TOKEN  '('  string_literal_list  ')'
+	{$$ = new YYnonterminal(nt_context_expr,$3);}
+    ;
+string_literal_list : 
+    STRING_LITERAL
+	{$$ = new YYnonterminal(nt_string_literal_list,$1);}
+    | STRING_LITERAL ',' string_literal_list
+	{$3.append($1); $$ = $3;}
+    ;
+param_type_spec :
+    base_type_spec
+    | string_type
+    | scoped_name
+    ;
+
+%%
+
+// directly include the nonterm defs here
+@NONTERMTYPES@
+
+/* Override yyerror */
+public
+void
+yyverror(String s) throws ParseException
+{
+    String msg = yyerror_verbose(s);
+    yyerror(msg);
+}

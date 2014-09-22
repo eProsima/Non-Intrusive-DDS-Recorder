@@ -11,6 +11,8 @@ namespace eProsima
 
         StringTypeCode() : PrimitiveTypeCode(TypeCode::KIND_STRING){}
 
+        StringTypeCode(uint32_t maxL): PrimitiveTypeCode(TypeCode::KIND_STRING),m_maxLength(maxL){};
+
         virtual ~StringTypeCode(){}
 
         /*!
