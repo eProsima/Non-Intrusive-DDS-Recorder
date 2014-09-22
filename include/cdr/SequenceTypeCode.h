@@ -12,6 +12,8 @@ namespace eProsima
     public:
         //! @brief Default constructor.
         SequenceTypeCode();
+        //!@brief Max Length Constructor
+        SequenceTypeCode(uint32_t maxL):ContentTypeCode(TypeCode::KIND_SEQUENCE),m_maxLength(maxL){}
 
         //! @brief Default destructor.
         virtual ~SequenceTypeCode(){}

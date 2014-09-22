@@ -344,9 +344,17 @@ string_type :
 
 sequence_type : 
     SEQUENCE_TOKEN '<' simple_type_spec ',' positive_int_const '>'
-	{$$ = new YYnonterminal(nt_sequence_type,$3,$5);}	
+	{
+	SequenceTypeCode* sTC = new SequenceTypeCode($5);
+	sTC->setContentTypeCode($3);
+	$$ = (TypeCode*) sTC;
+	}	
     | SEQUENCE_TOKEN  '<'  simple_type_spec  '>'
-	{$$ = new YYnonterminal(nt_sequence_type,$3);}	
+	{
+	SequenceTypeCode* sTC = new SequenceTypeCode(255);
+	sTC->setContentTypeCode($3);
+	$$ = (TypeCode*) sTC;
+	}
     ;
 
 /*
@@ -356,9 +364,56 @@ REMOVED SECTION 1
 */
 
 
+positive_int_const : expr
+	{$$ = new YYnonterminal(nt_positive_int_const,$1);} /* used for semantic check */
+    ;
 
-
-
+expr :
+      scoped_name
+	{$$ = new YYnonterminal(nt_expr,null,$1);}
+    | literal
+	{$$ = new YYnonterminal(nt_expr,null,$1);}
+    | '('  expr  ')'
+	{$$ = new YYnonterminal(nt_expr,null,$2);}
+    | expr '|' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '^' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '&' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr SHIFTLEFT_TOKEN expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr SHIFTRIGHT_TOKEN expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '+' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '-' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '*' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '/' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | expr '%' expr
+	{$$ = new YYnonterminal(nt_expr,$1,$2,$3);}
+    | '-' expr  %prec NEG
+	{$$ = new YYnonterminal(nt_expr,$1,$2);}
+    | '+' expr  %prec POS
+	{$$ = new YYnonterminal(nt_expr,$1,$2);}
+    | '~' expr  %prec NOT
+	{$$ = new YYnonterminal(nt_expr,$1,$2);}
+    ;
+literal	: 
+    INTEGER_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);}
+    | STRING_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);}
+    | CHARACTER_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);};
+    | FLOAT_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);};
+    | BOOLEAN_LITERAL
+	{$$ = new YYnonterminal(nt_literal,$1);}
+    ;
 
     
     
