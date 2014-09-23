@@ -32,7 +32,7 @@
 
 /**
  ** \file position.hh
- ** Define the yy::position class.
+ ** Define the eprosima::position class.
  */
 
 #ifndef BISON_POSITION_HH
@@ -43,7 +43,7 @@
 # include <algorithm>
 
 
-namespace yy {
+namespace eprosima {
 
 /* Line 37 of location.cc  */
 #line 50 "position.hh"
@@ -154,7 +154,7 @@ namespace yy {
   }
 
 
-} // yy
+} // eprosima
 
 /* Line 144 of location.cc  */
 #line 161 "position.hh"

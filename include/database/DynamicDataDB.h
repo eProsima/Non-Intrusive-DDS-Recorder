@@ -10,6 +10,13 @@
 #include <sqlite3.h>
 #include "RTPSPacketAnalyzer.h"
 
+namespace eprosima{ namespace fastcdr{
+
+ class Cdr;
+}}
+using namespace eprosima::fastcdr;
+
+
 namespace eProsima
 {
     class eProsimaLog;
@@ -21,7 +28,7 @@ namespace eProsima
     class PrimitiveTypeCode;
     class SequenceTypeCode;
     class UnionTypeCode;
-    class Cdr;
+
 
     typedef struct arrayProcessInfo
     {

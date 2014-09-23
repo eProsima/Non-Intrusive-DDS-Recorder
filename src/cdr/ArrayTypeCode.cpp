@@ -1,11 +1,12 @@
 #include "cdr/ArrayTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
+using namespace eprosima::fastcdr;
 using namespace eProsima;
 
-ArrayTypeCode::ArrayTypeCode() : ContentTypeCode(TypeCode::KIND_ARRAY)
+ArrayTypeCode::ArrayTypeCode() : ContentTypeCode(TypeCode::KIND_ARRAY), m_dimensionCount(0)
 {
 }
 
@@ -34,7 +35,7 @@ bool ArrayTypeCode::deserialize(Cdr &cdr)
 
         returnedValue &= deserializeContent(cdr);
     }
-    catch(eProsima::Exception &ex)
+    catch(exception::Exception &ex)
     {
         returnedValue = false;
     }

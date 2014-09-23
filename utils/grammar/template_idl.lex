@@ -1,11 +1,6 @@
 %{
 // import YYtokentypes;
-//import YYtokentypes;
-#include "idl.tab.hh"
-
- typedef eprosima::IDLParser::token token;
-typedef eprosima::IDLParser::token_type token_type;
-
+import YYtokentypes;
 %}
 
 %x COMMENT
@@ -25,12 +20,12 @@ SQUOTE_TEXT ({UNICODE}|{OCTCODE}|[^']|\\.)
 
 <INITIAL>{
 
-"::"		{ yyreturn(token::RESOLVE_TOKEN); }
-"<<"		{ yyreturn(token::SHIFTLEFT_TOKEN); }
-">>"		{ yyreturn(token::SHIFTRIGHT_TOKEN); }
+"::"		{ yyreturn(RESOLVE_TOKEN); }
+"<<"		{ yyreturn(SHIFTLEFT_TOKEN); }
+">>"		{ yyreturn(SHIFTRIGHT_TOKEN); }
 ";"		{ yyreturn(';');} 
-"{" 		{ yyreturn(token::LBRACE); }
-"}" 		{ yyreturn(token::RBRACE); }
+"{" 		{ yyreturn(LBRACE); }
+"}" 		{ yyreturn(RBRACE); }
 ":" 		{ yyreturn(':'); }
 "," 		{ yyreturn(','); }
 "=" 		{ yyreturn('='); }
@@ -52,47 +47,44 @@ SQUOTE_TEXT ({UNICODE}|{OCTCODE}|[^']|\\.)
 "%" 		{ yyreturn('%'); }
 "~" 		{ yyreturn('~'); }
 
-any		{ yyreturn(token::ANY_TOKEN); }
-attribute	{ yyreturn(token::ATTRIBUTE_TOKEN); }
-boolean		{ yyreturn(token::BOOLEAN_TOKEN); }
-case		{ yyreturn(token::CASE_TOKEN); }
-char		{ yyreturn(token::CHAR_TOKEN); }
-const		{ yyreturn(token::CONST_TOKEN); }
-context		{ yyreturn(token::CONTEXT_TOKEN); }
-default		{ yyreturn(token::DEFAULT_TOKEN); }
-double		{ yyreturn(token::DOUBLE_TOKEN); }
-enum		{ yyreturn(token::ENUM_TOKEN); }
-exception	{ yyreturn(token::EXCEPTION_TOKEN); }
-float		{ yyreturn(token::FLOAT_TOKEN); }
-in			{ yyreturn(token::IN_TOKEN); }
-inout		{ yyreturn(token::INOUT_TOKEN); }
-interface	{ yyreturn(token::INTERFACE_TOKEN); }
-long		{ yyreturn(token::LONG_TOKEN); }
-module		{ yyreturn(token::MODULE_TOKEN); }
-octet		{ yyreturn(token::OCTET_TOKEN); }
-oneway		{ yyreturn(token::ONEWAY_TOKEN); }
-out			{ yyreturn(token::OUT_TOKEN); }
-raises		{ yyreturn(token::RAISES_TOKEN); }
-readonly	{ yyreturn(token::READONLY_TOKEN); }
-sequence	{ yyreturn(token::SEQUENCE_TOKEN); }
-short		{ yyreturn(token::SHORT_TOKEN); }
-string		{ yyreturn(token::STRING_TOKEN); }
-struct		{ yyreturn(token::STRUCT_TOKEN); }
-switch		{ yyreturn(token::SWITCH_TOKEN); }
-typedef		{ yyreturn(token::TYPEDEF_TOKEN); }
-unsigned	{ yyreturn(token::UNSIGNED_TOKEN); }
-union		{ yyreturn(token::UNION_TOKEN); }
-void		{ yyreturn(token::VOID_TOKEN); }
-Object		{ yyreturn(token::OBJECT_TOKEN); }
-
-
+any		{ yyreturn(ANY_TOKEN); }
+attribute	{ yyreturn(ATTRIBUTE_TOKEN); }
+boolean		{ yyreturn(BOOLEAN_TOKEN); }
+case		{ yyreturn(CASE_TOKEN); }
+char		{ yyreturn(CHAR_TOKEN); }
+const		{ yyreturn(CONST_TOKEN); }
+context		{ yyreturn(CONTEXT_TOKEN); }
+default		{ yyreturn(DEFAULT_TOKEN); }
+double		{ yyreturn(DOUBLE_TOKEN); }
+enum		{ yyreturn(ENUM_TOKEN); }
+exception	{ yyreturn(EXCEPTION_TOKEN); }
+float		{ yyreturn(FLOAT_TOKEN); }
+in		{ yyreturn(IN_TOKEN); }
+inout		{ yyreturn(INOUT_TOKEN); }
+interface	{ yyreturn(INTERFACE_TOKEN); }
+long		{ yyreturn(LONG_TOKEN); }
+module		{ yyreturn(MODULE_TOKEN); }
+octet		{ yyreturn(OCTET_TOKEN); }
+oneway		{ yyreturn(ONEWAY_TOKEN); }
+out		{ yyreturn(OUT_TOKEN); }
+raises		{ yyreturn(RAISES_TOKEN); }
+readonly	{ yyreturn(READONLY_TOKEN); }
+sequence	{ yyreturn(SEQUENCE_TOKEN); }
+short		{ yyreturn(SHORT_TOKEN); }
+string		{ yyreturn(STRING_TOKEN); }
+struct		{ yyreturn(STRUCT_TOKEN); }
+switch		{ yyreturn(SWITCH_TOKEN); }
+typedef		{ yyreturn(TYPEDEF_TOKEN); }
+unsigned	{ yyreturn(UNSIGNED_TOKEN); }
+union		{ yyreturn(UNION_TOKEN); }
+void		{ yyreturn(VOID_TOKEN); }
+Object		{ yyreturn(OBJECT_TOKEN); }
 TRUE		{ yyreturn(BOOLEAN_LITERAL); }
 FALSE		{ yyreturn(BOOLEAN_LITERAL); }
 
 
 {IDCHAR}({IDCHAR}|{DIGIT})* { /* identifier */
-		yyval->stringVal = new std::sting(yytext,yyleng);
-		yyreturn(token::IDENTIFIER);
+		yyreturn(IDENTIFIER);
 		}
 
 0[0-7]+		{/* octal */

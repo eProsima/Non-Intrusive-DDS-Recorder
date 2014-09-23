@@ -30,37 +30,14 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+// Take the name prefix into account.
+#define yylex   eprosimalex
 
 /* First part of user declarations.  */
 
-/* Line 293 of lalr1.cc  */
-#line 5 "idl.y"
-
-
-#include <vector>
-#include <string>
-#include <utility>
-#include <iostream>
-
-#include "cdr/TypeCode.h"
-namespace yy{
-typedef std::pair<std::string,std::vector<int32_t>> Declarator;
-typedef std::vector<Declarator*> DeclaratorVec;
-typedef std::vector<Member*> MemberVec;
-typedef std::vector<std::string> StringVec;
-typedef std::vector<TypeCode*> TypeCodeVec;
-enum LiteralType{ BOOL_TYPE, NUMBER_TYPE,STRING_TYPE,SCOPED_TYPE};
-struct TypeLiteral{
-	LiteralType type;
-	std::string str;
-	float num;
-	bool boolean;
-};
-}
-
 
 /* Line 293 of lalr1.cc  */
-#line 64 "idl.tab.cc"
+#line 41 "idl.tab.cc"
 
 
 #include "idl.tab.hh"
@@ -69,7 +46,7 @@ struct TypeLiteral{
 
 
 /* Line 299 of lalr1.cc  */
-#line 73 "idl.tab.cc"
+#line 50 "idl.tab.cc"
 
 #ifndef YY_
 # if defined YYENABLE_NLS && YYENABLE_NLS
@@ -152,13 +129,13 @@ do {					\
 #define YYRECOVERING()  (!!yyerrstatus_)
 
 
-namespace yy {
+namespace eprosima {
 
 /* Line 382 of lalr1.cc  */
-#line 159 "idl.tab.cc"
+#line 136 "idl.tab.cc"
 
   /// Build a parser object.
-  eprosimaidlparser::eprosimaidlparser ()
+  IDLParser::IDLParser ()
 #if YYDEBUG
      :yydebug_ (false),
       yycdebug_ (&std::cerr)
@@ -166,7 +143,7 @@ namespace yy {
   {
   }
 
-  eprosimaidlparser::~eprosimaidlparser ()
+  IDLParser::~IDLParser ()
   {
   }
 
@@ -176,7 +153,7 @@ namespace yy {
   `--------------------------------*/
 
   inline void
-  eprosimaidlparser::yy_symbol_value_print_ (int yytype,
+  IDLParser::yy_symbol_value_print_ (int yytype,
 			   const semantic_type* yyvaluep, const location_type* yylocationp)
   {
     YYUSE (yylocationp);
@@ -190,7 +167,7 @@ namespace yy {
 
 
   void
-  eprosimaidlparser::yy_symbol_print_ (int yytype,
+  IDLParser::yy_symbol_print_ (int yytype,
 			   const semantic_type* yyvaluep, const location_type* yylocationp)
   {
     *yycdebug_ << (yytype < yyntokens_ ? "token" : "nterm")
@@ -202,7 +179,7 @@ namespace yy {
 #endif
 
   void
-  eprosimaidlparser::yydestruct_ (const char* yymsg,
+  IDLParser::yydestruct_ (const char* yymsg,
 			   int yytype, semantic_type* yyvaluep, location_type* yylocationp)
   {
     YYUSE (yylocationp);
@@ -220,7 +197,7 @@ namespace yy {
   }
 
   void
-  eprosimaidlparser::yypop_ (unsigned int n)
+  IDLParser::yypop_ (unsigned int n)
   {
     yystate_stack_.pop (n);
     yysemantic_stack_.pop (n);
@@ -229,45 +206,45 @@ namespace yy {
 
 #if YYDEBUG
   std::ostream&
-  eprosimaidlparser::debug_stream () const
+  IDLParser::debug_stream () const
   {
     return *yycdebug_;
   }
 
   void
-  eprosimaidlparser::set_debug_stream (std::ostream& o)
+  IDLParser::set_debug_stream (std::ostream& o)
   {
     yycdebug_ = &o;
   }
 
 
-  eprosimaidlparser::debug_level_type
-  eprosimaidlparser::debug_level () const
+  IDLParser::debug_level_type
+  IDLParser::debug_level () const
   {
     return yydebug_;
   }
 
   void
-  eprosimaidlparser::set_debug_level (debug_level_type l)
+  IDLParser::set_debug_level (debug_level_type l)
   {
     yydebug_ = l;
   }
 #endif
 
   inline bool
-  eprosimaidlparser::yy_pact_value_is_default_ (int yyvalue)
+  IDLParser::yy_pact_value_is_default_ (int yyvalue)
   {
     return yyvalue == yypact_ninf_;
   }
 
   inline bool
-  eprosimaidlparser::yy_table_value_is_error_ (int yyvalue)
+  IDLParser::yy_table_value_is_error_ (int yyvalue)
   {
     return yyvalue == yytable_ninf_;
   }
 
   int
-  eprosimaidlparser::parse ()
+  IDLParser::parse ()
   {
     /// Lookahead and lookahead in internal form.
     int yychar = yyempty_;
@@ -416,158 +393,163 @@ namespace yy {
 	  case 2:
 
 /* Line 690 of lalr1.cc  */
-#line 114 "idl.y"
-    {(yyval.TypeCodeVec) = (yysemantic_stack_[(1) - (1)].TypeCodeVec); }
+#line 164 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec); }
     break;
 
   case 3:
 
 /* Line 690 of lalr1.cc  */
-#line 118 "idl.y"
+#line 168 "idl.y"
     {
-	(yyval.TypeCodeVec) = (yysemantic_stack_[(1) - (1)].TypeCodeVec);
+	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec);
 	}
     break;
 
   case 4:
 
 /* Line 690 of lalr1.cc  */
-#line 122 "idl.y"
+#line 172 "idl.y"
     {
-	for(TypeCodeVec::iterator it = (yysemantic_stack_[(2) - (2)].TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (2)].TypeCodeVec)->end();++it)
+	for(TypeCodeVec::iterator it = (yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->end();++it)
 	{
-	(yysemantic_stack_[(2) - (1)].TypeCodeVec).push_back(*it);
+	(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->push_back(*it);
 	}
-	delete((yysemantic_stack_[(2) - (2)].TypeCodeVec));
-	(yyval.TypeCodeVec) = (yysemantic_stack_[(2) - (1)].TypeCodeVec);
+	delete((yysemantic_stack_[(2) - (2)].mp_TypeCodeVec));
+	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);
 	}
     break;
 
   case 5:
 
 /* Line 690 of lalr1.cc  */
-#line 132 "idl.y"
-    {(yyval.TypeCodeVec) = (yysemantic_stack_[(2) - (1)].TypeCodeVec);}
+#line 182 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 6:
 
 /* Line 690 of lalr1.cc  */
-#line 133 "idl.y"
-    {(yyval.TypeCodeVec) = (yysemantic_stack_[(2) - (1)].TypeCodeVec);}
+#line 183 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 7:
 
 /* Line 690 of lalr1.cc  */
-#line 134 "idl.y"
-    {(yyval.TypeCodeVec) = (yysemantic_stack_[(2) - (1)].TypeCodeVec);}
+#line 184 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 8:
 
 /* Line 690 of lalr1.cc  */
-#line 135 "idl.y"
-    {(yyval.TypeCodeVec) = (yysemantic_stack_[(2) - (1)].TypeCodeVec);}
+#line 185 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 9:
 
 /* Line 690 of lalr1.cc  */
-#line 136 "idl.y"
-    {(yyval.TypeCodeVec) = (yysemantic_stack_[(2) - (1)].TypeCodeVec);}
+#line 186 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 10:
 
 /* Line 690 of lalr1.cc  */
-#line 137 "idl.y"
-    {(yyval.TypeCodeVec) = (yysemantic_stack_[(1) - (1)].TypeCodeVec);}
+#line 187 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec);}
     break;
 
   case 11:
 
 /* Line 690 of lalr1.cc  */
-#line 141 "idl.y"
-    {(yyval.TypeCodeVec) = new TypeCodeVec();}
+#line 191 "idl.y"
+    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 12:
 
 /* Line 690 of lalr1.cc  */
-#line 143 "idl.y"
-    {(yyval.TypeCodeVec) = new TypeCodeVec();}
+#line 193 "idl.y"
+    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 13:
 
 /* Line 690 of lalr1.cc  */
-#line 145 "idl.y"
-    {(yyval.TypeCodeVec) = new TypeCodeVec();}
+#line 195 "idl.y"
+    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 14:
 
 /* Line 690 of lalr1.cc  */
-#line 149 "idl.y"
+#line 199 "idl.y"
     {
-	for(TypeCodeVec::iterator it = (yysemantic_stack_[(5) - (4)].TypeCodeVec)->begin();it!=(yysemantic_stack_[(5) - (4)].TypeCodeVec)->end();++it)
+	for(TypeCodeVec::iterator it = (yysemantic_stack_[(5) - (4)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(5) - (4)].mp_TypeCodeVec)->end();++it)
 	{
 	if((*it)->getKind() == TypeCode::KIND_STRUCT || 
-		(*it)->getKind() == TypeCode::KIND_UNION) ||
+		(*it)->getKind() == TypeCode::KIND_UNION ||
 		(*it)->getKind() == TypeCode::KIND_ENUM)
 	{
 		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		membered->setName(std::string((yysemantic_stack_[(5) - (2)].Integer)).append("::").append(membered->getName()));
+		(yysemantic_stack_[(5) - (2)].stringVal)->append("::");
+		(yysemantic_stack_[(5) - (2)].stringVal)->append(membered->getName());
+		membered->setName(*(yysemantic_stack_[(5) - (2)].stringVal));
+		delete((yysemantic_stack_[(5) - (2)].stringVal));
 	}
 	}
-	(yyval.TypeCodeVec) = (yysemantic_stack_[(5) - (4)].TypeCodeVec);
+	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(5) - (4)].mp_TypeCodeVec);
 	}
     break;
 
   case 15:
 
 /* Line 690 of lalr1.cc  */
-#line 166 "idl.y"
+#line 219 "idl.y"
     {std::cout << "Warning: \"typedef\" token not allowed" << std::endl;}
     break;
 
   case 19:
 
 /* Line 690 of lalr1.cc  */
-#line 173 "idl.y"
-    {TypeCode* sTC = (TypeCode*) new StructTypeCode((yysemantic_stack_[(5) - (2)].Integer));
-	for(MemberVec::iterator it= (yysemantic_stack_[(5) - (4)].MemberVec)->begin();it!=(yysemantic_stack_[(5) - (4)].MemberVec)->end();++it)
+#line 226 "idl.y"
+    {StructTypeCode* sTC = new StructTypeCode();
+	sTC->setName(*(yysemantic_stack_[(5) - (2)].stringVal));
+	delete((yysemantic_stack_[(5) - (2)].stringVal));
+	for(MemberVec::iterator it= (yysemantic_stack_[(5) - (4)].mp_MemberVec)->begin();it!=(yysemantic_stack_[(5) - (4)].mp_MemberVec)->end();++it)
 	{
-		sTC.addMember(std::dynamic_cast<StructMember*>(*it));
+		sTC->addMember((StructMember*)(*it));
 	}
-	(yyval.TypeCodeVec) = new TypeCodeVec();
-	(yyval.TypeCodeVec)->push_back(sTC);
+	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	(yyval.mp_TypeCodeVec)->push_back((TypeCode*)sTC);
 	}
     break;
 
   case 20:
 
 /* Line 690 of lalr1.cc  */
-#line 184 "idl.y"
-    {(yyval.MemberVec) = (yysemantic_stack_[(1) - (1)].MemberVec);}
+#line 239 "idl.y"
+    {(yyval.mp_MemberVec) = (yysemantic_stack_[(1) - (1)].mp_MemberVec);}
     break;
 
   case 21:
 
 /* Line 690 of lalr1.cc  */
-#line 186 "idl.y"
+#line 241 "idl.y"
     {
-	if((yysemantic_stack_[(2) - (1)].MemberVec) ==NULL)
-		(yyval.MemberVec) = (yysemantic_stack_[(2) - (2)].MemberVec);
+	if((yysemantic_stack_[(2) - (1)].mp_MemberVec) ==NULL)
+		(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
 	else
 	{
-	for(std::vector<Member*>::iterator it = (yysemantic_stack_[(2) - (1)].MemberVec)->begin();it!=(yysemantic_stack_[(2) - (1)].MemberVec)->end();++it)
+	for(std::vector<Member*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_MemberVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_MemberVec)->end();++it)
 	{
-		(yysemantic_stack_[(2) - (2)].MemberVec)->push_back(*it);
+		(yysemantic_stack_[(2) - (2)].mp_MemberVec)->push_back(*it);
 	}
-	delete((yysemantic_stack_[(2) - (1)].MemberVec));
-	(yyval.MemberVec) = (yysemantic_stack_[(2) - (2)].MemberVec);
+	delete((yysemantic_stack_[(2) - (1)].mp_MemberVec));
+	(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
 	}
 	}
     break;
@@ -575,21 +557,21 @@ namespace yy {
   case 22:
 
 /* Line 690 of lalr1.cc  */
-#line 201 "idl.y"
+#line 256 "idl.y"
     {
-	if((yysemantic_stack_[(3) - (1)].TypeCode)->getKind() == TypeCode::KIND_NULL)
+	if((yysemantic_stack_[(3) - (1)].mp_TypeCode)->getKind() == TypeCode::KIND_NULL)
 	{
-		delete((yysemantic_stack_[(3) - (1)].TypeCode));
-		delete((yysemantic_stack_[(3) - (2)].DeclaratorVec));
-		(yyval.MemberVec) = NULL;
+		delete((yysemantic_stack_[(3) - (1)].mp_TypeCode));
+		delete((yysemantic_stack_[(3) - (2)].mp_DeclaratorVec));
+		(yyval.mp_MemberVec) = NULL;
 	}
 	else
 	{
-	MemberVec MV = new MemberVec();
+	MemberVec* MV = new MemberVec();
 	bool first = true;
-	for(DeclaratorVec::iterator it=(yysemantic_stack_[(3) - (2)].DeclaratorVec).begin();it!=(yysemantic_stack_[(3) - (2)].DeclaratorVec).end();++it)
+	for(DeclaratorVec::iterator it=(yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->begin();it!=(yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->end();++it)
 	{
-		TypeCode* pTC = (yysemantic_stack_[(3) - (1)].TypeCode);
+		TypeCode* pTC = (yysemantic_stack_[(3) - (1)].mp_TypeCode);
 		if(!first)
 		{
 			switch(pTC->getKind())
@@ -603,21 +585,21 @@ namespace yy {
 			}
 		}
 		first = false;
-		StructMember* sm = new StructMember(it.first,0,0);
-		if(it.second.size()==0)
+		StructMember* sm = new StructMember((*it)->first,0,0);
+		if((*it)->second.size()==0)
 		{
-			sm->m_typeCode = pTC;
+			sm->setTypeCode(pTC);
 		}
 		else
 		{
-			ArrayTypeCode* ar = new ArrayTypeCode(it.second);
-			ar.setContentTypeCode(pTC);
-			sm->m_typeCode = ar;
+			ArrayTypeCode* ar = new ArrayTypeCode((*it)->second);
+			ar->setContentTypeCode(pTC);
+			sm->setTypeCode(ar);
 		}
-		MV->push_back(MV);
+		MV->push_back(sm);
 	}
-	delete((yysemantic_stack_[(3) - (2)].DeclaratorVec));
-	(yyval.MemberVec) = MV;
+	delete((yysemantic_stack_[(3) - (2)].mp_DeclaratorVec));
+	(yyval.mp_MemberVec) = MV;
 	}
 	}
     break;
@@ -625,438 +607,475 @@ namespace yy {
   case 24:
 
 /* Line 690 of lalr1.cc  */
-#line 254 "idl.y"
+#line 309 "idl.y"
     {
-    (yyval.TypeCode) = *(yysemantic_stack_[(1) - (1)].TypeCodeVec).begin();
-    delete((yysemantic_stack_[(1) - (1)].TypeCodeVec));
+    (yyval.mp_TypeCode) = *((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin());
+    delete((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec));
     }
     break;
 
   case 28:
 
 /* Line 690 of lalr1.cc  */
-#line 266 "idl.y"
+#line 321 "idl.y"
     {
-    TypeCode* pTC = findTypeCodebyName((yysemantic_stack_[(1) - (1)].std::string));
-    (yyval.TypeCode) = pTC;
+    TypeCode* pTC = findTypeCodebyName(*(yysemantic_stack_[(1) - (1)].mp_string));
+    delete((yysemantic_stack_[(1) - (1)].mp_string));
+    (yyval.mp_TypeCode) = pTC;
     }
     break;
 
   case 36:
 
 /* Line 690 of lalr1.cc  */
-#line 284 "idl.y"
+#line 340 "idl.y"
     {
 	std::cout << "Warning: \"Object\" token not allowed" << std::endl;
-	(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);
+	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);
 	}
     break;
 
   case 37:
 
 /* Line 690 of lalr1.cc  */
-#line 290 "idl.y"
+#line 346 "idl.y"
     {std::cout << "Warning: \"any\" token not allowed" << std::endl;
-	(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
+	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
 
   case 43:
 
 /* Line 690 of lalr1.cc  */
-#line 304 "idl.y"
+#line 360 "idl.y"
     {
-	(yyval.DeclaratorVec) = new DeclaratorVec();
-	(yyval.DeclaratorVec)->push_back((yysemantic_stack_[(1) - (1)].Declarator));
+	(yyval.mp_DeclaratorVec) = new DeclaratorVec();
+	(yyval.mp_DeclaratorVec)->push_back((yysemantic_stack_[(1) - (1)].mp_Declarator));
 	}
     break;
 
   case 44:
 
 /* Line 690 of lalr1.cc  */
-#line 309 "idl.y"
+#line 365 "idl.y"
     {
-	(yysemantic_stack_[(3) - (3)].DeclaratorVec)->push_back((yysemantic_stack_[(3) - (1)].Declarator)); 
-	(yyval.DeclaratorVec) = (yysemantic_stack_[(3) - (3)].DeclaratorVec);
+	(yysemantic_stack_[(3) - (3)].mp_DeclaratorVec)->push_back((yysemantic_stack_[(3) - (1)].mp_Declarator)); 
+	(yyval.mp_DeclaratorVec) = (yysemantic_stack_[(3) - (3)].mp_DeclaratorVec);
 	}
     break;
 
   case 47:
 
 /* Line 690 of lalr1.cc  */
-#line 319 "idl.y"
+#line 375 "idl.y"
     {
-	(yyval.Declarator) = new Declarator();
-	(yyval.Declarator)->first = (yysemantic_stack_[(1) - (1)].Integer);
+	(yyval.mp_Declarator) = new Declarator();
+	(yyval.mp_Declarator)->first = *(yysemantic_stack_[(1) - (1)].stringVal);
+	delete((yysemantic_stack_[(1) - (1)].stringVal));
 	}
     break;
 
   case 49:
 
 /* Line 690 of lalr1.cc  */
-#line 328 "idl.y"
+#line 385 "idl.y"
     {
-	(yysemantic_stack_[(2) - (2)].Declarator)->first = (yysemantic_stack_[(2) - (1)].Integer);
-	(yyval.Declarator) = (yysemantic_stack_[(2) - (2)].Declarator);
+	(yysemantic_stack_[(2) - (2)].mp_Declarator)->first = *(yysemantic_stack_[(2) - (1)].stringVal);
+	delete((yysemantic_stack_[(2) - (1)].stringVal));
+	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (2)].mp_Declarator);
 	}
     break;
 
   case 50:
 
 /* Line 690 of lalr1.cc  */
-#line 335 "idl.y"
+#line 393 "idl.y"
     {
-	(yyval.Declarator) = new Declarator();
-	(yyval.Declarator)->second.push_back((yysemantic_stack_[(1) - (1)].uint32_t));
+	(yyval.mp_Declarator) = new Declarator();
+	(yyval.mp_Declarator)->second.push_back((yysemantic_stack_[(1) - (1)].m_uint32_t));
 	}
     break;
 
   case 51:
 
 /* Line 690 of lalr1.cc  */
-#line 340 "idl.y"
+#line 398 "idl.y"
     {
-	(yysemantic_stack_[(2) - (2)].Declarator)->push_back((yysemantic_stack_[(2) - (1)].uint32_t)); 
-	(yyval.Declarator) = (yysemantic_stack_[(2) - (2)].Declarator);}
+	(yysemantic_stack_[(2) - (2)].mp_Declarator)->second.push_back((yysemantic_stack_[(2) - (1)].m_uint32_t)); 
+	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (2)].mp_Declarator);}
     break;
 
   case 52:
 
 /* Line 690 of lalr1.cc  */
-#line 345 "idl.y"
-    {(yyval.uint32_t) = (yysemantic_stack_[(3) - (2)].uint32_t);}
+#line 403 "idl.y"
+    {(yyval.m_uint32_t) = (yysemantic_stack_[(3) - (2)].m_uint32_t);}
     break;
 
   case 53:
 
 /* Line 690 of lalr1.cc  */
-#line 351 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_FLOAT);}
+#line 409 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_FLOAT);}
     break;
 
   case 54:
 
 /* Line 690 of lalr1.cc  */
-#line 353 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_DOUBLE);}
+#line 411 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_DOUBLE);}
     break;
 
   case 55:
 
 /* Line 690 of lalr1.cc  */
-#line 355 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGDOUBLE);}
+#line 413 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGDOUBLE);}
     break;
 
   case 60:
 
 /* Line 690 of lalr1.cc  */
-#line 366 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONG);}
+#line 424 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONG);}
     break;
 
   case 61:
 
 /* Line 690 of lalr1.cc  */
-#line 368 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGLONG);}
+#line 426 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGLONG);}
     break;
 
   case 62:
 
 /* Line 690 of lalr1.cc  */
-#line 371 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_SHORT);}
+#line 429 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_SHORT);}
     break;
 
   case 65:
 
 /* Line 690 of lalr1.cc  */
-#line 378 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONG);}
+#line 436 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONG);}
     break;
 
   case 66:
 
 /* Line 690 of lalr1.cc  */
-#line 380 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONGLONG);}
+#line 438 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONGLONG);}
     break;
 
   case 67:
 
 /* Line 690 of lalr1.cc  */
-#line 383 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_USHORT);}
+#line 441 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_USHORT);}
     break;
 
   case 68:
 
 /* Line 690 of lalr1.cc  */
-#line 386 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_CHAR);}
+#line 444 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_CHAR);}
     break;
 
   case 69:
 
 /* Line 690 of lalr1.cc  */
-#line 389 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_BOOLEAN);}
+#line 447 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_BOOLEAN);}
     break;
 
   case 70:
 
 /* Line 690 of lalr1.cc  */
-#line 392 "idl.y"
-    {(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_OCTET);}
+#line 450 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_OCTET);}
     break;
 
   case 71:
 
 /* Line 690 of lalr1.cc  */
-#line 397 "idl.y"
+#line 455 "idl.y"
     {
 	EnumTypeCode* enTC= new EnumTypeCode();
-	enTC->setName((yysemantic_stack_[(5) - (2)].Integer));
+	enTC->setName(*(yysemantic_stack_[(5) - (2)].stringVal));
+	delete((yysemantic_stack_[(5) - (2)].stringVal));
 	uint32_t ord = 0;
-	for(StringVec::iterator it=(yysemantic_stack_[(5) - (4)].StringVec).begin();it!=(yysemantic_stack_[(5) - (4)].StringVec).end();++it)
+	for(StringVec::iterator it=(yysemantic_stack_[(5) - (4)].mp_StringVec)->begin();it!=(yysemantic_stack_[(5) - (4)].mp_StringVec)->end();++it)
 	{
 		EnumMember* eMember = new EnumMember(*it,ord);
 		enTC->addMember(eMember);
 		++ord;
 	}
-	delete((yysemantic_stack_[(5) - (4)].StringVec));
-	(yyval.TypeCodeVec) = (TypeCode*) enTC;
+	delete((yysemantic_stack_[(5) - (4)].mp_StringVec));
+	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	(yyval.mp_TypeCodeVec)->push_back((TypeCode*) enTC);
 	}
     break;
 
   case 72:
 
 /* Line 690 of lalr1.cc  */
-#line 412 "idl.y"
+#line 472 "idl.y"
     {
-	(yyval.StringVec) = new StringVec();
-	(yyval.StringVec)->push_back((yysemantic_stack_[(1) - (1)].std::string));
+	(yyval.mp_StringVec) = new StringVec();
+	(yyval.mp_StringVec)->push_back(*(yysemantic_stack_[(1) - (1)].mp_string));
+	delete((yysemantic_stack_[(1) - (1)].mp_string));
 	}
     break;
 
   case 73:
 
 /* Line 690 of lalr1.cc  */
-#line 417 "idl.y"
-    {(yysemantic_stack_[(3) - (3)].StringVec)->push_back((yysemantic_stack_[(3) - (1)].std::string)); (yyval.StringVec) = (yysemantic_stack_[(3) - (3)].StringVec);}
+#line 478 "idl.y"
+    {(yysemantic_stack_[(3) - (3)].mp_StringVec)->push_back(*(yysemantic_stack_[(3) - (1)].mp_string)); (yyval.mp_StringVec) = (yysemantic_stack_[(3) - (3)].mp_StringVec);delete((yysemantic_stack_[(3) - (1)].mp_string));}
     break;
 
   case 74:
 
 /* Line 690 of lalr1.cc  */
-#line 420 "idl.y"
-    {(yyval.std::string) = (yysemantic_stack_[(1) - (1)].Integer);}
+#line 481 "idl.y"
+    {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].stringVal));
+	delete((yysemantic_stack_[(1) - (1)].stringVal));}
     break;
 
   case 75:
 
 /* Line 690 of lalr1.cc  */
-#line 425 "idl.y"
-    {(yyval.TypeCode) = (TypeCode*)new StringTypeCode((yysemantic_stack_[(4) - (3)].uint32_t));}
+#line 487 "idl.y"
+    {
+	StringTypeCode* pSTC = new StringTypeCode((yysemantic_stack_[(4) - (3)].m_uint32_t));
+	(yyval.mp_TypeCode) = (TypeCode*)pSTC;
+	}
     break;
 
   case 76:
 
 /* Line 690 of lalr1.cc  */
-#line 427 "idl.y"
-    {(yyval.TypeCode) = TypeCode*) new StringTypeCode(255);}
+#line 492 "idl.y"
+    {StringTypeCode* pSTC = new StringTypeCode(255);
+	(yyval.mp_TypeCode) = (TypeCode*)pSTC;}
     break;
 
   case 77:
 
 /* Line 690 of lalr1.cc  */
-#line 432 "idl.y"
+#line 498 "idl.y"
     {
-	SequenceTypeCode* sTC = new SequenceTypeCode((yysemantic_stack_[(6) - (5)].uint32_t));
-	sTC->setContentTypeCode((yysemantic_stack_[(6) - (3)].TypeCode));
-	(yyval.TypeCode) = (TypeCode*) sTC;
+	SequenceTypeCode* sTC = new SequenceTypeCode((yysemantic_stack_[(6) - (5)].m_uint32_t));
+	sTC->setContentTypeCode((yysemantic_stack_[(6) - (3)].mp_TypeCode));
+	(yyval.mp_TypeCode) = (TypeCode*) sTC;
 	}
     break;
 
   case 78:
 
 /* Line 690 of lalr1.cc  */
-#line 438 "idl.y"
+#line 504 "idl.y"
     {
 	SequenceTypeCode* sTC = new SequenceTypeCode(255);
-	sTC->setContentTypeCode((yysemantic_stack_[(4) - (3)].TypeCode));
-	(yyval.TypeCode) = (TypeCode*) sTC;
+	sTC->setContentTypeCode((yysemantic_stack_[(4) - (3)].mp_TypeCode));
+	(yyval.mp_TypeCode) = (TypeCode*) sTC;
 	}
     break;
 
   case 81:
 
 /* Line 690 of lalr1.cc  */
-#line 451 "idl.y"
+#line 517 "idl.y"
     {
 	std::vector<int> index_to_remove;
-	for(TypeCodeVec::iterator it = (yysemantic_stack_[(4) - (3)].TypeCodeVec)->begin();it!=(yysemantic_stack_[(4) - (3)].TypeCodeVec)->end();++it)
+	for(TypeCodeVec::iterator it = (yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->end();++it)
 	{
 	if((*it)->getKind() == TypeCode::KIND_STRUCT || 
-		(*it)->getKind() == TypeCode::KIND_UNION) ||
+		(*it)->getKind() == TypeCode::KIND_UNION ||
 		(*it)->getKind() == TypeCode::KIND_ENUM)
 	{
 		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		membered->setName(std::string((yysemantic_stack_[(4) - (1)].std::string)).append("::").append(membered->getName()));
+		(yysemantic_stack_[(4) - (1)].mp_string)->append("::");
+		(yysemantic_stack_[(4) - (1)].mp_string)->append(membered->getName());
+		membered->setName(*(yysemantic_stack_[(4) - (1)].mp_string));
+		delete((yysemantic_stack_[(4) - (1)].mp_string));
 	}
 	else
 	{
+		index_to_remove.push_back(std::distance((yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->begin(),it));
 		delete(*it);
-		index_to_remove.push_back(std::distance((yysemantic_stack_[(4) - (4)].Integer)->begin());
 	}
 	for(std::vector<int>::reverse_iterator it = index_to_remove.rbegin();it!=index_to_remove.rend();++it)
 	{
-		(yysemantic_stack_[(4) - (4)].Integer)->erase((yysemantic_stack_[(4) - (4)].Integer)->begin()+(*it));
+		(yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->erase((yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->begin()+(*it));
 	}
 	}
-	(yyval.TypeCodeVec) = (yysemantic_stack_[(4) - (4)].Integer);
+	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(4) - (3)].mp_TypeCodeVec);
 	}
     break;
 
   case 82:
 
 /* Line 690 of lalr1.cc  */
-#line 476 "idl.y"
-    {(yyval.TypeCodeVec) = new TypeCodeVec();}
+#line 545 "idl.y"
+    {
+	delete((yysemantic_stack_[(2) - (2)].stringVal));
+	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	}
     break;
 
   case 83:
 
 /* Line 690 of lalr1.cc  */
-#line 480 "idl.y"
-    {(yyval.std::string) = std::string((yysemantic_stack_[(2) - (2)].Integer));}
+#line 552 "idl.y"
+    {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(2) - (2)].stringVal));
+	delete((yysemantic_stack_[(2) - (2)].stringVal));}
     break;
 
   case 84:
 
 /* Line 690 of lalr1.cc  */
-#line 482 "idl.y"
-    {(yyval.std::string) = std::string((yysemantic_stack_[(3) - (2)].Integer));}
+#line 555 "idl.y"
+    {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(3) - (2)].stringVal));
+	delete((yysemantic_stack_[(3) - (2)].stringVal));}
     break;
 
   case 85:
 
 /* Line 690 of lalr1.cc  */
-#line 485 "idl.y"
-    {(yyval.TypeCodeVec) = new TypeCodeVec();}
+#line 559 "idl.y"
+    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 86:
 
 /* Line 690 of lalr1.cc  */
-#line 487 "idl.y"
+#line 561 "idl.y"
     {
-	for(TypeCodeVec::iterator it = (yysemantic_stack_[(2) - (2)].TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (2)].TypeCodeVec)->end();++it)
-		(yysemantic_stack_[(2) - (1)].TypeCodeVec)->push_back(*it);
-	(yyval.TypeCodeVec) = (yysemantic_stack_[(2) - (1)].TypeCodeVec);
-	delete((yysemantic_stack_[(2) - (2)].TypeCodeVec));
+	for(TypeCodeVec::iterator it = (yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->end();++it)
+		(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->push_back(*it);
+	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);
+	delete((yysemantic_stack_[(2) - (2)].mp_TypeCodeVec));
 	}
     break;
 
   case 90:
 
 /* Line 690 of lalr1.cc  */
-#line 499 "idl.y"
+#line 573 "idl.y"
     {
-    delete((yysemantic_stack_[(2) - (1)].TypeCode));
-    (yyval.TypeCodeVec) = new TypeCodeVec();
+    delete((yysemantic_stack_[(2) - (1)].mp_TypeCode));
+    (yyval.mp_TypeCodeVec) = new TypeCodeVec();
     }
     break;
 
   case 92:
 
 /* Line 690 of lalr1.cc  */
-#line 506 "idl.y"
-    {(yyval.std::string) = std::string("");}
+#line 581 "idl.y"
+    {(yyval.mp_string) = new std::string("");
+	delete((yysemantic_stack_[(2) - (2)].mp_string));}
     break;
 
   case 93:
 
 /* Line 690 of lalr1.cc  */
-#line 511 "idl.y"
-    {(yyval.std::string) = std::string("");
-	delete((yysemantic_stack_[(1) - (1)].std::string));}
+#line 587 "idl.y"
+    {
+	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].mp_string));
+	delete((yysemantic_stack_[(1) - (1)].mp_string));}
     break;
 
   case 94:
 
 /* Line 690 of lalr1.cc  */
-#line 514 "idl.y"
-    {(yyval.std::string) = std::string("");
-	delete((yysemantic_stack_[(3) - (1)].std::string));}
+#line 591 "idl.y"
+    {(yyval.mp_string) = (yysemantic_stack_[(3) - (3)].mp_string);
+	delete((yysemantic_stack_[(3) - (1)].mp_string));
+	}
     break;
 
   case 95:
 
 /* Line 690 of lalr1.cc  */
-#line 519 "idl.y"
+#line 597 "idl.y"
     {
-	(yyval.std::string) = std::string((yysemantic_stack_[(1) - (1)].Integer));
+	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].stringVal));
+	delete((yysemantic_stack_[(1) - (1)].stringVal));
 	}
     break;
 
   case 96:
 
 /* Line 690 of lalr1.cc  */
-#line 523 "idl.y"
+#line 602 "idl.y"
     {
-	(yyval.std::string) = std::string((yysemantic_stack_[(3) - (1)].Integer)).append("::").append((yysemantic_stack_[(3) - (3)].std::string));
+	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,"::");
+	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,*(yysemantic_stack_[(3) - (1)].stringVal));
+	delete((yysemantic_stack_[(3) - (1)].stringVal));
+	(yyval.mp_string) = (yysemantic_stack_[(3) - (3)].mp_string);
 	}
     break;
 
   case 98:
 
 /* Line 690 of lalr1.cc  */
-#line 530 "idl.y"
-    {(yyval.std::string) = std::string("::").append((yysemantic_stack_[(2) - (2)].Integer));}
+#line 612 "idl.y"
+    {
+	std::string* aux_str = new std::string("::");
+	aux_str->append(*(yysemantic_stack_[(2) - (2)].stringVal));
+	delete((yysemantic_stack_[(2) - (2)].stringVal));
+	(yyval.mp_string) = aux_str;
+	}
     break;
 
   case 99:
 
 /* Line 690 of lalr1.cc  */
-#line 532 "idl.y"
-    {(yyval.std::string) = std::string("::").append((yysemantic_stack_[(3) - (2)].Integer)).append((yysemantic_stack_[(3) - (3)].std::string));}
+#line 619 "idl.y"
+    {
+	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,*(yysemantic_stack_[(3) - (2)].stringVal));
+	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,"::");
+	delete((yysemantic_stack_[(3) - (2)].stringVal));
+	(yyval.mp_string) = (yysemantic_stack_[(3) - (3)].mp_string);
+	}
     break;
 
   case 100:
 
 /* Line 690 of lalr1.cc  */
-#line 537 "idl.y"
+#line 629 "idl.y"
     {
 	UnionTypeCode* uTC = new UnionTypeCode();
-	uTC->setName((yysemantic_stack_[(9) - (2)].Integer));
-	uTC->setDiscriminatorTypeCode((yysemantic_stack_[(9) - (5)].TypeCode));
+	uTC->setName(*(yysemantic_stack_[(9) - (2)].stringVal));
+	delete((yysemantic_stack_[(9) - (2)].stringVal));
+	uTC->setDiscriminatorTypeCode((yysemantic_stack_[(9) - (5)].mp_TypeCode));
 	UnionMember* uM_boolWithDefault = NULL;
 	bool isTrue = false;
-	for(MemberVec::iterator it = (yysemantic_stack_[(9) - (8)].MemberVec)->begin();it!=(yysemantic_stack_[(9) - (8)].MemberVec)->end();++it)
+	for(MemberVec::iterator it = (yysemantic_stack_[(9) - (8)].mp_MemberVec)->begin();it!=(yysemantic_stack_[(9) - (8)].mp_MemberVec)->end();++it)
 	{
-		(UnionMemeber*) uM = (UnionMember*)(*it);
+		UnionMember* uM = (UnionMember*)(*it);
 		std::vector<int32_t> labels = uM->getLabels();
 		bool change = false;
 		bool boolDefaultFound = false;
 		for(std::vector<int32_t>::iterator it = labels.begin();it!=labels.end();++it)
 		{
-			if((yysemantic_stack_[(9) - (5)].TypeCode)->getKind() == KIND_CHAR (yyval.TypeCodeVec) (*it) == -1000)
+			if((yysemantic_stack_[(9) - (5)].mp_TypeCode)->getKind() == TypeCode::KIND_CHAR && (*it) == -1000)
 			{
 				(*it) = 254;
 				change = true;
 			}
-			if((yysemantic_stack_[(9) - (5)].TypeCode)->getKind() == KIND_ENUM (yyval.TypeCodeVec) (*it) == -1000)
+			if((yysemantic_stack_[(9) - (5)].mp_TypeCode)->getKind() == TypeCode::KIND_ENUM && (*it) == -1000)
 			{
 				(*it) = 0;
 				change = true;
 			}
-			if((yysemantic_stack_[(9) - (5)].TypeCode)->getKind() == KIND_BOOL (yyval.TypeCodeVec) (*it) == -1000)
+			if((yysemantic_stack_[(9) - (5)].mp_TypeCode)->getKind() == TypeCode::KIND_BOOLEAN && (*it) == -1000)
 			{
 				uM_boolWithDefault = uM;
 				boolDefaultFound = true;
 			}
-			if((yysemantic_stack_[(9) - (5)].TypeCode)->getKind() == KIND_BOOL)
+			if((yysemantic_stack_[(9) - (5)].mp_TypeCode)->getKind() == TypeCode::KIND_BOOLEAN)
 			{
 				isTrue = (bool)(*it);
 			}
@@ -1077,92 +1096,92 @@ namespace yy {
 	uM_boolWithDefault->setLabels(labels);
 	uTC->addMember(uM_boolWithDefault);
 	}
-	delete((yysemantic_stack_[(9) - (8)].MemberVec));
-	(yyval.TypeCodeVec) = (TypeCode*) uTC;
+	delete((yysemantic_stack_[(9) - (8)].mp_MemberVec));
+	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	(yyval.mp_TypeCodeVec)->push_back((TypeCode*) uTC);
 	}
     break;
 
   case 104:
 
 /* Line 690 of lalr1.cc  */
-#line 597 "idl.y"
+#line 691 "idl.y"
     {
-    (yyval.TypeCode) = * (yysemantic_stack_[(1) - (1)].TypeCodeVec)->begin();
+    (yyval.mp_TypeCode) = * (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin();
     }
     break;
 
   case 106:
 
 /* Line 690 of lalr1.cc  */
-#line 604 "idl.y"
+#line 698 "idl.y"
     {
-	(yyval.MemberVec) = new MemberVec();
-	(yyval.MemberVec)->push_back((yysemantic_stack_[(1) - (1)].Declarator));
+	(yyval.mp_MemberVec) = new MemberVec();
+	(yyval.mp_MemberVec)->push_back((yysemantic_stack_[(1) - (1)].mp_Member));
 	}
     break;
 
   case 107:
 
 /* Line 690 of lalr1.cc  */
-#line 609 "idl.y"
+#line 703 "idl.y"
     {
-	(yysemantic_stack_[(2) - (2)].MemberVec).push_back((yysemantic_stack_[(2) - (1)].Declarator)); 
-	(yyval.MemberVec) = (yysemantic_stack_[(2) - (2)].MemberVec);
-	delete((yysemantic_stack_[(2) - (1)].Declarator));
+	(yysemantic_stack_[(2) - (2)].mp_MemberVec)->push_back((yysemantic_stack_[(2) - (1)].mp_Member)); 
+	(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
 	}
     break;
 
   case 108:
 
 /* Line 690 of lalr1.cc  */
-#line 616 "idl.y"
+#line 709 "idl.y"
     {
-	((UnionMember*)((yysemantic_stack_[(3) - (2)].Member)))->setLabels((yysemantic_stack_[(3) - (1)].Declarator).second);
-	(yyval.Declarator) = (yysemantic_stack_[(3) - (2)].Member);
+	((UnionMember*)((yysemantic_stack_[(3) - (2)].mp_Member)))->setLabels((yysemantic_stack_[(3) - (1)].mp_Declarator)->second);
+	(yyval.mp_Member) = (yysemantic_stack_[(3) - (2)].mp_Member);
 	}
     break;
 
   case 109:
 
 /* Line 690 of lalr1.cc  */
-#line 623 "idl.y"
-    {(yyval.Declarator) = (yysemantic_stack_[(1) - (1)].Declarator)}
+#line 716 "idl.y"
+    {(yyval.mp_Declarator) = (yysemantic_stack_[(1) - (1)].mp_Declarator);}
     break;
 
   case 110:
 
 /* Line 690 of lalr1.cc  */
-#line 625 "idl.y"
+#line 718 "idl.y"
     {
-	(yysemantic_stack_[(2) - (2)].Declarator).second.push_back(*(yysemantic_stack_[(2) - (1)].Declarator).second.begin());
-	(yyval.Declarator) = (yysemantic_stack_[(2) - (2)].Declarator);
-	delete((yysemantic_stack_[(2) - (1)].Declarator));}
+	(yysemantic_stack_[(2) - (2)].mp_Declarator)->second.push_back(*((yysemantic_stack_[(2) - (1)].mp_Declarator)->second.begin()));
+	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (2)].mp_Declarator);
+	delete((yysemantic_stack_[(2) - (1)].mp_Declarator));}
     break;
 
   case 111:
 
 /* Line 690 of lalr1.cc  */
-#line 632 "idl.y"
+#line 725 "idl.y"
     {
 	Declarator * dCL = new Declarator();
-	if((yysemantic_stack_[(3) - (1)].Integer).type == NUMBER_TYPE)
+	if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == NUMBER_TYPE)
 	{
-		dCL->second.push_back((yysemantic_stack_[(3) - (1)].Integer).num);
+		dCL->second.push_back((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->num);
 	}
-	else if((yysemantic_stack_[(3) - (1)].Integer).type == BOOL_TYPE)
+	else if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == BOOL_TYPE)
 	{
-		dCL->second.push_back((yysemantic_stack_[(3) - (1)].Integer).boolean);	
+		dCL->second.push_back((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->boolean);	
 	}
-	else if((yysemantic_stack_[(3) - (1)].Integer).type == STRING_TYPE)
+	else if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == STRING_TYPE)
 	{
 	int32_t sum = 0;
-	for(size_t i = 0;i<(yysemantic_stack_[(3) - (1)].Integer).str.size();++i)
-		sum+=(yysemantic_stack_[(3) - (1)].Integer).str[i];
+	for(size_t i = 0;i<(yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->str.size();++i)
+		sum+=(yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->str[i];
 	dCL->second.push_back(sum);
 	}
-	else if((yysemantic_stack_[(3) - (1)].Integer).type == SCOPED_TYPE)
+	else if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == SCOPED_TYPE)
 	{
-	dCL->second.push_back(findENUMvalue((yysemantic_stack_[(3) - (1)].Integer).str));
+	dCL->second.push_back(findENUMvalue((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->str));
 	}
 	}
     break;
@@ -1170,368 +1189,375 @@ namespace yy {
   case 112:
 
 /* Line 690 of lalr1.cc  */
-#line 655 "idl.y"
+#line 748 "idl.y"
     {
 	Declarator * dCL = new Declarator();
 	dCL->second.push_back(-1000);
-	(yyval.Declarator) = dCL;
+	(yyval.mp_Declarator) = dCL;
 	}
     break;
 
   case 113:
 
 /* Line 690 of lalr1.cc  */
-#line 662 "idl.y"
+#line 755 "idl.y"
     {
 	UnionMember* uM = new UnionMember();
-	uM->setName((yysemantic_stack_[(2) - (2)].Declarator)->first);
-	uM->setTypeCode((yysemantic_stack_[(2) - (1)].TypeCode));
-	(yyval.Member) = (Member*) uM;
+	uM->setName((yysemantic_stack_[(2) - (2)].mp_Declarator)->first);
+	delete((yysemantic_stack_[(2) - (2)].mp_Declarator));
+	uM->setTypeCode((yysemantic_stack_[(2) - (1)].mp_TypeCode));
+	(yyval.mp_Member) = (Member*) uM;
 	}
     break;
 
   case 114:
 
 /* Line 690 of lalr1.cc  */
-#line 672 "idl.y"
+#line 766 "idl.y"
     {std::cout << "Warning: \"attribute\" token not allowed" << std::endl;
-	(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
+	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
 
   case 115:
 
 /* Line 690 of lalr1.cc  */
-#line 675 "idl.y"
+#line 769 "idl.y"
     {std::cout << "Warning: \"readonly attribute\" token not allowed" << std::endl;
-	(yyval.TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
+	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
 
   case 116:
 
 /* Line 690 of lalr1.cc  */
-#line 680 "idl.y"
+#line 774 "idl.y"
     {
-    (yyval.TypeCode) = NULL;
+    (yyval.mp_TypeCode) = NULL;
     }
     break;
 
   case 117:
 
 /* Line 690 of lalr1.cc  */
-#line 684 "idl.y"
-    {(yyval.TypeCode) = NULL;}
+#line 778 "idl.y"
+    {(yyval.mp_TypeCode) = NULL;}
     break;
 
   case 118:
 
 /* Line 690 of lalr1.cc  */
-#line 689 "idl.y"
-    {(yyval.TypeCodeVec) = new TypeCodeVec();}
+#line 783 "idl.y"
+    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	delete((yysemantic_stack_[(3) - (2)].stringVal));}
     break;
 
   case 119:
 
 /* Line 690 of lalr1.cc  */
-#line 691 "idl.y"
-    {(yyval.TypeCodeVec) = new TypeCodeVec();}
+#line 786 "idl.y"
+    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	delete((yysemantic_stack_[(4) - (3)].stringVal));}
     break;
 
   case 120:
 
 /* Line 690 of lalr1.cc  */
-#line 694 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 790 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 121:
 
 /* Line 690 of lalr1.cc  */
-#line 697 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 793 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 123:
 
 /* Line 690 of lalr1.cc  */
-#line 702 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 798 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 124:
 
 /* Line 690 of lalr1.cc  */
-#line 706 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 802 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 125:
 
 /* Line 690 of lalr1.cc  */
-#line 708 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 804 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 126:
 
 /* Line 690 of lalr1.cc  */
-#line 712 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 808 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 127:
 
 /* Line 690 of lalr1.cc  */
-#line 714 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 810 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 128:
 
 /* Line 690 of lalr1.cc  */
-#line 717 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 813 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 129:
 
 /* Line 690 of lalr1.cc  */
-#line 721 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 817 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 130:
 
 /* Line 690 of lalr1.cc  */
-#line 723 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 819 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 131:
 
 /* Line 690 of lalr1.cc  */
-#line 725 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 821 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 132:
 
 /* Line 690 of lalr1.cc  */
-#line 729 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 825 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 133:
 
 /* Line 690 of lalr1.cc  */
-#line 731 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 827 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 134:
 
 /* Line 690 of lalr1.cc  */
-#line 735 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 831 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 135:
 
 /* Line 690 of lalr1.cc  */
-#line 737 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 833 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 136:
 
 /* Line 690 of lalr1.cc  */
-#line 741 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 837 "idl.y"
+    {(yyval.m_uint32_t) = 0;
+	delete((yysemantic_stack_[(1) - (1)].stringVal));}
     break;
 
   case 137:
 
 /* Line 690 of lalr1.cc  */
-#line 743 "idl.y"
-    {(yyval.uint32_t) = 0;}
+#line 840 "idl.y"
+    {(yyval.m_uint32_t) = 0;
+	delete((yysemantic_stack_[(3) - (1)].stringVal));}
     break;
 
   case 138:
 
 /* Line 690 of lalr1.cc  */
-#line 747 "idl.y"
+#line 845 "idl.y"
     {
-    delete((yysemantic_stack_[(1) - (1)].TypeCode));
-    (yyval.uint32_t) = 0;
+    delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
+    (yyval.m_uint32_t) = 0;
     }
     break;
 
   case 139:
 
 /* Line 690 of lalr1.cc  */
-#line 752 "idl.y"
+#line 850 "idl.y"
     {
-    delete((yysemantic_stack_[(1) - (1)].TypeCode));
-    (yyval.uint32_t) = 0;
+    delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
+    (yyval.m_uint32_t) = 0;
     }
     break;
 
   case 140:
 
 /* Line 690 of lalr1.cc  */
-#line 757 "idl.y"
+#line 855 "idl.y"
     {
-    delete((yysemantic_stack_[(1) - (1)].TypeCode));
-    (yyval.uint32_t) = 0;
+    delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
+    (yyval.m_uint32_t) = 0;
     }
     break;
 
   case 141:
 
 /* Line 690 of lalr1.cc  */
-#line 771 "idl.y"
+#line 869 "idl.y"
     {
-	if((yysemantic_stack_[(1) - (1)].TypeLiteral).type == NUMBER_TYPE)
-		(yyval.uint32_t) = (uint32_t)(yysemantic_stack_[(1) - (1)].TypeLiteral).num
+	if((yysemantic_stack_[(1) - (1)].mp_TypeLiteral)->type == NUMBER_TYPE)
+		(yyval.m_uint32_t) = (uint32_t)(yysemantic_stack_[(1) - (1)].mp_TypeLiteral)->num;
 	else
-		(yyval.uint32_t) = 0;
-	delete((yysemantic_stack_[(1) - (1)].TypeLiteral));
+		(yyval.m_uint32_t) = 0;
+	delete((yysemantic_stack_[(1) - (1)].mp_TypeLiteral));
 	}
     break;
 
   case 142:
 
 /* Line 690 of lalr1.cc  */
-#line 782 "idl.y"
-    {(yyval.TypeLiteral) = new LiteralType();
-	(yyval.TypeLiteral).type = SCOPED_TYPE;
-	(yyval.TypeLiteral).str = (yysemantic_stack_[(1) - (1)].std::string);}
+#line 880 "idl.y"
+    {(yyval.mp_TypeLiteral) = new TypeLiteral();
+	(yyval.mp_TypeLiteral)->type = SCOPED_TYPE;
+	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].mp_string);
+	delete((yysemantic_stack_[(1) - (1)].mp_string));
+	}
     break;
 
   case 143:
 
 /* Line 690 of lalr1.cc  */
-#line 786 "idl.y"
-    {(yyval.TypeLiteral) = (yysemantic_stack_[(1) - (1)].TypeLiteral);}
+#line 886 "idl.y"
+    {(yyval.mp_TypeLiteral) = (yysemantic_stack_[(1) - (1)].mp_TypeLiteral);}
     break;
 
   case 144:
 
 /* Line 690 of lalr1.cc  */
-#line 788 "idl.y"
-    {(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (2)].TypeLiteral);}
+#line 888 "idl.y"
+    {(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (2)].mp_TypeLiteral);}
     break;
 
   case 145:
 
 /* Line 690 of lalr1.cc  */
-#line 790 "idl.y"
+#line 890 "idl.y"
     {
-	if((yysemantic_stack_[(3) - (1)].TypeLiteral).type == (yysemantic_stack_[(3) - (3)].TypeLiteral).type && (yysemantic_stack_[(3) - (1)].TypeLiteral).type == BOOL_TYPE)
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).boolean = (yysemantic_stack_[(3) - (1)].TypeLiteral).boolean | (yysemantic_stack_[(3) - (3)].TypeLiteral).boolean;
-	else if((yysemantic_stack_[(3) - (1)].TypeLiteral).type == (yysemantic_stack_[(3) - (3)].TypeLiteral).type && (yysemantic_stack_[(3) - (1)].TypeLiteral).type == NUMBER_TYPE)
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).boolean = (yysemantic_stack_[(3) - (1)].TypeLiteral).boolean | (yysemantic_stack_[(3) - (3)].TypeLiteral).boolean;
+	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean | (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
+	else if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == NUMBER_TYPE)
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean | (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
 	else
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).boolean = false;
-	(yysemantic_stack_[(3) - (1)].TypeLiteral).type = BOOL_TYPE;
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = false;
+	(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = BOOL_TYPE;
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
     break;
 
   case 146:
 
 /* Line 690 of lalr1.cc  */
-#line 802 "idl.y"
-    {if((yysemantic_stack_[(3) - (1)].TypeLiteral).type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].TypeLiteral).type != NUMBER_TYPE)
+#line 902 "idl.y"
+    {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).type = NUMBER_TYPE;
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = 0;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = 0;
 	}
 	else
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = pow((yysemantic_stack_[(3) - (1)].TypeLiteral).num,(yysemantic_stack_[(3) - (3)].TypeLiteral).num);
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = pow((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num,(yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num);
 	}
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
     break;
 
   case 147:
 
 /* Line 690 of lalr1.cc  */
-#line 815 "idl.y"
+#line 915 "idl.y"
     {
-	if((yysemantic_stack_[(3) - (1)].TypeLiteral).type == (yysemantic_stack_[(3) - (3)].TypeLiteral).type && (yysemantic_stack_[(3) - (1)].TypeLiteral).type == BOOL_TYPE)
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).boolean = (yysemantic_stack_[(3) - (1)].TypeLiteral).boolean & (yysemantic_stack_[(3) - (3)].TypeLiteral).boolean;
-	else if((yysemantic_stack_[(3) - (1)].TypeLiteral).type == (yysemantic_stack_[(3) - (3)].TypeLiteral).type && (yysemantic_stack_[(3) - (1)].TypeLiteral).type == NUMBER_TYPE)
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).boolean = (yysemantic_stack_[(3) - (1)].TypeLiteral).boolean & (yysemantic_stack_[(3) - (3)].TypeLiteral).boolean;
+	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean & (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
+	else if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == NUMBER_TYPE)
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean & (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
 	else
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).boolean = false;
-	(yysemantic_stack_[(3) - (1)].TypeLiteral).type = BOOL_TYPE;
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = false;
+	(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = BOOL_TYPE;
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
     break;
 
   case 148:
 
 /* Line 690 of lalr1.cc  */
-#line 827 "idl.y"
-    {if((yysemantic_stack_[(3) - (1)].TypeLiteral).type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].TypeLiteral).type != NUMBER_TYPE)
+#line 927 "idl.y"
+    {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).type = NUMBER_TYPE;
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = 0;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = 0;
 	}
 	else
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = (yysemantic_stack_[(3) - (1)].TypeLiteral).num << (yysemantic_stack_[(3) - (3)].TypeLiteral).num;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num << (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
 	}
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
     break;
 
   case 149:
 
 /* Line 690 of lalr1.cc  */
-#line 840 "idl.y"
-    {if((yysemantic_stack_[(3) - (1)].TypeLiteral).type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].TypeLiteral).type != NUMBER_TYPE)
+#line 940 "idl.y"
+    {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).type = NUMBER_TYPE;
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = 0;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = 0;
 	}
 	else
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = (yysemantic_stack_[(3) - (1)].TypeLiteral).num >> (yysemantic_stack_[(3) - (3)].TypeLiteral).num;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num >> (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
 	}
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
     break;
 
   case 150:
 
 /* Line 690 of lalr1.cc  */
-#line 853 "idl.y"
+#line 953 "idl.y"
     {
-	if((yysemantic_stack_[(3) - (1)].TypeLiteral).type != (yysemantic_stack_[(3) - (3)].TypeLiteral).type || (yysemantic_stack_[(3) - (1)].TypeLiteral).type == BOOL_TYPE)
+	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 	{
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
 	else
 	{
-	if((yysemantic_stack_[(3) - (1)].TypeLiteral).type == NUMBER_TYPE)
+	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == NUMBER_TYPE)
 	{
-	(yysemantic_stack_[(3) - (1)].TypeLiteral).num = (yysemantic_stack_[(3) - (1)].TypeLiteral).num + (yysemantic_stack_[(3) - (3)].TypeLiteral).num;
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
+	(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num + (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
 	}
 	else
 	{
-	(yysemantic_stack_[(3) - (1)].TypeLiteral).str.append((yysemantic_stack_[(3) - (3)].TypeLiteral).str);
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
+	(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->str.append((yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->str);
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
 	}
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
 	}
     break;
@@ -1539,18 +1565,18 @@ namespace yy {
   case 151:
 
 /* Line 690 of lalr1.cc  */
-#line 875 "idl.y"
+#line 975 "idl.y"
     {
-	if((yysemantic_stack_[(3) - (1)].TypeLiteral).type != (yysemantic_stack_[(3) - (3)].TypeLiteral).type || (yysemantic_stack_[(3) - (1)].TypeLiteral).type == BOOL_TYPE || (yysemantic_stack_[(3) - (1)].TypeLiteral).type == STRING_TYPE || (yysemantic_stack_[(3) - (1)].TypeLiteral).type == SCOPED_TYPE)
+	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == STRING_TYPE || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == SCOPED_TYPE)
 	{
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
 	else
 	{
-	(yysemantic_stack_[(3) - (1)].TypeLiteral).num = (yysemantic_stack_[(3) - (1)].TypeLiteral).num - (yysemantic_stack_[(3) - (3)].TypeLiteral).num;
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num - (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
 	}
     break;
@@ -1558,181 +1584,192 @@ namespace yy {
   case 152:
 
 /* Line 690 of lalr1.cc  */
-#line 889 "idl.y"
+#line 989 "idl.y"
     {
-	if((yysemantic_stack_[(3) - (1)].TypeLiteral).type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].TypeLiteral).type != NUMBER_TYPE)
+	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).type = NUMBER_TYPE;
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = 0;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = 0;
 	}
 	else
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = (yysemantic_stack_[(3) - (1)].TypeLiteral).num * (yysemantic_stack_[(3) - (3)].TypeLiteral).num;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num * (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
 	}
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
     break;
 
   case 153:
 
 /* Line 690 of lalr1.cc  */
-#line 903 "idl.y"
+#line 1003 "idl.y"
     {
-	if((yysemantic_stack_[(3) - (1)].TypeLiteral).type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].TypeLiteral).type != NUMBER_TYPE)
+	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).type = NUMBER_TYPE;
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = 0;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = 0;
 	}
 	else
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = (yysemantic_stack_[(3) - (1)].TypeLiteral).num / (yysemantic_stack_[(3) - (3)].TypeLiteral).num;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num / (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
 	}
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
     break;
 
   case 154:
 
 /* Line 690 of lalr1.cc  */
-#line 917 "idl.y"
+#line 1017 "idl.y"
     {
-	if((yysemantic_stack_[(3) - (1)].TypeLiteral).type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].TypeLiteral).type != NUMBER_TYPE)
+	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).type = NUMBER_TYPE;
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = 0;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = 0;
 	}
 	else
 	{
-		(yysemantic_stack_[(3) - (1)].TypeLiteral).num = (yysemantic_stack_[(3) - (1)].TypeLiteral).num % (yysemantic_stack_[(3) - (3)].TypeLiteral).num;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num % (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
 	}
-	delete((yysemantic_stack_[(3) - (3)].TypeLiteral));
-	(yyval.TypeLiteral) = (yysemantic_stack_[(3) - (1)].TypeLiteral);
+	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
 	}
     break;
 
   case 155:
 
 /* Line 690 of lalr1.cc  */
-#line 931 "idl.y"
+#line 1031 "idl.y"
     {
-	if((yysemantic_stack_[(2) - (2)].TypeLiteral).type != NUMERIC_TYPE)
+	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
-	(yysemantic_stack_[(2) - (2)].TypeLiteral).type = NUMERIC_TYPE;
-	(yysemantic_stack_[(2) - (2)].TypeLiteral).num = 0;
+	(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type = NUMBER_TYPE;
+	(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->num = 0;
 	}
 	else
-		(yysemantic_stack_[(2) - (2)].TypeLiteral).num--;
-	(yyval.TypeLiteral) = (yysemantic_stack_[(2) - (2)].TypeLiteral);
+		(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->num--;
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(2) - (2)].mp_TypeLiteral);
 	}
     break;
 
   case 156:
 
 /* Line 690 of lalr1.cc  */
-#line 942 "idl.y"
+#line 1042 "idl.y"
     {
-	if((yysemantic_stack_[(2) - (2)].TypeLiteral).type != NUMERIC_TYPE)
+	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
-	(yysemantic_stack_[(2) - (2)].TypeLiteral).type = NUMERIC_TYPE;
-	(yysemantic_stack_[(2) - (2)].TypeLiteral).num = 0;
+	(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type = NUMBER_TYPE;
+	(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->num = 0;
 	}
 	else
-		(yysemantic_stack_[(2) - (2)].TypeLiteral).num++;
-	(yyval.TypeLiteral) = (yysemantic_stack_[(2) - (2)].TypeLiteral);
+		(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->num++;
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(2) - (2)].mp_TypeLiteral);
 	}
     break;
 
   case 157:
 
 /* Line 690 of lalr1.cc  */
-#line 953 "idl.y"
+#line 1053 "idl.y"
     {
-	if((yysemantic_stack_[(2) - (2)].TypeLiteral).type == STRING_TYPE)
+	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type == STRING_TYPE)
 	{
-	(yysemantic_stack_[(2) - (2)].TypeLiteral).boolean = false;
+	(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->boolean = false;
 	}
-	else if ((yysemantic_stack_[(2) - (2)].TypeLiteral).type == BOOL_TYPE)
+	else if ((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type == BOOL_TYPE)
 	{
-	(yysemantic_stack_[(2) - (2)].TypeLiteral).boolean = !((yysemantic_stack_[(2) - (2)].TypeLiteral).boolean);
+	(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->boolean = !((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->boolean);
 	}
 	else
 	{
-	(yysemantic_stack_[(2) - (2)].TypeLiteral).boolean = !((yysemantic_stack_[(2) - (2)].TypeLiteral).num);
+	(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->boolean = !((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->num);
 	}
-	(yysemantic_stack_[(2) - (2)].TypeLiteral).type = BOOL_TYPE;
-	(yyval.TypeLiteral) = (yysemantic_stack_[(2) - (2)].TypeLiteral);
+	(yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type = BOOL_TYPE;
+	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(2) - (2)].mp_TypeLiteral);
 	}
     break;
 
   case 158:
 
 /* Line 690 of lalr1.cc  */
-#line 975 "idl.y"
-    {(yyval.TypeLiteral) = new TypeLiteral();
-	(yyval.TypeLiteral).type = NUMBER_TYPE;
-	(yyval.TypeLiteral).num = (yysemantic_stack_[(1) - (1)].Integer);}
+#line 1075 "idl.y"
+    {(yyval.mp_TypeLiteral) = new TypeLiteral();
+	(yyval.mp_TypeLiteral)->type = NUMBER_TYPE;
+	(yyval.mp_TypeLiteral)->num = (yysemantic_stack_[(1) - (1)].integerVal);
+	}
     break;
 
   case 159:
 
 /* Line 690 of lalr1.cc  */
-#line 979 "idl.y"
-    {(yyval.TypeLiteral) = new TypeLiteral();
-	(yyval.TypeLiteral).type = NUMBER_TYPE;
-	(yyval.TypeLiteral).num = (yysemantic_stack_[(1) - (1)].Integer);}
+#line 1080 "idl.y"
+    {(yyval.mp_TypeLiteral) = new TypeLiteral();
+	(yyval.mp_TypeLiteral)->type = NUMBER_TYPE;
+	(yyval.mp_TypeLiteral)->num = (yysemantic_stack_[(1) - (1)].doubleVal);
+	}
     break;
 
   case 160:
 
 /* Line 690 of lalr1.cc  */
-#line 983 "idl.y"
-    {(yyval.TypeLiteral) = new TypeLiteral();
-	(yyval.TypeLiteral).type = STRING_TYPE;
-	(yyval.TypeLiteral).num = (yysemantic_stack_[(1) - (1)].Integer);}
+#line 1085 "idl.y"
+    {(yyval.mp_TypeLiteral) = new TypeLiteral();
+	(yyval.mp_TypeLiteral)->type = STRING_TYPE;
+	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].stringVal);
+	delete((yysemantic_stack_[(1) - (1)].stringVal));
+	}
     break;
 
   case 161:
 
 /* Line 690 of lalr1.cc  */
-#line 987 "idl.y"
-    {(yyval.TypeLiteral) = new TypeLiteral();
-	(yyval.TypeLiteral).type = STRING_TYPE;
-	(yyval.TypeLiteral).num = (yysemantic_stack_[(1) - (1)].Integer);}
+#line 1091 "idl.y"
+    {(yyval.mp_TypeLiteral) = new TypeLiteral();
+	(yyval.mp_TypeLiteral)->type = STRING_TYPE;
+	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].stringVal);
+	delete((yysemantic_stack_[(1) - (1)].stringVal));
+	}
     break;
 
   case 162:
 
 /* Line 690 of lalr1.cc  */
-#line 991 "idl.y"
-    {(yyval.TypeLiteral) = new TypeLiteral();
-	(yyval.TypeLiteral).type = BOOL_TYPE;
-	(yyval.TypeLiteral).boolean = (yysemantic_stack_[(1) - (1)].Integer);}
+#line 1097 "idl.y"
+    {(yyval.mp_TypeLiteral) = new TypeLiteral();
+	(yyval.mp_TypeLiteral)->type = BOOL_TYPE;
+	(yyval.mp_TypeLiteral)->boolean = (yysemantic_stack_[(1) - (1)].integerVal);
+	}
     break;
 
   case 163:
 
 /* Line 690 of lalr1.cc  */
-#line 1013 "idl.y"
+#line 1120 "idl.y"
     {std::cout << "Warning: \"const\" token not allowed" << std::endl;
-	(yyval.TypeCodeVec) = new PrimitiveTypeCode(TypeCode::KIND_NULL);
+	 PrimitiveTypeCode* auxptrTC = new PrimitiveTypeCode(TypeCode::KIND_NULL);
+	 (yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	 (yyval.mp_TypeCodeVec)->push_back(auxptrTC);
 	}
     break;
 
   case 164:
 
 /* Line 690 of lalr1.cc  */
-#line 1019 "idl.y"
+#line 1128 "idl.y"
     {std::cout << "Warning: \"exception\" token not allowed" << std::endl;
-	(yyval.TypeCodeVec) = new PrimitiveTypeCode(TypeCode::KIND_NULL);
+	PrimitiveTypeCode* auxptrTC = new PrimitiveTypeCode(TypeCode::KIND_NULL);
+	 (yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	 (yyval.mp_TypeCodeVec)->push_back(auxptrTC);
 	}
     break;
 
 
 
 /* Line 690 of lalr1.cc  */
-#line 1736 "idl.tab.cc"
+#line 1773 "idl.tab.cc"
 	default:
           break;
       }
@@ -1910,7 +1947,7 @@ namespace yy {
 
   // Generate an error message.
   std::string
-  eprosimaidlparser::yysyntax_error_ (int, int)
+  IDLParser::yysyntax_error_ (int, int)
   {
     return YY_("syntax error");
   }
@@ -1918,9 +1955,9 @@ namespace yy {
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
      STATE-NUM.  */
-  const short int eprosimaidlparser::yypact_ninf_ = -166;
+  const short int IDLParser::yypact_ninf_ = -166;
   const short int
-  eprosimaidlparser::yypact_[] =
+  IDLParser::yypact_[] =
   {
          1,   -27,     8,    20,    76,    83,    84,    43,    91,  -166,
     -166,  -166,   107,  -166,     1,  -166,    64,    65,  -166,  -166,
@@ -1955,7 +1992,7 @@ namespace yy {
      YYTABLE doesn't specify something else to do.  Zero means the
      default is an error.  */
   const unsigned char
-  eprosimaidlparser::yydefact_[] =
+  IDLParser::yydefact_[] =
   {
          0,     0,     0,     0,     0,     0,     0,     0,     0,    11,
       12,    13,     0,     2,     3,    10,     0,     0,    16,    18,
@@ -1988,7 +2025,7 @@ namespace yy {
 
   /* YYPGOTO[NTERM-NUM].  */
   const short int
-  eprosimaidlparser::yypgoto_[] =
+  IDLParser::yypgoto_[] =
   {
       -166,  -166,     6,  -166,  -166,  -166,   -28,   -42,   150,  -166,
       13,   122,   -46,   -45,  -166,  -166,  -166,  -166,    82,    15,
@@ -2002,7 +2039,7 @@ namespace yy {
 
   /* YYDEFGOTO[NTERM-NUM].  */
   const short int
-  eprosimaidlparser::yydefgoto_[] =
+  IDLParser::yydefgoto_[] =
   {
         -1,    12,    13,    14,    15,    16,    17,    18,   102,   103,
      104,   105,    67,    68,    69,    70,   108,   109,   141,   142,
@@ -2017,9 +2054,9 @@ namespace yy {
   /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
      positive, shift that token.  If negative, reduce the rule which
      number is the opposite.  If YYTABLE_NINF_, syntax error.  */
-  const signed char eprosimaidlparser::yytable_ninf_ = -84;
+  const signed char IDLParser::yytable_ninf_ = -84;
   const short int
-  eprosimaidlparser::yytable_[] =
+  IDLParser::yytable_[] =
   {
         85,   106,   107,   110,    98,   101,   111,    85,   113,   178,
      155,    85,    66,   116,    49,   215,    92,     1,    28,    27,
@@ -2065,7 +2102,7 @@ namespace yy {
 
   /* YYCHECK.  */
   const short int
-  eprosimaidlparser::yycheck_[] =
+  IDLParser::yycheck_[] =
   {
         40,    47,    47,    47,    44,    47,    47,    47,    47,   135,
      116,    51,    40,    51,    10,   180,    40,    16,    10,    46,
@@ -2112,7 +2149,7 @@ namespace yy {
   /* STOS_[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
   const unsigned char
-  eprosimaidlparser::yystos_[] =
+  IDLParser::yystos_[] =
   {
          0,    16,    20,    21,    25,    27,    36,    38,    40,    70,
       71,    72,    77,    78,    79,    80,    81,    82,    83,   112,
@@ -2147,7 +2184,7 @@ namespace yy {
   /* TOKEN_NUMBER_[YYLEX-NUM] -- Internal symbol number corresponding
      to YYLEX-NUM.  */
   const unsigned short int
-  eprosimaidlparser::yytoken_number_[] =
+  IDLParser::yytoken_number_[] =
   {
          0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
@@ -2162,7 +2199,7 @@ namespace yy {
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
   const unsigned char
-  eprosimaidlparser::yyr1_[] =
+  IDLParser::yyr1_[] =
   {
          0,    76,    77,    78,    78,    79,    79,    79,    79,    79,
       79,    80,    80,    80,    81,    82,    82,    82,    82,    83,
@@ -2185,7 +2222,7 @@ namespace yy {
 
   /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
   const unsigned char
-  eprosimaidlparser::yyr2_[] =
+  IDLParser::yyr2_[] =
   {
          0,     2,     1,     1,     2,     2,     2,     2,     2,     2,
        1,     1,     1,     1,     5,     2,     1,     1,     1,     5,
@@ -2210,7 +2247,7 @@ namespace yy {
   /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
      First, the terminals, then, starting at \a yyntokens_, nonterminals.  */
   const char*
-  const eprosimaidlparser::yytname_[] =
+  const IDLParser::yytname_[] =
   {
     "$end", "error", "$undefined", "INTEGER_LITERAL", "LONG_LITERAL",
   "FLOAT_LITERAL", "DOUBLE_LITERAL", "BOOLEAN_LITERAL", "STRING_LITERAL",
@@ -2252,8 +2289,8 @@ namespace yy {
 
 #if YYDEBUG
   /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
-  const eprosimaidlparser::rhs_number_type
-  eprosimaidlparser::yyrhs_[] =
+  const IDLParser::rhs_number_type
+  IDLParser::yyrhs_[] =
   {
         77,     0,    -1,    78,    -1,    79,    -1,    79,    78,    -1,
       82,    46,    -1,   151,    46,    -1,   152,    46,    -1,   117,
@@ -2307,7 +2344,7 @@ namespace yy {
   /* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
      YYRHS.  */
   const unsigned short int
-  eprosimaidlparser::yyprhs_[] =
+  IDLParser::yyprhs_[] =
   {
          0,     0,     3,     5,     7,    10,    13,    16,    19,    22,
       25,    27,    29,    31,    33,    39,    42,    44,    46,    48,
@@ -2330,30 +2367,30 @@ namespace yy {
 
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
   const unsigned short int
-  eprosimaidlparser::yyrline_[] =
+  IDLParser::yyrline_[] =
   {
-         0,   113,   113,   117,   121,   132,   133,   134,   135,   136,
-     137,   140,   142,   144,   148,   165,   167,   168,   169,   172,
-     183,   185,   200,   252,   253,   260,   261,   262,   265,   275,
-     276,   277,   278,   279,   280,   281,   283,   289,   294,   295,
-     298,   299,   300,   303,   308,   315,   316,   318,   324,   327,
-     334,   339,   344,   350,   352,   354,   358,   359,   362,   363,
-     365,   367,   370,   374,   375,   377,   379,   382,   385,   388,
-     391,   396,   411,   416,   419,   424,   426,   431,   437,   446,
-     447,   450,   475,   479,   481,   485,   486,   495,   496,   497,
-     498,   503,   505,   510,   513,   518,   522,   526,   529,   531,
-     536,   593,   594,   595,   596,   600,   603,   608,   615,   622,
-     624,   631,   654,   661,   671,   674,   679,   683,   688,   690,
-     693,   696,   700,   701,   705,   707,   711,   713,   716,   720,
-     722,   724,   729,   730,   735,   736,   740,   742,   746,   751,
-     756,   770,   781,   785,   787,   789,   801,   814,   826,   839,
-     852,   874,   888,   902,   916,   930,   941,   952,   974,   978,
-     982,   986,   990,  1012,  1018
+         0,   163,   163,   167,   171,   182,   183,   184,   185,   186,
+     187,   190,   192,   194,   198,   218,   220,   221,   222,   225,
+     238,   240,   255,   307,   308,   315,   316,   317,   320,   331,
+     332,   333,   334,   335,   336,   337,   339,   345,   350,   351,
+     354,   355,   356,   359,   364,   371,   372,   374,   381,   384,
+     392,   397,   402,   408,   410,   412,   416,   417,   420,   421,
+     423,   425,   428,   432,   433,   435,   437,   440,   443,   446,
+     449,   454,   471,   477,   480,   486,   491,   497,   503,   512,
+     513,   516,   544,   551,   554,   559,   560,   569,   570,   571,
+     572,   577,   580,   586,   590,   596,   601,   608,   611,   618,
+     628,   687,   688,   689,   690,   694,   697,   702,   708,   715,
+     717,   724,   747,   754,   765,   768,   773,   777,   782,   785,
+     789,   792,   796,   797,   801,   803,   807,   809,   812,   816,
+     818,   820,   825,   826,   831,   832,   836,   839,   844,   849,
+     854,   868,   879,   885,   887,   889,   901,   914,   926,   939,
+     952,   974,   988,  1002,  1016,  1030,  1041,  1052,  1074,  1079,
+    1084,  1090,  1096,  1119,  1127
   };
 
   // Print the state stack on the debug stream.
   void
-  eprosimaidlparser::yystack_print_ ()
+  IDLParser::yystack_print_ ()
   {
     *yycdebug_ << "Stack now";
     for (state_stack_type::const_iterator i = yystate_stack_.begin ();
@@ -2364,7 +2401,7 @@ namespace yy {
 
   // Report on the debug stream that the rule \a yyrule is going to be reduced.
   void
-  eprosimaidlparser::yy_reduce_print_ (int yyrule)
+  IDLParser::yy_reduce_print_ (int yyrule)
   {
     unsigned int yylno = yyrline_[yyrule];
     int yynrhs = yyr2_[yyrule];
@@ -2381,8 +2418,8 @@ namespace yy {
 #endif // YYDEBUG
 
   /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
-  eprosimaidlparser::token_number_type
-  eprosimaidlparser::yytranslate_ (int t)
+  IDLParser::token_number_type
+  IDLParser::yytranslate_ (int t)
   {
     static
     const token_number_type
@@ -2426,31 +2463,31 @@ namespace yy {
       return yyundef_token_;
   }
 
-  const int eprosimaidlparser::yyeof_ = 0;
-  const int eprosimaidlparser::yylast_ = 396;
-  const int eprosimaidlparser::yynnts_ = 77;
-  const int eprosimaidlparser::yyempty_ = -2;
-  const int eprosimaidlparser::yyfinal_ = 35;
-  const int eprosimaidlparser::yyterror_ = 1;
-  const int eprosimaidlparser::yyerrcode_ = 256;
-  const int eprosimaidlparser::yyntokens_ = 76;
+  const int IDLParser::yyeof_ = 0;
+  const int IDLParser::yylast_ = 396;
+  const int IDLParser::yynnts_ = 77;
+  const int IDLParser::yyempty_ = -2;
+  const int IDLParser::yyfinal_ = 35;
+  const int IDLParser::yyterror_ = 1;
+  const int IDLParser::yyerrcode_ = 256;
+  const int IDLParser::yyntokens_ = 76;
 
-  const unsigned int eprosimaidlparser::yyuser_token_number_max_ = 306;
-  const eprosimaidlparser::token_number_type eprosimaidlparser::yyundef_token_ = 2;
+  const unsigned int IDLParser::yyuser_token_number_max_ = 306;
+  const IDLParser::token_number_type IDLParser::yyundef_token_ = 2;
 
 
-} // yy
+} // eprosima
 
 /* Line 1136 of lalr1.cc  */
-#line 2446 "idl.tab.cc"
+#line 2483 "idl.tab.cc"
 
 
 /* Line 1138 of lalr1.cc  */
-#line 1027 "idl.y"
+#line 1138 "idl.y"
 
 
 // directly include the nonterm defs here
-@NONTERMTYPES@
+//@NONTERMTYPES@
 
 /* Override yyerror */
 public

@@ -3,9 +3,15 @@
 
 #include "cdr/MemberedTypeCode.h"
 
+namespace eprosima{ namespace fastcdr{
+
+ class Cdr;
+}}
+using namespace eprosima::fastcdr;
+
 namespace eProsima
 {
-    class CDR;
+
     class IDLPrinter;
 
     class StructMember : public Member
@@ -47,6 +53,8 @@ namespace eProsima
 		friend inline bool operator<<(IDLPrinter &printer, const StructTypeCode &structTypeCode) {return structTypeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const StructTypeCode *structTypeCode);
+
+        void addMember(StructMember* m);
 
     private:
         

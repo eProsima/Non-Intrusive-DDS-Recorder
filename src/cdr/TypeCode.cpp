@@ -6,8 +6,8 @@
 #include "cdr/PrimitiveTypeCode.h"
 #include "cdr/SequenceTypeCode.h"
 #include "cdr/UnionTypeCode.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
 #include <stdio.h>
 
@@ -53,7 +53,7 @@ TypeCode* TypeCode::deserializeTypeCode(char *cdrTypeCode, uint32_t cdrTypeCodeL
                 }
             }
         }
-        catch(eProsima::Exception &ex) {}
+        catch(exception::Exception &ex) {}
     }
     else
     {
@@ -136,7 +136,7 @@ TypeCode* TypeCode::deserializeTypeCode(Cdr &cdr)
             }
         }
     }
-    catch(eProsima::Exception &ex) {}
+    catch(exception::Exception &ex) {}
 
     return returnedValue;
 }

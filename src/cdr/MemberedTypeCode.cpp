@@ -94,7 +94,7 @@ bool MemberedTypeCode::deserializeMembers(Cdr &cdr)
             }
         }
     }
-    catch(eProsima::Exception &ex)
+    catch(exception::Exception &ex)
     {
         returnedValue = false;
     }

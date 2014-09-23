@@ -1,7 +1,7 @@
 #include "cdr/StringTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
 using namespace eProsima;
 
@@ -13,7 +13,7 @@ bool StringTypeCode::deserialize(Cdr &cdr)
         cdr >> m_maxLength;
         return true;
     }
-    catch(eProsima::Exception &ex) {}
+    catch(exception::Exception &ex) {}
 
     return false;
 }

@@ -1,7 +1,7 @@
 #include "database/DynamicDataDB.h"
 #include "eProsima_c/eProsimaMacros.h"
 #include "eProsima_cpp/eProsimaLog.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/exceptions/Exception.h"
 #include "cdr/StructTypeCode.h"
 #include "cdr/ArrayTypeCode.h"
 #include "cdr/EnumTypeCode.h"
@@ -23,6 +23,7 @@
 
 static const char* const CLASS_NAME = "DynamicDataDB";
 
+using namespace eprosima::fastcdr;
 using namespace eProsima;
 using namespace std;
 
@@ -1017,7 +1018,7 @@ bool DynamicDataDB::processUnionsStorage(const UnionTypeCode *typeCode, Cdr &cdr
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             logError(m_log, "Exception: ", ex.what());
         }
@@ -1214,7 +1215,7 @@ bool DynamicDataDB::addOctetStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the octet field");
         }
@@ -1241,7 +1242,7 @@ bool DynamicDataDB::addShortStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the short field");
         }
@@ -1268,7 +1269,7 @@ bool DynamicDataDB::addUShortStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the ushort field");
         }
@@ -1296,7 +1297,7 @@ bool DynamicDataDB::addLongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the long field");
         }
@@ -1323,7 +1324,7 @@ bool DynamicDataDB::addULongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the ulong field");
         }
@@ -1350,7 +1351,7 @@ bool DynamicDataDB::addLongLongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_int64(stmt, index++, value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the longlong field");
         }
@@ -1377,7 +1378,7 @@ bool DynamicDataDB::addULongLongStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index
             sqlite3_bind_int64(stmt, index++, value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the ulonglong field");
         }
@@ -1404,7 +1405,7 @@ bool DynamicDataDB::addCharStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_text(stmt, index++, &value, 1, SQLITE_STATIC);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the char field");
         }
@@ -1432,7 +1433,7 @@ bool DynamicDataDB::addStringStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_text(stmt, index++, value.c_str(), (int)value.length(), SQLITE_TRANSIENT);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the string field");
         }
@@ -1459,7 +1460,7 @@ bool DynamicDataDB::addFloatStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_double(stmt, index++, (double)value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the float field");
         }
@@ -1486,7 +1487,7 @@ bool DynamicDataDB::addDoubleStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_double(stmt, index++, value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the double field");
         }
@@ -1514,7 +1515,7 @@ bool DynamicDataDB::addBoolStorage(sqlite3_stmt *stmt, Cdr &cdr, int &index)
             sqlite3_bind_int(stmt, index++, value);
             returnedValue = true;
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get the boolean field");
         }
@@ -1553,7 +1554,7 @@ bool DynamicDataDB::addEnumStorage(sqlite3_stmt *stmt, const EnumTypeCode *enumT
                     printError("Cannot find ordinal of the enumerator");
                 }
             }
-            catch(eProsima::Exception &ex)
+            catch(exception::Exception &ex)
             {
                 printError("Cannot get the ordinal of the enumerator");
             }
@@ -2588,7 +2589,7 @@ bool DynamicDataDB::addOctetSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get octet sequence values");
         }
@@ -2635,7 +2636,7 @@ bool DynamicDataDB::addShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get short sequence values");
         }
@@ -2682,7 +2683,7 @@ bool DynamicDataDB::addUShortSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &c
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get unsigned short sequence values");
         }
@@ -2729,7 +2730,7 @@ bool DynamicDataDB::addLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get long sequence values");
         }
@@ -2776,7 +2777,7 @@ bool DynamicDataDB::addULongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get unsigned long sequence values");
         }
@@ -2823,7 +2824,7 @@ bool DynamicDataDB::addLongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr 
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get long long sequence values");
         }
@@ -2870,7 +2871,7 @@ bool DynamicDataDB::addULongLongSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get unsigned long long sequence values");
         }
@@ -2917,7 +2918,7 @@ bool DynamicDataDB::addCharSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get char sequence values");
         }
@@ -2964,7 +2965,7 @@ bool DynamicDataDB::addFloatSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cd
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get float sequence values");
         }
@@ -3011,7 +3012,7 @@ bool DynamicDataDB::addDoubleSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &c
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get double sequence values");
         }
@@ -3064,7 +3065,7 @@ bool DynamicDataDB::addEnumSequenceStorage(sqlite3_stmt *stmt, int ref, const En
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get enum sequence values");
         }
@@ -3111,7 +3112,7 @@ bool DynamicDataDB::addBoolSequenceStorage(sqlite3_stmt *stmt, int ref, Cdr &cdr
                 }
             }
         }
-        catch(eProsima::Exception &ex)
+        catch(exception::Exception &ex)
         {
             printError("Cannot get bool sequence values");
         }

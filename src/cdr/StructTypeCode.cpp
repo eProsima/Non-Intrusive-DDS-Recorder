@@ -1,7 +1,7 @@
 #include "cdr/StructTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
 using namespace eProsima;
 
@@ -26,7 +26,7 @@ bool StructTypeCode::deserialize(Cdr &cdr)
         returnedValue &= deserializeName(cdr);
         returnedValue &= deserializeMembers(cdr);
     }
-    catch(eProsima::Exception &ex)
+    catch(exception::Exception &ex)
     {
         returnedValue = false;
     }
@@ -48,7 +48,7 @@ Member* StructTypeCode::deserializeMemberInfo(std::string name, Cdr &cdr)
         cdr >> flags;
         returnedValue = new StructMember(name, bits, flags);
     }
-    catch(eProsima::Exception &ex) {}
+    catch(exception::Exception &ex) {}
 
     return returnedValue;
 }

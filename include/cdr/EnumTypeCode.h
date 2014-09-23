@@ -3,9 +3,15 @@
 
 #include "cdr/MemberedTypeCode.h"
 
+namespace eprosima{ namespace fastcdr{
+
+ class Cdr;
+}}
+using namespace eprosima::fastcdr;
+
 namespace eProsima
 {
-    class Cdr;
+
 
     class EnumMember : public Member
     {
@@ -57,6 +63,8 @@ namespace eProsima
 		friend inline bool operator<<(IDLPrinter &printer, const EnumTypeCode &typeCode) {return typeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const EnumTypeCode *typeCode);
+
+        void addMember(EnumMember* mem);
 
     private:
         

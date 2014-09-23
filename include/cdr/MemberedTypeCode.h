@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+using namespace eprosima::fastcdr;
+
 namespace eProsima
 {
     class Member
@@ -72,6 +74,8 @@ namespace eProsima
          */
         const Member* getMember(uint32_t index) const;
 
+
+
     protected:
 
         //! @brief Default constructor.
@@ -90,7 +94,7 @@ namespace eProsima
                 cdr >> m_name;
                 return true;
             }
-            catch(eProsima::Exception &ex)
+            catch(exception::Exception &ex)
             {
                 return false;
             }

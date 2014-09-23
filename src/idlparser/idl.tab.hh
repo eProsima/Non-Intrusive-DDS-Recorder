@@ -35,6 +35,72 @@
 #ifndef PARSER_HEADER_H
 # define PARSER_HEADER_H
 
+/* "%code requires" blocks.  */
+
+/* Line 35 of lalr1.cc  */
+#line 5 "idl.y"
+
+
+#include <vector>
+#include <string>
+#include <utility>
+#include <iostream>
+
+#include "cdr/all_TypeCodes.h"
+using namespace eProsima;
+
+typedef std::pair<std::string,std::vector<int32_t>> Declarator;
+typedef std::vector<Declarator*> DeclaratorVec;
+typedef std::vector<Member*> MemberVec;
+typedef std::vector<std::string> StringVec;
+typedef std::vector<TypeCode*> TypeCodeVec;
+enum LiteralType{ BOOL_TYPE, NUMBER_TYPE,STRING_TYPE,SCOPED_TYPE};
+struct TypeLiteral{
+	LiteralType type;
+	std::string str;
+	float num;
+	bool boolean;
+};
+
+extern int yylex ();
+extern void yyerror ( char *);
+
+class TypeCodeResults{
+public:
+	TypeCodeVec* mp_TypeCodeVec;
+	Declarator* mp_Declarator;
+	DeclaratorVec* mp_DeclaratorVec;
+	MemberVec* mp_MemberVec;
+	Member* mp_Member;
+	StringVec* mp_StringVec;
+	TypeLiteral* mp_TypeLiteral;
+	uint32_t m_uint32_t;
+	std::string m_string;
+	TypeCode* mp_TypeCode;
+	TypeCodeResults():mp_TypeCode(NULL){};
+	~TypeCodeResults(){};
+	TypeCodeResults& operator=(const TypeCodeResults& input)
+	{
+		*this = input;
+		return *this;
+	}
+};
+
+TypeCode* findTypeCodebyName(std::string& in)
+{
+return new PrimitiveTypeCode(TypeCode::KIND_NULL); //TO FIX LATER
+}
+
+int32_t findENUMvalue(std::string& in)
+{
+return 0; //TO FIX LATER
+}
+
+
+
+
+/* Line 35 of lalr1.cc  */
+#line 104 "idl.tab.hh"
 
 
 #include <string>
@@ -61,13 +127,13 @@
 #endif
 
 
-namespace yy {
+namespace eprosima {
 
 /* Line 35 of lalr1.cc  */
-#line 68 "idl.tab.hh"
+#line 134 "idl.tab.hh"
 
   /// A Bison parser.
-  class eprosimaidlparser
+  class IDLParser
   {
   public:
     /// Symbol semantic values.
@@ -76,16 +142,27 @@ namespace yy {
     {
 
 /* Line 35 of lalr1.cc  */
-#line 30 "idl.y"
-TypeCodeVec;
-		Declarator; DeclaratorVec;
-		MemberVec; Member;
-		StringVec; TypeLiteral;
-		;default TypeCode
+#line 72 "idl.y"
+  TypeCodeVec* mp_TypeCodeVec;
+	Declarator* mp_Declarator;
+	DeclaratorVec* mp_DeclaratorVec;
+	MemberVec* mp_MemberVec;
+	Member* mp_Member;
+	StringVec* mp_StringVec;
+	TypeLiteral* mp_TypeLiteral;
+	TypeCode* mp_TypeCode;
+	std::string* mp_string;
+	uint32_t m_uint32_t;
+	
+ 	int integerVal;
+ 	double doubleVal;
+ 	int tokenVal;
+ 	std::string* stringVal;
+ 
 
 
 /* Line 35 of lalr1.cc  */
-#line 89 "idl.tab.hh"
+#line 166 "idl.tab.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -153,8 +230,8 @@ TypeCodeVec;
     typedef token::yytokentype token_type;
 
     /// Build a parser object.
-    eprosimaidlparser ();
-    virtual ~eprosimaidlparser ();
+    IDLParser ();
+    virtual ~IDLParser ();
 
     /// Parse.
     /// \returns  0 iff parsing succeeded.
@@ -317,10 +394,10 @@ TypeCodeVec;
 
   };
 
-} // yy
+} // eprosima
 
 /* Line 35 of lalr1.cc  */
-#line 324 "idl.tab.hh"
+#line 401 "idl.tab.hh"
 
 
 

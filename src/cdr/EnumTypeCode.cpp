@@ -1,7 +1,8 @@
 #include "cdr/EnumTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "cpp/Cdr.h"
+#include "fastcdr/Cdr.h"
 
+using namespace eprosima::fastcdr;
 using namespace eProsima;
 
 EnumMember::EnumMember(std::string &name, uint32_t ordinal) : Member(name),
@@ -35,7 +36,7 @@ bool EnumTypeCode::deserialize(Cdr &cdr)
         returnedValue &= deserializeName(cdr);
         returnedValue &= deserializeMembers(cdr);
     }
-    catch(eProsima::Exception &ex)
+    catch(exception::Exception &ex)
     {
         returnedValue = false;
     }
@@ -53,7 +54,7 @@ Member* EnumTypeCode::deserializeMemberInfo(std::string name, Cdr &cdr)
         cdr >> ordinal;
         returnedValue = new EnumMember(name, ordinal);
     }
-    catch(eProsima::Exception &ex)
+    catch(exception::Exception &ex)
     {
     }
 

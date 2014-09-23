@@ -23,6 +23,7 @@
 #define RTPS_PID_TYPECODE (0x8004)
 #define RTPS_PID_GUID (0x005A)
 
+using namespace eprosima::fastcdr;
 using namespace eProsima;
 using namespace std;
 
@@ -360,7 +361,7 @@ bool DDSRecorder::deserializePublicationBuiltinTopic(bool endianess, char* seria
                     cdr >> parameterLength;
                 }
             }
-            catch(eProsima::Exception &ex)
+            catch(exception::Exception &ex)
             {
                 logError(m_log, "Exception: ", ex.what());
                 returnedValue = false;
@@ -430,7 +431,7 @@ bool DDSRecorder::deserializeSubscriptionBuiltinTopic(bool endianess, char* seri
                     cdr >> parameterLength;
                 }
             }
-            catch(eProsima::Exception &ex)
+            catch(exception::Exception &ex)
             {
                 logError(m_log, "Exception: ", ex.what());
                 returnedValue = false;

@@ -36,7 +36,7 @@
 #include <deque>
 
 
-namespace yy {
+namespace eprosima {
 
 /* Line 1149 of lalr1.cc  */
 #line 43 "stack.hh"
@@ -126,7 +126,7 @@ namespace yy {
     unsigned int range_;
   };
 
-} // yy
+} // eprosima
 
 /* Line 1235 of lalr1.cc  */
 #line 133 "stack.hh"

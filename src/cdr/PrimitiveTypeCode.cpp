@@ -1,6 +1,6 @@
 #include "cdr/PrimitiveTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "cpp/Cdr.h"
+#include "fastcdr/Cdr.h"
 
 using namespace eProsima;
 
@@ -11,7 +11,7 @@ bool PrimitiveTypeCode::deserialize(Cdr &cdr)
         cdr >> m_dump;
         return true;
     }
-    catch(eProsima::Exception &ex){}
+    catch(exception::Exception &ex){}
 
     return false;
 }

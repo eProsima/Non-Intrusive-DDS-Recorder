@@ -1,7 +1,7 @@
 #include "cdr/SequenceTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
 using namespace eProsima;
 
@@ -27,7 +27,7 @@ bool SequenceTypeCode::deserialize(Cdr &cdr)
 
         returnedValue &= deserializeContent(cdr);
     }
-    catch(eProsima::Exception &ex)
+    catch(exception::Exception &ex)
     {
         returnedValue = false;
     }

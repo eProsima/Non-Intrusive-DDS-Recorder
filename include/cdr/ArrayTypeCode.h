@@ -5,9 +5,15 @@
 
 #include <vector>
 
+namespace eprosima{ namespace fastcdr{
+
+ class Cdr;
+}}
+using namespace eprosima::fastcdr;
+
 namespace eProsima
 {
-    class Cdr;
+
 
     class ArrayTypeCode : public ContentTypeCode
     {
@@ -15,7 +21,7 @@ namespace eProsima
         //! @brief Default constructor.
         ArrayTypeCode();
         //! @brief Dimension-constructor
-        ArrayTypeCode(std::vector<uint32_t>&);
+        ArrayTypeCode(std::vector<int32_t>&);
 
         //! @brief Default destructor.
         virtual ~ArrayTypeCode(){}

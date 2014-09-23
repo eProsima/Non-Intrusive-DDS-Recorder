@@ -1,6 +1,6 @@
-#line 2 "lex.yy.cc"
+#line 2 "lex.yy.hpp"
 
-#line 4 "lex.yy.cc"
+#line 4 "lex.yy.hpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -700,10 +700,9 @@ char *yytext;
 #line 1 "idl.lex"
 #line 2 "idl.lex"
 // import YYtokentypes;
-//import YYtokentypes;
-#include "idl.tab.hh"
+import YYtokentypes;
 
-#line 707 "lex.yy.cc"
+#line 706 "lex.yy.hpp"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -902,10 +901,10 @@ YY_DECL
     
         YYSTYPE * yylval;
     
-#line 20 "idl.lex"
+#line 19 "idl.lex"
 
 
-#line 909 "lex.yy.cc"
+#line 908 "lex.yy.hpp"
 
     yylval = yylval_param;
 
@@ -993,349 +992,349 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 24 "idl.lex"
+#line 23 "idl.lex"
 { yyreturn(RESOLVE_TOKEN); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 25 "idl.lex"
+#line 24 "idl.lex"
 { yyreturn(SHIFTLEFT_TOKEN); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 26 "idl.lex"
+#line 25 "idl.lex"
 { yyreturn(SHIFTRIGHT_TOKEN); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 27 "idl.lex"
+#line 26 "idl.lex"
 { yyreturn(';');} 
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 28 "idl.lex"
+#line 27 "idl.lex"
 { yyreturn(LBRACE); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 29 "idl.lex"
+#line 28 "idl.lex"
 { yyreturn(RBRACE); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 30 "idl.lex"
+#line 29 "idl.lex"
 { yyreturn(':'); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 31 "idl.lex"
+#line 30 "idl.lex"
 { yyreturn(','); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 32 "idl.lex"
+#line 31 "idl.lex"
 { yyreturn('='); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 33 "idl.lex"
+#line 32 "idl.lex"
 { yyreturn('+'); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 34 "idl.lex"
+#line 33 "idl.lex"
 { yyreturn('-'); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 35 "idl.lex"
+#line 34 "idl.lex"
 { yyreturn('('); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 36 "idl.lex"
+#line 35 "idl.lex"
 { yyreturn(')'); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 37 "idl.lex"
+#line 36 "idl.lex"
 { yyreturn('<'); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 38 "idl.lex"
+#line 37 "idl.lex"
 { yyreturn('>'); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 39 "idl.lex"
+#line 38 "idl.lex"
 { yyreturn('['); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 40 "idl.lex"
+#line 39 "idl.lex"
 { yyreturn(']'); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 41 "idl.lex"
+#line 40 "idl.lex"
 { yyreturn('\"'); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 42 "idl.lex"
+#line 41 "idl.lex"
 { yyreturn('\\'); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 43 "idl.lex"
+#line 42 "idl.lex"
 { yyreturn('|'); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 44 "idl.lex"
+#line 43 "idl.lex"
 { yyreturn('^'); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 45 "idl.lex"
+#line 44 "idl.lex"
 { yyreturn('&'); }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 46 "idl.lex"
+#line 45 "idl.lex"
 { yyreturn('*'); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 47 "idl.lex"
+#line 46 "idl.lex"
 { yyreturn('/'); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 48 "idl.lex"
+#line 47 "idl.lex"
 { yyreturn('%'); }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 49 "idl.lex"
+#line 48 "idl.lex"
 { yyreturn('~'); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 51 "idl.lex"
+#line 50 "idl.lex"
 { yyreturn(ANY_TOKEN); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 52 "idl.lex"
+#line 51 "idl.lex"
 { yyreturn(ATTRIBUTE_TOKEN); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 53 "idl.lex"
+#line 52 "idl.lex"
 { yyreturn(BOOLEAN_TOKEN); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 54 "idl.lex"
+#line 53 "idl.lex"
 { yyreturn(CASE_TOKEN); }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 55 "idl.lex"
+#line 54 "idl.lex"
 { yyreturn(CHAR_TOKEN); }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 56 "idl.lex"
+#line 55 "idl.lex"
 { yyreturn(CONST_TOKEN); }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 57 "idl.lex"
+#line 56 "idl.lex"
 { yyreturn(CONTEXT_TOKEN); }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 58 "idl.lex"
+#line 57 "idl.lex"
 { yyreturn(DEFAULT_TOKEN); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 59 "idl.lex"
+#line 58 "idl.lex"
 { yyreturn(DOUBLE_TOKEN); }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 60 "idl.lex"
+#line 59 "idl.lex"
 { yyreturn(ENUM_TOKEN); }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 61 "idl.lex"
+#line 60 "idl.lex"
 { yyreturn(EXCEPTION_TOKEN); }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 62 "idl.lex"
+#line 61 "idl.lex"
 { yyreturn(FLOAT_TOKEN); }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 63 "idl.lex"
+#line 62 "idl.lex"
 { yyreturn(IN_TOKEN); }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 64 "idl.lex"
+#line 63 "idl.lex"
 { yyreturn(INOUT_TOKEN); }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 65 "idl.lex"
+#line 64 "idl.lex"
 { yyreturn(INTERFACE_TOKEN); }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 66 "idl.lex"
+#line 65 "idl.lex"
 { yyreturn(LONG_TOKEN); }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 67 "idl.lex"
+#line 66 "idl.lex"
 { yyreturn(MODULE_TOKEN); }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 68 "idl.lex"
+#line 67 "idl.lex"
 { yyreturn(OCTET_TOKEN); }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 69 "idl.lex"
+#line 68 "idl.lex"
 { yyreturn(ONEWAY_TOKEN); }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 70 "idl.lex"
+#line 69 "idl.lex"
 { yyreturn(OUT_TOKEN); }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 71 "idl.lex"
+#line 70 "idl.lex"
 { yyreturn(RAISES_TOKEN); }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 72 "idl.lex"
+#line 71 "idl.lex"
 { yyreturn(READONLY_TOKEN); }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 73 "idl.lex"
+#line 72 "idl.lex"
 { yyreturn(SEQUENCE_TOKEN); }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 74 "idl.lex"
+#line 73 "idl.lex"
 { yyreturn(SHORT_TOKEN); }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 75 "idl.lex"
+#line 74 "idl.lex"
 { yyreturn(STRING_TOKEN); }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 76 "idl.lex"
+#line 75 "idl.lex"
 { yyreturn(STRUCT_TOKEN); }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 77 "idl.lex"
+#line 76 "idl.lex"
 { yyreturn(SWITCH_TOKEN); }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 78 "idl.lex"
+#line 77 "idl.lex"
 { yyreturn(TYPEDEF_TOKEN); }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 79 "idl.lex"
+#line 78 "idl.lex"
 { yyreturn(UNSIGNED_TOKEN); }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 80 "idl.lex"
+#line 79 "idl.lex"
 { yyreturn(UNION_TOKEN); }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 81 "idl.lex"
+#line 80 "idl.lex"
 { yyreturn(VOID_TOKEN); }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 82 "idl.lex"
+#line 81 "idl.lex"
 { yyreturn(OBJECT_TOKEN); }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 83 "idl.lex"
+#line 82 "idl.lex"
 { yyreturn(BOOLEAN_LITERAL); }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 84 "idl.lex"
+#line 83 "idl.lex"
 { yyreturn(BOOLEAN_LITERAL); }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 87 "idl.lex"
+#line 86 "idl.lex"
 { /* identifier */
 		yyreturn(IDENTIFIER);
 		}
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 91 "idl.lex"
+#line 90 "idl.lex"
 {/* octal */
 		yyreturn(INTEGER_LITERAL); 
 		}
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 95 "idl.lex"
+#line 94 "idl.lex"
 { /* decimal */
 		yyreturn(INTEGER_LITERAL);
 		}
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 99 "idl.lex"
+#line 98 "idl.lex"
 { /* hex */
 		yyreturn(INTEGER_LITERAL);
 		}
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 103 "idl.lex"
+#line 102 "idl.lex"
 { /* float 0.e0 */
 		yyreturn(FLOAT_LITERAL);
 		}
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 107 "idl.lex"
+#line 106 "idl.lex"
 { /* float .0e0 */
 		yyreturn(FLOAT_LITERAL);
 		}
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 111 "idl.lex"
+#line 110 "idl.lex"
 { /* float 0e-0 */
 		yyreturn(FLOAT_LITERAL);   
 		}
@@ -1343,7 +1342,7 @@ YY_RULE_SETUP
 case 68:
 /* rule 68 can match eol */
 YY_RULE_SETUP
-#line 115 "idl.lex"
+#line 114 "idl.lex"
 { /* quoted char */
 		yyreturn(CHARACTER_LITERAL);
 		}
@@ -1351,7 +1350,7 @@ YY_RULE_SETUP
 case 69:
 /* rule 69 can match eol */
 YY_RULE_SETUP
-#line 119 "idl.lex"
+#line 118 "idl.lex"
 { /* string */
 		yyreturn(STRING_LITERAL);
 		}
@@ -1359,31 +1358,31 @@ YY_RULE_SETUP
 case 70:
 /* rule 70 can match eol */
 YY_RULE_SETUP
-#line 122 "idl.lex"
+#line 121 "idl.lex"
 { yylexerror("unclosed string");}
 	YY_BREAK
 case 71:
 /* rule 71 can match eol */
 YY_RULE_SETUP
-#line 124 "idl.lex"
+#line 123 "idl.lex"
 { /*  eliminate white space  */ }
 	YY_BREAK
 case 72:
 /* rule 72 can match eol */
 YY_RULE_SETUP
-#line 126 "idl.lex"
+#line 125 "idl.lex"
 { yyreturn(PRAGMA_INFO);}
 	YY_BREAK
 case 73:
 /* rule 73 can match eol */
 YY_RULE_SETUP
-#line 127 "idl.lex"
+#line 126 "idl.lex"
 { yyreturn(IDENT_INFO);}
 	YY_BREAK
 case 74:
 /* rule 74 can match eol */
 YY_RULE_SETUP
-#line 128 "idl.lex"
+#line 127 "idl.lex"
 { 
 		yyreturn(LINE_AND_FILE_INFO);
 		}
@@ -1391,7 +1390,7 @@ YY_RULE_SETUP
 case 75:
 /* rule 75 can match eol */
 YY_RULE_SETUP
-#line 131 "idl.lex"
+#line 130 "idl.lex"
 {
 		yyreturn(LINE_AND_FILE_INFO);
 		}
@@ -1399,36 +1398,36 @@ YY_RULE_SETUP
 case 76:
 /* rule 76 can match eol */
 YY_RULE_SETUP
-#line 134 "idl.lex"
+#line 133 "idl.lex"
 {
 		yyreturn(LINE_AND_FILE_INFO);
 		}
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 138 "idl.lex"
+#line 137 "idl.lex"
 { /*   uni-line comment */ }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 139 "idl.lex"
+#line 138 "idl.lex"
 { yybegin(COMMENT); comment_depth++;  }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 141 "idl.lex"
+#line 140 "idl.lex"
 { yylexerror("Illegal character: " + ((int)yytext.currentchar()));}
 	YY_BREAK
 
 
 case 80:
 YY_RULE_SETUP
-#line 146 "idl.lex"
+#line 145 "idl.lex"
 { /* begin nested multiline comment */ comment_depth++; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 147 "idl.lex"
+#line 146 "idl.lex"
 { /* end multiline comment */
 		comment_depth--;
 		if (comment_depth == 0) { yybegin(INITIAL); }
@@ -1437,33 +1436,33 @@ YY_RULE_SETUP
 case 82:
 /* rule 82 can match eol */
 YY_RULE_SETUP
-#line 152 "idl.lex"
+#line 151 "idl.lex"
 {}
 	YY_BREAK
 case 83:
 /* rule 83 can match eol */
 YY_RULE_SETUP
-#line 153 "idl.lex"
+#line 152 "idl.lex"
 {}
 	YY_BREAK
 case 84:
 /* rule 84 can match eol */
 YY_RULE_SETUP
-#line 154 "idl.lex"
+#line 153 "idl.lex"
 {}
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 156 "idl.lex"
+#line 155 "idl.lex"
 { yylexerror("Illegal character in comment: " + ((int)yytext.currentchar())); }
 	YY_BREAK
 
 case 86:
 YY_RULE_SETUP
-#line 159 "idl.lex"
+#line 158 "idl.lex"
 ECHO;
 	YY_BREAK
-#line 1467 "lex.yy.cc"
+#line 1466 "lex.yy.hpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -2465,7 +2464,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 159 "idl.lex"
+#line 158 "idl.lex"
 
 
 

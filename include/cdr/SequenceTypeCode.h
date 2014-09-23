@@ -3,9 +3,15 @@
 
 #include "cdr/ContentTypeCode.h"
 
+namespace eprosima{ namespace fastcdr{
+
+ class Cdr;
+}}
+using namespace eprosima::fastcdr;
+
 namespace eProsima
 {
-    class Cdr;
+
 
     class SequenceTypeCode : public ContentTypeCode
     {

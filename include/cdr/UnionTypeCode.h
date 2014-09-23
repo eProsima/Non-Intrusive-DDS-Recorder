@@ -4,15 +4,23 @@
 #include "cdr/MemberedTypeCode.h"
 #include <vector>
 
+namespace eprosima{ namespace fastcdr{
+
+ class Cdr;
+}}
+using namespace eprosima::fastcdr;
+
 namespace eProsima
 {
-    class Cdr;
+
     class IDLPrinter;
 
     class UnionMember : public Member
     {
     public:
         UnionMember(std::string &name, uint32_t labelCount, std::vector<int32_t> label);
+
+        UnionMember();
 
         virtual ~UnionMember(){}
 
@@ -22,7 +30,7 @@ namespace eProsima
 
         void setLabels(std::vector<int32_t>& labels);
 
-        std::vector<int_32_t> getLabels();
+        std::vector<int32_t> getLabels();
 
     private:
         uint32_t m_labelCount;
@@ -60,6 +68,8 @@ namespace eProsima
 		friend inline bool operator<<(IDLPrinter &printer, const UnionTypeCode &unionTypeCode) {return unionTypeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const UnionTypeCode *unionTypeCode);
+
+        void addMember(UnionMember* member);
 
     private:
         

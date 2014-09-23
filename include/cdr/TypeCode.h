@@ -3,10 +3,12 @@
 
 #include <stdint.h>
 
+#include "fastcdr/Cdr.h"
+using namespace eprosima::fastcdr;
+
 namespace eProsima
 {
 
-    class Cdr;
     class IDLPrinter;
 
     class TypeCode

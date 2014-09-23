@@ -32,7 +32,7 @@
 
 /**
  ** \file location.hh
- ** Define the yy::location class.
+ ** Define the eprosima::location class.
  */
 
 #ifndef BISON_LOCATION_HH
@@ -43,7 +43,7 @@
 # include "position.hh"
 
 
-namespace yy {
+namespace eprosima {
 
 /* Line 162 of location.cc  */
 #line 50 "location.hh"
@@ -156,7 +156,7 @@ namespace yy {
   }
 
 
-} // yy
+} // eprosima
 
 /* Line 271 of location.cc  */
 #line 163 "location.hh"
