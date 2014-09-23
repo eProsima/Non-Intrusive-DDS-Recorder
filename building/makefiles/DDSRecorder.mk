@@ -17,10 +17,10 @@ DDSRECORDER_INCLUDE_DIRS= $(INCLUDE_DIRS) -I$(BASEDIR)/include \
 
 DDSRECORDER_LIBS_DEBUG= $(LIBS_DEBUG) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) \
 			-Wl,-Bstatic -lcdrd \
-			-Wl,-Bdynamic -ldl -lpcap -lsqlite3 -lboost_system-mt
+			-Wl,-Bdynamic -ldl -lpcap -lsqlite3 -lboost_system
 DDSRECORDER_LIBS_RELEASE= $(LIBS) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) \
 			  -Wl,-Bstatic -lcdr \
-			  -Wl,-Bdynamic -ldl -lpcap -lsqlite3 -lboost_system-mt
+			  -Wl,-Bdynamic -ldl -lpcap -lsqlite3 -lboost_system
 
 DDSRECORDER_SRC_CFILES=
 
