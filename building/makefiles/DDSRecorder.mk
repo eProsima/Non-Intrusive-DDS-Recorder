@@ -43,8 +43,9 @@ DDSRECORDER_SRC_CPPFILES= $(EPROSIMADIR)/code/eProsima_cpp/eProsimaLog.cpp \
 		       $(BASEDIR)/src/cdr/TypeCode.cpp \
 		       $(BASEDIR)/src/cdr/UnionTypeCode.cpp \
 		       $(BASEDIR)/src/util/IDLPrinter.cpp \
-		       $(BASEDIR)/src/main.cpp
-
+		       $(BASEDIR)/src/main.cpp 
+		#       $(BASEDIR)/src/idlparser/idl.tab.cc \
+			   $(BASEDIR)/src/idlparser/lex.yy.cc
 # Project sources are copied to the current directory
 DDSRECORDER_SRCS= $(DDSRECORDER_SRC_CFILES) $(DDSRECORDER_SRC_CPPFILES)
 

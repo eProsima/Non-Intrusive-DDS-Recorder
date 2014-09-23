@@ -1,78 +1,22 @@
-	/* @(#)idl.y 0.1 92/07/04 Copyright (C) 1992 MITRE */
-	/******** DEFINITIONS SECTION *******/
 
-/* Just to see how, explicitly show the default type, namely Integer */
-%union {YYnonterminal ; YYterminal ; YYtoken ; default Object}
+//REMOVED SECTION 1
 
-%token <Integer> INTEGER_LITERAL LONG_LITERAL
-%token <Integer> FLOAT_LITERAL DOUBLE_LITERAL
-%token <Integer> BOOLEAN_LITERAL
-%token <Integer> STRING_LITERAL CHARACTER_LITERAL
-%token <Integer> IDENTIFIER
-%token <Integer> ANY_TOKEN ATTRIBUTE_TOKEN BOOLEAN_TOKEN CASE_TOKEN
-%token <Integer> CHAR_TOKEN CONST_TOKEN CONTEXT_TOKEN DEFAULT_TOKEN
-%token <Integer> DOUBLE_TOKEN ENUM_TOKEN EXCEPTION_TOKEN FLOAT_TOKEN
-%token <Integer> IN_TOKEN INOUT_TOKEN INTERFACE_TOKEN LONG_TOKEN
-%token <Integer> MODULE_TOKEN OCTET_TOKEN ONEWAY_TOKEN OUT_TOKEN
-%token <Integer> RAISES_TOKEN READONLY_TOKEN SEQUENCE_TOKEN SHORT_TOKEN
-%token <Integer> STRING_TOKEN STRUCT_TOKEN SWITCH_TOKEN TYPEDEF_TOKEN
-%token <Integer> UNSIGNED_TOKEN UNION_TOKEN VOID_TOKEN OBJECT_TOKEN
-%token <Integer> RESOLVE_TOKEN SHIFTLEFT_TOKEN SHIFTRIGHT_TOKEN
-%token <Integer> ';' '{' '}' ':' ',' '=' '+' '-' '(' ')' '<' '>' '[' ']' '|'
-%token <Integer> '^' '&' '*' '/' '%' '~'
-%token <Integer> '\'' '"' '\\' /* apparently not used */
-%token <YYtoken> PRAGMA_INFO IDENT_INFO LINE_AND_FILE_INFO
-
-%left '|'
-%left '^'
-%left '&'
-%left SHIFTLEFT_TOKEN SHIFTRIGHT_TOKEN
-%left '-' '+'
-%left '*' '/' '%'
-%left NEG POS NOT    /* unary minus,plus,not */
-
-%type <YYterminal> param_attribute sharp_declaratives
-%type <YYnonterminal> specification definition_list definition interface
-%type <YYnonterminal> module interface_dcl forward_dcl interface_header
-%type <YYnonterminal> interface_body export inheritance_spec scoped_name_list
-%type <YYnonterminal> scoped_name res_scoped_name const_dcl const_type
-%type <YYnonterminal> const_exp expr literal positive_int_const
-%type <YYnonterminal> type_dcl type_declarator type_spec simple_type_spec
-%type <YYnonterminal> base_type_spec object_type template_type_spec constr_type_spec
-%type <YYnonterminal> declarators declarator simple_declarator complex_declarator
-%type <YYnonterminal> floating_pt_type integer_type signed_int signed_long_int
-%type <YYnonterminal> signed_short_int unsigned_int unsigned_long_int unsigned_short_int
-%type <YYnonterminal> char_type boolean_type octet_type any_type
-%type <YYnonterminal> struct_type member_list member union_type
-%type <YYnonterminal> switch_type_spec switch_body case case_label_list
-%type <YYnonterminal> case_label element_spec enum_type enumerator_list
-%type <YYnonterminal> enumerator sequence_type string_type array_declarator
-%type <YYnonterminal> fixed_array_size_list fixed_array_size attr_dcl simple_declarators
-%type <YYnonterminal> except_dcl member_star op_dcl op_dcl_cont
-%type <YYnonterminal> op_attribute op_type_spec parameter_dcls param_dcl_list
-%type <YYnonterminal> param_dcl raises_expr context_expr
-%type <YYnonterminal> string_literal_list param_type_spec
-
-%start specification
-
-%%
-	/******* RULES SECTION *******/
-
-specification : definition_list
-    ;
-definition_list : 
-    definition
-	{$$ = new YYnonterminal(nt_definition_list,$1);}
-    | definition definition_list
+member_list : 
+    member
+	{$$ = new YYnonterminal(nt_member_list,$1);}
+    | member member_list
 	{$2.append($1); $$ = $2;}
     ;
-definition : 
-    type_dcl ';' {$$ = $1;}
-    | const_dcl ';' {$$ = $1;}
-    | except_dcl ';' {$$ = $1;}
-    | interface ';' {$$ = $1;}
-    | module ';' {$$ = $1;}
-    | sharp_declaratives {$$ = $1;}
+member : type_spec declarators ';'
+	{$$ = new YYnonterminal(nt_member,$1,$2);}
+    ;  
+
+
+
+
+
+
+
 
 sharp_declaratives:
       PRAGMA_INFO
@@ -201,120 +145,23 @@ literal	:
 positive_int_const : expr
 	{$$ = new YYnonterminal(nt_positive_int_const,$1);} /* used for semantic check */
     ;
-type_dcl : 
-    TYPEDEF_TOKEN type_declarator
-	{$$ = new YYnonterminal(nt_type_dcl,$2);}
-    | struct_type
-    | union_type
-    | enum_type
-    ;
-type_declarator	: type_spec declarators
-	{$$ = new YYnonterminal(nt_type_declarator,$1,$2);}
-    ;
-type_spec : 
-    simple_type_spec
-    | constr_type_spec
-    ;
-simple_type_spec : 
-    base_type_spec
-    | template_type_spec
-    | scoped_name
-    ;
-base_type_spec	: 
-    floating_pt_type
-    | integer_type
-    | char_type
-    | boolean_type
-    | octet_type
-    | any_type
-    | object_type
-    ;
-object_type : OBJECT_TOKEN
-	{$$ = new YYnonterminal(nt_object_type);}
-    ;
-template_type_spec : 
-    sequence_type
-    | string_type
-    ;
-constr_type_spec : 
-    struct_type
-    | union_type
-    | enum_type
-    ;
-declarators : 
-    declarator
-	{$$ = new YYnonterminal(nt_declarators,$1);}
-    | declarator  ','  declarators
-	{$3.append($1); $$ = $3;}
-    ;
-declarator : 
-    simple_declarator
-    | complex_declarator
-    ;
-simple_declarator : IDENTIFIER
-	{$$ = new YYnonterminal(nt_simple_declarator,$1);}
-    ;
-complex_declarator : array_declarator
-    ;
-floating_pt_type : 
-    FLOAT_TOKEN
-	{$$ = new YYnonterminal(nt_floating_pt_type,FLOAT_TOKEN);}
-    |  DOUBLE_TOKEN
-	{$$ = new YYnonterminal(nt_floating_pt_type,DOUBLE_TOKEN);}
-    ;
-integer_type : 
-    signed_int
-    | unsigned_int
-    ;
-signed_int : 
-    signed_long_int
-    | signed_short_int
-    ;
-signed_long_int	: LONG_TOKEN
-	{$$ = new YYnonterminal(nt_signed_long_int);}
-    ;
-signed_short_int : SHORT_TOKEN
-	{$$ = new YYnonterminal(nt_signed_short_int);}
-    ;
-unsigned_int : 
-    unsigned_long_int
-    | unsigned_short_int
-    ;
-unsigned_long_int : UNSIGNED_TOKEN LONG_TOKEN
-	{$$ = new YYnonterminal(nt_unsigned_long_int);}
-    ;
-unsigned_short_int : UNSIGNED_TOKEN SHORT_TOKEN
-	{$$ = new YYnonterminal(nt_unsigned_short_int);}
-    ;
-char_type : CHAR_TOKEN
-	{$$ = new YYnonterminal(nt_char_type);}
-    ;
-boolean_type : BOOLEAN_TOKEN
-	{$$ = new YYnonterminal(nt_boolean_type);}
-    ;
-octet_type : OCTET_TOKEN
-	{$$ = new YYnonterminal(nt_octet_type);}
-    ;
-any_type : ANY_TOKEN
-	{$$ = new YYnonterminal(nt_any_type);}
-    ;
-struct_type : STRUCT_TOKEN  IDENTIFIER '{'  member_list  '}'
-	{$$ = new YYnonterminal(nt_struct_type,$2,$4);}
-    ;
-member_list : 
-    member
-	{$$ = new YYnonterminal(nt_member_list,$1);}
-    | member member_list
-	{$2.append($1); $$ = $2;}
-    ;
-member : type_spec declarators ';'
-	{$$ = new YYnonterminal(nt_member,$1,$2);}
-    ;
-union_type : UNION_TOKEN IDENTIFIER SWITCH_TOKEN '(' switch_type_spec  ')' 
+    
+    union_type : UNION_TOKEN IDENTIFIER SWITCH_TOKEN '(' switch_type_spec  ')' 
     '{' switch_body '}'
 	{$$ = new YYnonterminal(nt_union_type,$2,$5,$8);}
     ;
-switch_type_spec : 
+    
+    
+    
+    
+    
+    
+    //REMOVED SECTION 2
+    
+    
+    
+    
+    switch_type_spec : 
     integer_type
     | char_type
     | boolean_type
@@ -345,41 +192,20 @@ case_label :
 element_spec : type_spec  declarator
 	{$$ = new YYnonterminal(nt_element_spec,$1,$2);}
     ;
-enum_type : ENUM_TOKEN IDENTIFIER '{' enumerator_list  '}'
-	{$$ = new YYnonterminal(nt_enum_type,$2,$4);}
-    ;
-enumerator_list	: enumerator
-	{$$ = new YYnonterminal(nt_enumerator_list,$1);}
-    | enumerator ',' enumerator_list
-	{$3.append($1); $$ = $3;}
-    ;
-enumerator : IDENTIFIER
-	{$$ = new YYnonterminal(nt_enumerator,$1);}
-    ;
+    
+
 sequence_type : 
     SEQUENCE_TOKEN '<' simple_type_spec ',' positive_int_const '>'
 	{$$ = new YYnonterminal(nt_sequence_type,$3,$5);}	
     | SEQUENCE_TOKEN  '<'  simple_type_spec  '>'
 	{$$ = new YYnonterminal(nt_sequence_type,$3);}	
     ;
-string_type : 
-    STRING_TOKEN  '<'  positive_int_const  '>'
-	{$$ = new YYnonterminal(nt_string_type,$3);}	
-    | STRING_TOKEN		/* NULL=UNBOUNDED */
-	{$$ = new YYnonterminal(nt_string_type);}	
-    ;
-array_declarator : IDENTIFIER  fixed_array_size_list
-	{$$ = new YYnonterminal(nt_array_declarator,$1,$2);}	
-    ;
-fixed_array_size_list : 
-    fixed_array_size
-	{$$ = new YYnonterminal(nt_fixed_array_size_list,$1);}	
-    | fixed_array_size fixed_array_size_list
-	{$2.append($1); $$ = $2;}
-    ;
-fixed_array_size : '['  positive_int_const  ']'
-	{$$ = $2;}
-    ;
+  
+    
+    //REMOVED SECTION 3
+    
+    
+    
 attr_dcl : 
     ATTRIBUTE_TOKEN  param_type_spec  simple_declarators
 	{$$ = new YYnonterminal(nt_attr_dcl,$2,$3,null);}	
@@ -461,18 +287,37 @@ param_type_spec :
     base_type_spec
     | string_type
     | scoped_name
+    ;    
+    
+    //REMOVED SECTION 4
+    
+    
+    %type <YYterminal> param_attribute sharp_declaratives
+%type <YYnonterminal> interface
+%type <YYnonterminal> module interface_dcl forward_dcl interface_header
+%type <YYnonterminal> interface_body export inheritance_spec scoped_name_list
+%type <YYnonterminal> scoped_name res_scoped_name const_dcl const_type
+%type <YYnonterminal> const_exp expr literal positive_int_const
+%type <YYnonterminal> type_declarator  
+%type <YYnonterminal> template_type_spec constr_type_spec
+
+
+
+%type <YYnonterminal> member 
+%type <YYnonterminal> switch_type_spec switch_body case case_label_list
+%type <YYnonterminal> case_label element_spec  enumerator_list
+%type <YYnonterminal> enumerator sequence_type string_type array_declarator
+%type <YYnonterminal> attr_dcl simple_declarators
+%type <YYnonterminal> except_dcl member_star op_dcl op_dcl_cont
+%type <YYnonterminal> op_attribute op_type_spec parameter_dcls param_dcl_list
+%type <YYnonterminal> param_dcl raises_expr context_expr
+%type <YYnonterminal> string_literal_list param_type_spec
+
+
+// REMVOED SECTION 5
+
+type_declarator	: type_spec declarators
+	{$$ = new YYnonterminal(nt_type_declarator,$1,$2);}
     ;
-
-%%
-
-// directly include the nonterm defs here
-@NONTERMTYPES@
-
-/* Override yyerror */
-public
-void
-yyverror(String s) throws ParseException
-{
-    String msg = yyerror_verbose(s);
-    yyerror(msg);
-}
+    
+    

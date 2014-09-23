@@ -20,6 +20,10 @@ namespace eProsima
 
         int32_t getLabel(uint32_t pos) const;
 
+        void setLabels(std::vector<int32_t>& labels);
+
+        std::vector<int_32_t> getLabels();
+
     private:
         uint32_t m_labelCount;
         std::vector<int32_t> m_labels;
@@ -38,6 +42,8 @@ namespace eProsima
          * @brief Default destructor.
          */
         virtual ~UnionTypeCode();
+
+        void setDiscriminatorTypeCode(TypeCode*);
 
         int32_t getDefaultIndex() const;
 

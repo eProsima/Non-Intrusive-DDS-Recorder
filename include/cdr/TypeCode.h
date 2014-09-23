@@ -5,6 +5,7 @@
 
 namespace eProsima
 {
+
     class Cdr;
     class IDLPrinter;
 
@@ -79,6 +80,7 @@ namespace eProsima
             (kind == KIND_VALUE) ||
             (kind == KIND_SPARSE) ||
             (kind == KIND_ENUM));
+
         }
 
 		virtual bool print(IDLPrinter &printer, bool write) const = 0;

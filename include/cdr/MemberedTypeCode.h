@@ -27,10 +27,14 @@ namespace eProsima
          */
         const std::string& getName() const;
 
+        void setName(std::string& name);
+
         /*!
          * @brief This function returns the typecode of the member.
          */
         const TypeCode* getTypeCode() const;
+
+        void setTypeCode(TypeCode*);
 
         /*!
          * @brief This function deserializes the member's typecode.
