@@ -40,6 +40,8 @@ namespace eProsima
          */
         EnumTypeCode();
 
+        EnumTypeCode(const EnumTypeCode& copy_from_me);
+
         /*!
          * @brief Default destructor.
          */

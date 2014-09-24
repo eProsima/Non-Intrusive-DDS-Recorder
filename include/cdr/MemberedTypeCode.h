@@ -10,6 +10,7 @@
 
 using namespace eprosima::fastcdr;
 
+
 namespace eProsima
 {
     class Member
@@ -21,6 +22,8 @@ namespace eProsima
          */
         Member(std::string &name);
 
+        Member();
+
         //! @brief Default destructor;
         virtual ~Member();
 
@@ -28,14 +31,20 @@ namespace eProsima
          * @brief This function returns the name of the member.
          */
         const std::string& getName() const;
-
+        /**
+         * Set the name of the MemberedTypeCode.
+         * @param name String to set.
+         */
         void setName(std::string& name);
 
         /*!
          * @brief This function returns the typecode of the member.
          */
         const TypeCode* getTypeCode() const;
-
+        /**
+         * Set the TypeCode of the member.
+         * @param Pointer to the typecode.
+         */
         void setTypeCode(TypeCode*);
 
         /*!
@@ -76,7 +85,10 @@ namespace eProsima
 
 
 
+
     protected:
+
+        void addMemberPtr(Member* m);
 
         //! @brief Default constructor.
         MemberedTypeCode(uint32_t kind);
@@ -112,7 +124,7 @@ namespace eProsima
 
         std::vector<Member*> m_members;
 
-    private:
+
 
         std::string m_name;
 

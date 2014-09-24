@@ -24,6 +24,14 @@ EnumTypeCode::EnumTypeCode() : MemberedTypeCode(TypeCode::KIND_ENUM)
 {
 }
 
+EnumTypeCode::EnumTypeCode(const EnumTypeCode& copy): MemberedTypeCode(TypeCode::KIND_ENUM)
+{
+	m_members = copy.m_members;
+	m_name = copy.m_name;
+	m_memberCount = copy.m_memberCount;
+
+}
+
 bool EnumTypeCode::deserialize(Cdr &cdr)
 {
     bool returnedValue = true;
@@ -111,6 +119,11 @@ bool EnumTypeCode::print(IDLPrinter &printer, bool write) const
     }
 
     return returnedValue;
+}
+
+void EnumTypeCode::addMember(EnumMember* mem)
+{
+	this->addMemberPtr((Member*)mem);
 }
 
 bool eProsima::operator<<(IDLPrinter &printer, const EnumTypeCode *typeCode)

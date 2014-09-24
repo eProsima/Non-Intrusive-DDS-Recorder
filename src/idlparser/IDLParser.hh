@@ -86,21 +86,13 @@ public:
 	}
 };
 
-TypeCode* findTypeCodebyName(std::string& in)
-{
-return new PrimitiveTypeCode(TypeCode::KIND_NULL); //TO FIX LATER
-}
 
-int32_t findENUMvalue(std::string& in)
-{
-return 0; //TO FIX LATER
-}
 
 
 
 
 /* Line 35 of lalr1.cc  */
-#line 104 "idl.tab.hh"
+#line 96 "IDLParser.hh"
 
 
 #include <string>
@@ -110,7 +102,7 @@ return 0; //TO FIX LATER
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 
 /* Enabling verbose error messages.  */
@@ -118,7 +110,7 @@ return 0; //TO FIX LATER
 # undef YYERROR_VERBOSE
 # define YYERROR_VERBOSE 1
 #else
-# define YYERROR_VERBOSE 0
+# define YYERROR_VERBOSE 1
 #endif
 
 /* Enabling the token table.  */
@@ -130,7 +122,7 @@ return 0; //TO FIX LATER
 namespace eprosima {
 
 /* Line 35 of lalr1.cc  */
-#line 134 "idl.tab.hh"
+#line 126 "IDLParser.hh"
 
   /// A Bison parser.
   class IDLParser
@@ -142,7 +134,7 @@ namespace eprosima {
     {
 
 /* Line 35 of lalr1.cc  */
-#line 72 "idl.y"
+#line 83 "idl.y"
   TypeCodeVec* mp_TypeCodeVec;
 	Declarator* mp_Declarator;
 	DeclaratorVec* mp_DeclaratorVec;
@@ -162,7 +154,7 @@ namespace eprosima {
 
 
 /* Line 35 of lalr1.cc  */
-#line 166 "idl.tab.hh"
+#line 158 "IDLParser.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -174,6 +166,7 @@ namespace eprosima {
     {
       /* Tokens.  */
    enum yytokentype {
+     END = 0,
      INTEGER_LITERAL = 258,
      LONG_LITERAL = 259,
      FLOAT_LITERAL = 260,
@@ -182,9 +175,9 @@ namespace eprosima {
      STRING_LITERAL = 263,
      CHARACTER_LITERAL = 264,
      IDENTIFIER = 265,
-     ANY_TOKEN = 266,
-     ATTRIBUTE_TOKEN = 267,
-     BOOLEAN_TOKEN = 268,
+     BOOLEAN_TOKEN = 266,
+     ANY_TOKEN = 267,
+     ATTRIBUTE_TOKEN = 268,
      CASE_TOKEN = 269,
      CHAR_TOKEN = 270,
      CONST_TOKEN = 271,
@@ -230,7 +223,7 @@ namespace eprosima {
     typedef token::yytokentype token_type;
 
     /// Build a parser object.
-    IDLParser ();
+    IDLParser (class UserTypeCodeProvider& TCprovider_yyarg);
     virtual ~IDLParser ();
 
     /// Parse.
@@ -342,6 +335,9 @@ namespace eprosima {
     static const char* const yytname_[];
 #endif
 
+    /// Convert the symbol name \a n to a form suitable for a diagnostic.
+    static std::string yytnamerr_ (const char *n);
+
 #if YYDEBUG
     /// A type to store symbol numbers and -1.
     typedef short int rhs_number_type;
@@ -392,12 +388,14 @@ namespace eprosima {
     static const unsigned int yyuser_token_number_max_;
     static const token_number_type yyundef_token_;
 
+    /* User arguments.  */
+    class UserTypeCodeProvider& TCprovider;
   };
 
 } // eprosima
 
 /* Line 35 of lalr1.cc  */
-#line 401 "idl.tab.hh"
+#line 399 "IDLParser.hh"
 
 
 

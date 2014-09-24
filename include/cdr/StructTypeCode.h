@@ -35,6 +35,8 @@ namespace eProsima
          */
         StructTypeCode();
 
+        StructTypeCode(const StructTypeCode& copy_from_me);
+
         /*!
          * @brief Default destructor.
          */
@@ -54,7 +56,7 @@ namespace eProsima
 
         friend bool operator<<(IDLPrinter &printer, const StructTypeCode *structTypeCode);
 
-        void addMember(StructMember* m);
+        void addMember(StructMember* sm);
 
     private:
         

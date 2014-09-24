@@ -3,6 +3,8 @@
 
 #include "cdr/ContentTypeCode.h"
 
+
+
 namespace eprosima{ namespace fastcdr{
 
  class Cdr;
@@ -20,6 +22,8 @@ namespace eProsima
         SequenceTypeCode();
         //!@brief Max Length Constructor
         SequenceTypeCode(uint32_t maxL):ContentTypeCode(TypeCode::KIND_SEQUENCE),m_maxLength(maxL){}
+
+        SequenceTypeCode(const SequenceTypeCode& copy);
 
         //! @brief Default destructor.
         virtual ~SequenceTypeCode(){}

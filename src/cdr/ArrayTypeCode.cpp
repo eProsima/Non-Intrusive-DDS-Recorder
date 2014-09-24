@@ -10,6 +10,16 @@ ArrayTypeCode::ArrayTypeCode() : ContentTypeCode(TypeCode::KIND_ARRAY), m_dimens
 {
 }
 
+ArrayTypeCode::ArrayTypeCode(std::vector<int32_t>& dim) : ContentTypeCode(TypeCode::KIND_ARRAY)
+{
+	for(std::vector<int32_t>::iterator it = dim.begin();it!=dim.end();++it)
+	{
+		m_dimensions.push_back((uint32_t)(*it));
+		m_dimensionCount++;
+	}
+}
+
+
 uint32_t ArrayTypeCode::getDimensionCount() const
 {
     return m_dimensionCount;

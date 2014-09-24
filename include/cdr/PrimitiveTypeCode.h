@@ -9,7 +9,7 @@ namespace eProsima
     {
     public:
 
-        PrimitiveTypeCode(uint32_t kind) : TypeCode(kind){}
+        PrimitiveTypeCode(uint32_t kind) : TypeCode(kind),m_dump(0){}
 
         virtual ~PrimitiveTypeCode(){}
 

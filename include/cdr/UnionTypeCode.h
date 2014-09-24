@@ -30,7 +30,7 @@ namespace eProsima
 
         void setLabels(std::vector<int32_t>& labels);
 
-        std::vector<int32_t> getLabels();
+        std::vector<int32_t> getLabels() const;
 
     private:
         uint32_t m_labelCount;
@@ -46,12 +46,14 @@ namespace eProsima
          */
         UnionTypeCode();
 
+        UnionTypeCode(const UnionTypeCode& copy_from_me);
+
         /*!
          * @brief Default destructor.
          */
         virtual ~UnionTypeCode();
 
-        void setDiscriminatorTypeCode(TypeCode*);
+
 
         int32_t getDefaultIndex() const;
 
@@ -70,6 +72,8 @@ namespace eProsima
         friend bool operator<<(IDLPrinter &printer, const UnionTypeCode *unionTypeCode);
 
         void addMember(UnionMember* member);
+
+        void setDiscriminatorTypeCode(TypeCode*);
 
     private:
         

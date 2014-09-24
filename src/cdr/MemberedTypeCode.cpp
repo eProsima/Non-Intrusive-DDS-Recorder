@@ -6,6 +6,11 @@ Member::Member(std::string &name) : m_name(name), m_typeCode(NULL)
 {
 }
 
+Member::Member():m_typeCode(NULL)
+{
+
+}
+
 Member::~Member()
 {
     if(m_typeCode != NULL)
@@ -17,9 +22,19 @@ const std::string& Member::getName() const
     return m_name;
 }
 
+void Member::setName(std::string& name)
+		{
+			m_name = name;
+		}
+
 const TypeCode* Member::getTypeCode() const
 {
     return m_typeCode;
+}
+
+void Member::setTypeCode(TypeCode* TC)
+{
+	m_typeCode = TC;
 }
 
 bool Member::deserialize(Cdr &cdr)
@@ -27,7 +42,7 @@ bool Member::deserialize(Cdr &cdr)
     return (m_typeCode = TypeCode::deserializeTypeCode(cdr)) != NULL;
 }
 
-MemberedTypeCode::MemberedTypeCode(uint32_t kind) : TypeCode(kind)
+MemberedTypeCode::MemberedTypeCode(uint32_t kind) : TypeCode(kind),m_memberCount(0)
 {
 }
 
@@ -52,6 +67,11 @@ std::string MemberedTypeCode::getName() const
     return m_name;
 }
 
+void MemberedTypeCode::setName(std::string& name)
+{
+	m_name = name;
+}
+
 uint32_t MemberedTypeCode::getMemberCount() const
 {
     return m_memberCount;
@@ -60,6 +80,12 @@ uint32_t MemberedTypeCode::getMemberCount() const
 const Member* MemberedTypeCode::getMember(uint32_t index) const
 {
     return m_members[index];
+}
+
+void MemberedTypeCode::addMemberPtr(Member* mem)
+{
+	m_members.push_back(mem);
+	m_memberCount++;
 }
 
 bool MemberedTypeCode::deserializeMembers(Cdr &cdr)

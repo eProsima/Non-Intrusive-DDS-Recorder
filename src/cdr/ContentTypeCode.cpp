@@ -24,3 +24,8 @@ bool ContentTypeCode::deserializeContent(Cdr &cdr)
 {
     return (m_contentTypeCode = TypeCode::deserializeTypeCode(cdr)) != NULL;
 }
+
+void ContentTypeCode::setContentTypeCode(TypeCode* TC)
+{
+	m_contentTypeCode = TC;
+}

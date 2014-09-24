@@ -37,16 +37,29 @@
 
 
 /* Line 293 of lalr1.cc  */
-#line 41 "idl.tab.cc"
+#line 41 "IDLParser.cc"
 
 
-#include "idl.tab.hh"
+#include "IDLParser.hh"
 
 /* User implementation prologue.  */
 
+/* Line 299 of lalr1.cc  */
+#line 168 "idl.y"
+
+ 
+ #include "UserTypeCodeProvider.h"
+ #include "IDLScanner.h"
+  /* this "connects" the bison parser in the UserTypeCodeProvider to the flex scanner class
+  * object. it defines the yylex() function call to pull the next token from the
+  * current lexer object of the UserTypeCodeProvider context. */
+ #undef yylex
+ #define yylex TCprovider.lexer->lex
+ 
+
 
 /* Line 299 of lalr1.cc  */
-#line 50 "idl.tab.cc"
+#line 63 "IDLParser.cc"
 
 #ifndef YY_
 # if defined YYENABLE_NLS && YYENABLE_NLS
@@ -132,14 +145,54 @@ do {					\
 namespace eprosima {
 
 /* Line 382 of lalr1.cc  */
-#line 136 "idl.tab.cc"
+#line 149 "IDLParser.cc"
+
+  /* Return YYSTR after stripping away unnecessary quotes and
+     backslashes, so that it's suitable for yyerror.  The heuristic is
+     that double-quoting is unnecessary unless the string contains an
+     apostrophe, a comma, or backslash (other than backslash-backslash).
+     YYSTR is taken from yytname.  */
+  std::string
+  IDLParser::yytnamerr_ (const char *yystr)
+  {
+    if (*yystr == '"')
+      {
+        std::string yyr = "";
+        char const *yyp = yystr;
+
+        for (;;)
+          switch (*++yyp)
+            {
+            case '\'':
+            case ',':
+              goto do_not_strip_quotes;
+
+            case '\\':
+              if (*++yyp != '\\')
+                goto do_not_strip_quotes;
+              /* Fall through.  */
+            default:
+              yyr += *yyp;
+              break;
+
+            case '"':
+              return yyr;
+            }
+      do_not_strip_quotes: ;
+      }
+
+    return yystr;
+  }
+
 
   /// Build a parser object.
-  IDLParser::IDLParser ()
+  IDLParser::IDLParser (class UserTypeCodeProvider& TCprovider_yyarg)
+    :
 #if YYDEBUG
-     :yydebug_ (false),
-      yycdebug_ (&std::cerr)
+      yydebug_ (false),
+      yycdebug_ (&std::cerr),
 #endif
+      TCprovider (TCprovider_yyarg)
   {
   }
 
@@ -276,6 +329,18 @@ namespace eprosima {
     YYCDEBUG << "Starting parse" << std::endl;
 
 
+    /* User initialization code.  */
+    
+/* Line 565 of lalr1.cc  */
+#line 62 "idl.y"
+{
+// initialize the initial location object
+     yylloc.begin.filename = yylloc.end.filename = &TCprovider.streamname;
+}
+
+/* Line 565 of lalr1.cc  */
+#line 343 "IDLParser.cc"
+
     /* Initialize the stacks.  The initial state will be pushed in
        yynewstate, since the latter expects the semantical and the
        location values to have been already stored, initialize these
@@ -309,7 +374,7 @@ namespace eprosima {
     if (yychar == yyempty_)
       {
 	YYCDEBUG << "Reading a token: ";
-	yychar = yylex (&yylval);
+	yychar = yylex (&yylval, &yylloc);
       }
 
 
@@ -393,14 +458,14 @@ namespace eprosima {
 	  case 2:
 
 /* Line 690 of lalr1.cc  */
-#line 164 "idl.y"
+#line 188 "idl.y"
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec); }
     break;
 
   case 3:
 
 /* Line 690 of lalr1.cc  */
-#line 168 "idl.y"
+#line 192 "idl.y"
     {
 	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec);
 	}
@@ -409,7 +474,7 @@ namespace eprosima {
   case 4:
 
 /* Line 690 of lalr1.cc  */
-#line 172 "idl.y"
+#line 196 "idl.y"
     {
 	for(TypeCodeVec::iterator it = (yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->end();++it)
 	{
@@ -423,70 +488,70 @@ namespace eprosima {
   case 5:
 
 /* Line 690 of lalr1.cc  */
-#line 182 "idl.y"
+#line 206 "idl.y"
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 6:
 
 /* Line 690 of lalr1.cc  */
-#line 183 "idl.y"
+#line 207 "idl.y"
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 7:
 
 /* Line 690 of lalr1.cc  */
-#line 184 "idl.y"
+#line 208 "idl.y"
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 8:
 
 /* Line 690 of lalr1.cc  */
-#line 185 "idl.y"
+#line 209 "idl.y"
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 9:
 
 /* Line 690 of lalr1.cc  */
-#line 186 "idl.y"
+#line 210 "idl.y"
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
     break;
 
   case 10:
 
 /* Line 690 of lalr1.cc  */
-#line 187 "idl.y"
+#line 211 "idl.y"
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec);}
     break;
 
   case 11:
 
 /* Line 690 of lalr1.cc  */
-#line 191 "idl.y"
+#line 215 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 12:
 
 /* Line 690 of lalr1.cc  */
-#line 193 "idl.y"
+#line 217 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 13:
 
 /* Line 690 of lalr1.cc  */
-#line 195 "idl.y"
+#line 219 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 14:
 
 /* Line 690 of lalr1.cc  */
-#line 199 "idl.y"
+#line 223 "idl.y"
     {
 	for(TypeCodeVec::iterator it = (yysemantic_stack_[(5) - (4)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(5) - (4)].mp_TypeCodeVec)->end();++it)
 	{
@@ -508,14 +573,14 @@ namespace eprosima {
   case 15:
 
 /* Line 690 of lalr1.cc  */
-#line 219 "idl.y"
+#line 243 "idl.y"
     {std::cout << "Warning: \"typedef\" token not allowed" << std::endl;}
     break;
 
   case 19:
 
 /* Line 690 of lalr1.cc  */
-#line 226 "idl.y"
+#line 250 "idl.y"
     {StructTypeCode* sTC = new StructTypeCode();
 	sTC->setName(*(yysemantic_stack_[(5) - (2)].stringVal));
 	delete((yysemantic_stack_[(5) - (2)].stringVal));
@@ -531,14 +596,14 @@ namespace eprosima {
   case 20:
 
 /* Line 690 of lalr1.cc  */
-#line 239 "idl.y"
+#line 263 "idl.y"
     {(yyval.mp_MemberVec) = (yysemantic_stack_[(1) - (1)].mp_MemberVec);}
     break;
 
   case 21:
 
 /* Line 690 of lalr1.cc  */
-#line 241 "idl.y"
+#line 265 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (1)].mp_MemberVec) ==NULL)
 		(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
@@ -557,7 +622,7 @@ namespace eprosima {
   case 22:
 
 /* Line 690 of lalr1.cc  */
-#line 256 "idl.y"
+#line 280 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeCode)->getKind() == TypeCode::KIND_NULL)
 	{
@@ -572,18 +637,7 @@ namespace eprosima {
 	for(DeclaratorVec::iterator it=(yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->begin();it!=(yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->end();++it)
 	{
 		TypeCode* pTC = (yysemantic_stack_[(3) - (1)].mp_TypeCode);
-		if(!first)
-		{
-			switch(pTC->getKind())
-			{
-			case TypeCode::KIND_SHORT:
-			{
-				pTC = new PrimitiveTypeCode(TypeCode::KIND_SHORT);
-				break;
-			}
-			// TO FINISH THIS FOR ALL TYPES
-			}
-		}
+		pTC = TCprovider.copyTypeCode(pTC, first);
 		first = false;
 		StructMember* sm = new StructMember((*it)->first,0,0);
 		if((*it)->second.size()==0)
@@ -607,7 +661,7 @@ namespace eprosima {
   case 24:
 
 /* Line 690 of lalr1.cc  */
-#line 309 "idl.y"
+#line 322 "idl.y"
     {
     (yyval.mp_TypeCode) = *((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin());
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec));
@@ -617,9 +671,9 @@ namespace eprosima {
   case 28:
 
 /* Line 690 of lalr1.cc  */
-#line 321 "idl.y"
+#line 334 "idl.y"
     {
-    TypeCode* pTC = findTypeCodebyName(*(yysemantic_stack_[(1) - (1)].mp_string));
+    TypeCode* pTC = TCprovider.findTypeCodebyName(*(yysemantic_stack_[(1) - (1)].mp_string));
     delete((yysemantic_stack_[(1) - (1)].mp_string));
     (yyval.mp_TypeCode) = pTC;
     }
@@ -628,7 +682,7 @@ namespace eprosima {
   case 36:
 
 /* Line 690 of lalr1.cc  */
-#line 340 "idl.y"
+#line 353 "idl.y"
     {
 	std::cout << "Warning: \"Object\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);
@@ -638,7 +692,7 @@ namespace eprosima {
   case 37:
 
 /* Line 690 of lalr1.cc  */
-#line 346 "idl.y"
+#line 359 "idl.y"
     {std::cout << "Warning: \"any\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
@@ -646,7 +700,7 @@ namespace eprosima {
   case 43:
 
 /* Line 690 of lalr1.cc  */
-#line 360 "idl.y"
+#line 373 "idl.y"
     {
 	(yyval.mp_DeclaratorVec) = new DeclaratorVec();
 	(yyval.mp_DeclaratorVec)->push_back((yysemantic_stack_[(1) - (1)].mp_Declarator));
@@ -656,7 +710,7 @@ namespace eprosima {
   case 44:
 
 /* Line 690 of lalr1.cc  */
-#line 365 "idl.y"
+#line 378 "idl.y"
     {
 	(yysemantic_stack_[(3) - (3)].mp_DeclaratorVec)->push_back((yysemantic_stack_[(3) - (1)].mp_Declarator)); 
 	(yyval.mp_DeclaratorVec) = (yysemantic_stack_[(3) - (3)].mp_DeclaratorVec);
@@ -666,7 +720,7 @@ namespace eprosima {
   case 47:
 
 /* Line 690 of lalr1.cc  */
-#line 375 "idl.y"
+#line 388 "idl.y"
     {
 	(yyval.mp_Declarator) = new Declarator();
 	(yyval.mp_Declarator)->first = *(yysemantic_stack_[(1) - (1)].stringVal);
@@ -677,7 +731,7 @@ namespace eprosima {
   case 49:
 
 /* Line 690 of lalr1.cc  */
-#line 385 "idl.y"
+#line 398 "idl.y"
     {
 	(yysemantic_stack_[(2) - (2)].mp_Declarator)->first = *(yysemantic_stack_[(2) - (1)].stringVal);
 	delete((yysemantic_stack_[(2) - (1)].stringVal));
@@ -688,7 +742,7 @@ namespace eprosima {
   case 50:
 
 /* Line 690 of lalr1.cc  */
-#line 393 "idl.y"
+#line 406 "idl.y"
     {
 	(yyval.mp_Declarator) = new Declarator();
 	(yyval.mp_Declarator)->second.push_back((yysemantic_stack_[(1) - (1)].m_uint32_t));
@@ -698,7 +752,7 @@ namespace eprosima {
   case 51:
 
 /* Line 690 of lalr1.cc  */
-#line 398 "idl.y"
+#line 411 "idl.y"
     {
 	(yysemantic_stack_[(2) - (2)].mp_Declarator)->second.push_back((yysemantic_stack_[(2) - (1)].m_uint32_t)); 
 	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (2)].mp_Declarator);}
@@ -707,98 +761,98 @@ namespace eprosima {
   case 52:
 
 /* Line 690 of lalr1.cc  */
-#line 403 "idl.y"
+#line 416 "idl.y"
     {(yyval.m_uint32_t) = (yysemantic_stack_[(3) - (2)].m_uint32_t);}
     break;
 
   case 53:
 
 /* Line 690 of lalr1.cc  */
-#line 409 "idl.y"
+#line 422 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_FLOAT);}
     break;
 
   case 54:
 
 /* Line 690 of lalr1.cc  */
-#line 411 "idl.y"
+#line 424 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_DOUBLE);}
     break;
 
   case 55:
 
 /* Line 690 of lalr1.cc  */
-#line 413 "idl.y"
+#line 426 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGDOUBLE);}
     break;
 
   case 60:
 
 /* Line 690 of lalr1.cc  */
-#line 424 "idl.y"
+#line 437 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONG);}
     break;
 
   case 61:
 
 /* Line 690 of lalr1.cc  */
-#line 426 "idl.y"
+#line 439 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGLONG);}
     break;
 
   case 62:
 
 /* Line 690 of lalr1.cc  */
-#line 429 "idl.y"
+#line 442 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_SHORT);}
     break;
 
   case 65:
 
 /* Line 690 of lalr1.cc  */
-#line 436 "idl.y"
+#line 449 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONG);}
     break;
 
   case 66:
 
 /* Line 690 of lalr1.cc  */
-#line 438 "idl.y"
+#line 451 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONGLONG);}
     break;
 
   case 67:
 
 /* Line 690 of lalr1.cc  */
-#line 441 "idl.y"
+#line 454 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_USHORT);}
     break;
 
   case 68:
 
 /* Line 690 of lalr1.cc  */
-#line 444 "idl.y"
+#line 457 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_CHAR);}
     break;
 
   case 69:
 
 /* Line 690 of lalr1.cc  */
-#line 447 "idl.y"
+#line 460 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_BOOLEAN);}
     break;
 
   case 70:
 
 /* Line 690 of lalr1.cc  */
-#line 450 "idl.y"
+#line 463 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_OCTET);}
     break;
 
   case 71:
 
 /* Line 690 of lalr1.cc  */
-#line 455 "idl.y"
+#line 468 "idl.y"
     {
 	EnumTypeCode* enTC= new EnumTypeCode();
 	enTC->setName(*(yysemantic_stack_[(5) - (2)].stringVal));
@@ -819,7 +873,7 @@ namespace eprosima {
   case 72:
 
 /* Line 690 of lalr1.cc  */
-#line 472 "idl.y"
+#line 485 "idl.y"
     {
 	(yyval.mp_StringVec) = new StringVec();
 	(yyval.mp_StringVec)->push_back(*(yysemantic_stack_[(1) - (1)].mp_string));
@@ -830,14 +884,14 @@ namespace eprosima {
   case 73:
 
 /* Line 690 of lalr1.cc  */
-#line 478 "idl.y"
+#line 491 "idl.y"
     {(yysemantic_stack_[(3) - (3)].mp_StringVec)->push_back(*(yysemantic_stack_[(3) - (1)].mp_string)); (yyval.mp_StringVec) = (yysemantic_stack_[(3) - (3)].mp_StringVec);delete((yysemantic_stack_[(3) - (1)].mp_string));}
     break;
 
   case 74:
 
 /* Line 690 of lalr1.cc  */
-#line 481 "idl.y"
+#line 494 "idl.y"
     {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].stringVal));
 	delete((yysemantic_stack_[(1) - (1)].stringVal));}
     break;
@@ -845,7 +899,7 @@ namespace eprosima {
   case 75:
 
 /* Line 690 of lalr1.cc  */
-#line 487 "idl.y"
+#line 500 "idl.y"
     {
 	StringTypeCode* pSTC = new StringTypeCode((yysemantic_stack_[(4) - (3)].m_uint32_t));
 	(yyval.mp_TypeCode) = (TypeCode*)pSTC;
@@ -855,7 +909,7 @@ namespace eprosima {
   case 76:
 
 /* Line 690 of lalr1.cc  */
-#line 492 "idl.y"
+#line 505 "idl.y"
     {StringTypeCode* pSTC = new StringTypeCode(255);
 	(yyval.mp_TypeCode) = (TypeCode*)pSTC;}
     break;
@@ -863,7 +917,7 @@ namespace eprosima {
   case 77:
 
 /* Line 690 of lalr1.cc  */
-#line 498 "idl.y"
+#line 511 "idl.y"
     {
 	SequenceTypeCode* sTC = new SequenceTypeCode((yysemantic_stack_[(6) - (5)].m_uint32_t));
 	sTC->setContentTypeCode((yysemantic_stack_[(6) - (3)].mp_TypeCode));
@@ -874,7 +928,7 @@ namespace eprosima {
   case 78:
 
 /* Line 690 of lalr1.cc  */
-#line 504 "idl.y"
+#line 517 "idl.y"
     {
 	SequenceTypeCode* sTC = new SequenceTypeCode(255);
 	sTC->setContentTypeCode((yysemantic_stack_[(4) - (3)].mp_TypeCode));
@@ -885,7 +939,7 @@ namespace eprosima {
   case 81:
 
 /* Line 690 of lalr1.cc  */
-#line 517 "idl.y"
+#line 530 "idl.y"
     {
 	std::vector<int> index_to_remove;
 	for(TypeCodeVec::iterator it = (yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->end();++it)
@@ -917,7 +971,7 @@ namespace eprosima {
   case 82:
 
 /* Line 690 of lalr1.cc  */
-#line 545 "idl.y"
+#line 558 "idl.y"
     {
 	delete((yysemantic_stack_[(2) - (2)].stringVal));
 	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -927,7 +981,7 @@ namespace eprosima {
   case 83:
 
 /* Line 690 of lalr1.cc  */
-#line 552 "idl.y"
+#line 565 "idl.y"
     {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(2) - (2)].stringVal));
 	delete((yysemantic_stack_[(2) - (2)].stringVal));}
     break;
@@ -935,7 +989,7 @@ namespace eprosima {
   case 84:
 
 /* Line 690 of lalr1.cc  */
-#line 555 "idl.y"
+#line 568 "idl.y"
     {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(3) - (2)].stringVal));
 	delete((yysemantic_stack_[(3) - (2)].stringVal));}
     break;
@@ -943,14 +997,14 @@ namespace eprosima {
   case 85:
 
 /* Line 690 of lalr1.cc  */
-#line 559 "idl.y"
+#line 572 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 86:
 
 /* Line 690 of lalr1.cc  */
-#line 561 "idl.y"
+#line 574 "idl.y"
     {
 	for(TypeCodeVec::iterator it = (yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->end();++it)
 		(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->push_back(*it);
@@ -962,7 +1016,7 @@ namespace eprosima {
   case 90:
 
 /* Line 690 of lalr1.cc  */
-#line 573 "idl.y"
+#line 586 "idl.y"
     {
     delete((yysemantic_stack_[(2) - (1)].mp_TypeCode));
     (yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -972,7 +1026,7 @@ namespace eprosima {
   case 92:
 
 /* Line 690 of lalr1.cc  */
-#line 581 "idl.y"
+#line 594 "idl.y"
     {(yyval.mp_string) = new std::string("");
 	delete((yysemantic_stack_[(2) - (2)].mp_string));}
     break;
@@ -980,7 +1034,7 @@ namespace eprosima {
   case 93:
 
 /* Line 690 of lalr1.cc  */
-#line 587 "idl.y"
+#line 600 "idl.y"
     {
 	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].mp_string));
 	delete((yysemantic_stack_[(1) - (1)].mp_string));}
@@ -989,7 +1043,7 @@ namespace eprosima {
   case 94:
 
 /* Line 690 of lalr1.cc  */
-#line 591 "idl.y"
+#line 604 "idl.y"
     {(yyval.mp_string) = (yysemantic_stack_[(3) - (3)].mp_string);
 	delete((yysemantic_stack_[(3) - (1)].mp_string));
 	}
@@ -998,7 +1052,7 @@ namespace eprosima {
   case 95:
 
 /* Line 690 of lalr1.cc  */
-#line 597 "idl.y"
+#line 610 "idl.y"
     {
 	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].stringVal));
 	delete((yysemantic_stack_[(1) - (1)].stringVal));
@@ -1008,7 +1062,7 @@ namespace eprosima {
   case 96:
 
 /* Line 690 of lalr1.cc  */
-#line 602 "idl.y"
+#line 615 "idl.y"
     {
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,"::");
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,*(yysemantic_stack_[(3) - (1)].stringVal));
@@ -1020,7 +1074,7 @@ namespace eprosima {
   case 98:
 
 /* Line 690 of lalr1.cc  */
-#line 612 "idl.y"
+#line 625 "idl.y"
     {
 	std::string* aux_str = new std::string("::");
 	aux_str->append(*(yysemantic_stack_[(2) - (2)].stringVal));
@@ -1032,7 +1086,7 @@ namespace eprosima {
   case 99:
 
 /* Line 690 of lalr1.cc  */
-#line 619 "idl.y"
+#line 632 "idl.y"
     {
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,*(yysemantic_stack_[(3) - (2)].stringVal));
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,"::");
@@ -1044,7 +1098,7 @@ namespace eprosima {
   case 100:
 
 /* Line 690 of lalr1.cc  */
-#line 629 "idl.y"
+#line 642 "idl.y"
     {
 	UnionTypeCode* uTC = new UnionTypeCode();
 	uTC->setName(*(yysemantic_stack_[(9) - (2)].stringVal));
@@ -1105,7 +1159,7 @@ namespace eprosima {
   case 104:
 
 /* Line 690 of lalr1.cc  */
-#line 691 "idl.y"
+#line 704 "idl.y"
     {
     (yyval.mp_TypeCode) = * (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin();
     }
@@ -1114,7 +1168,7 @@ namespace eprosima {
   case 106:
 
 /* Line 690 of lalr1.cc  */
-#line 698 "idl.y"
+#line 711 "idl.y"
     {
 	(yyval.mp_MemberVec) = new MemberVec();
 	(yyval.mp_MemberVec)->push_back((yysemantic_stack_[(1) - (1)].mp_Member));
@@ -1124,7 +1178,7 @@ namespace eprosima {
   case 107:
 
 /* Line 690 of lalr1.cc  */
-#line 703 "idl.y"
+#line 716 "idl.y"
     {
 	(yysemantic_stack_[(2) - (2)].mp_MemberVec)->push_back((yysemantic_stack_[(2) - (1)].mp_Member)); 
 	(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
@@ -1134,7 +1188,7 @@ namespace eprosima {
   case 108:
 
 /* Line 690 of lalr1.cc  */
-#line 709 "idl.y"
+#line 722 "idl.y"
     {
 	((UnionMember*)((yysemantic_stack_[(3) - (2)].mp_Member)))->setLabels((yysemantic_stack_[(3) - (1)].mp_Declarator)->second);
 	(yyval.mp_Member) = (yysemantic_stack_[(3) - (2)].mp_Member);
@@ -1144,14 +1198,14 @@ namespace eprosima {
   case 109:
 
 /* Line 690 of lalr1.cc  */
-#line 716 "idl.y"
+#line 729 "idl.y"
     {(yyval.mp_Declarator) = (yysemantic_stack_[(1) - (1)].mp_Declarator);}
     break;
 
   case 110:
 
 /* Line 690 of lalr1.cc  */
-#line 718 "idl.y"
+#line 731 "idl.y"
     {
 	(yysemantic_stack_[(2) - (2)].mp_Declarator)->second.push_back(*((yysemantic_stack_[(2) - (1)].mp_Declarator)->second.begin()));
 	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (2)].mp_Declarator);
@@ -1161,7 +1215,7 @@ namespace eprosima {
   case 111:
 
 /* Line 690 of lalr1.cc  */
-#line 725 "idl.y"
+#line 738 "idl.y"
     {
 	Declarator * dCL = new Declarator();
 	if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == NUMBER_TYPE)
@@ -1181,7 +1235,7 @@ namespace eprosima {
 	}
 	else if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == SCOPED_TYPE)
 	{
-	dCL->second.push_back(findENUMvalue((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->str));
+	dCL->second.push_back(TCprovider.findENUMvalue((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->str));
 	}
 	}
     break;
@@ -1189,7 +1243,7 @@ namespace eprosima {
   case 112:
 
 /* Line 690 of lalr1.cc  */
-#line 748 "idl.y"
+#line 761 "idl.y"
     {
 	Declarator * dCL = new Declarator();
 	dCL->second.push_back(-1000);
@@ -1200,7 +1254,7 @@ namespace eprosima {
   case 113:
 
 /* Line 690 of lalr1.cc  */
-#line 755 "idl.y"
+#line 768 "idl.y"
     {
 	UnionMember* uM = new UnionMember();
 	uM->setName((yysemantic_stack_[(2) - (2)].mp_Declarator)->first);
@@ -1213,7 +1267,7 @@ namespace eprosima {
   case 114:
 
 /* Line 690 of lalr1.cc  */
-#line 766 "idl.y"
+#line 779 "idl.y"
     {std::cout << "Warning: \"attribute\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
@@ -1221,7 +1275,7 @@ namespace eprosima {
   case 115:
 
 /* Line 690 of lalr1.cc  */
-#line 769 "idl.y"
+#line 782 "idl.y"
     {std::cout << "Warning: \"readonly attribute\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
@@ -1229,7 +1283,7 @@ namespace eprosima {
   case 116:
 
 /* Line 690 of lalr1.cc  */
-#line 774 "idl.y"
+#line 787 "idl.y"
     {
     (yyval.mp_TypeCode) = NULL;
     }
@@ -1238,14 +1292,14 @@ namespace eprosima {
   case 117:
 
 /* Line 690 of lalr1.cc  */
-#line 778 "idl.y"
+#line 791 "idl.y"
     {(yyval.mp_TypeCode) = NULL;}
     break;
 
   case 118:
 
 /* Line 690 of lalr1.cc  */
-#line 783 "idl.y"
+#line 796 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
 	delete((yysemantic_stack_[(3) - (2)].stringVal));}
     break;
@@ -1253,7 +1307,7 @@ namespace eprosima {
   case 119:
 
 /* Line 690 of lalr1.cc  */
-#line 786 "idl.y"
+#line 799 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
 	delete((yysemantic_stack_[(4) - (3)].stringVal));}
     break;
@@ -1261,112 +1315,112 @@ namespace eprosima {
   case 120:
 
 /* Line 690 of lalr1.cc  */
-#line 790 "idl.y"
+#line 803 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 121:
 
 /* Line 690 of lalr1.cc  */
-#line 793 "idl.y"
+#line 806 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 123:
 
 /* Line 690 of lalr1.cc  */
-#line 798 "idl.y"
+#line 811 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 124:
 
 /* Line 690 of lalr1.cc  */
-#line 802 "idl.y"
+#line 815 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 125:
 
 /* Line 690 of lalr1.cc  */
-#line 804 "idl.y"
+#line 817 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 126:
 
 /* Line 690 of lalr1.cc  */
-#line 808 "idl.y"
+#line 821 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 127:
 
 /* Line 690 of lalr1.cc  */
-#line 810 "idl.y"
+#line 823 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 128:
 
 /* Line 690 of lalr1.cc  */
-#line 813 "idl.y"
+#line 826 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 129:
 
 /* Line 690 of lalr1.cc  */
-#line 817 "idl.y"
+#line 830 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 130:
 
 /* Line 690 of lalr1.cc  */
-#line 819 "idl.y"
+#line 832 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 131:
 
 /* Line 690 of lalr1.cc  */
-#line 821 "idl.y"
+#line 834 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 132:
 
 /* Line 690 of lalr1.cc  */
-#line 825 "idl.y"
+#line 838 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 133:
 
 /* Line 690 of lalr1.cc  */
-#line 827 "idl.y"
+#line 840 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 134:
 
 /* Line 690 of lalr1.cc  */
-#line 831 "idl.y"
+#line 844 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 135:
 
 /* Line 690 of lalr1.cc  */
-#line 833 "idl.y"
+#line 846 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 136:
 
 /* Line 690 of lalr1.cc  */
-#line 837 "idl.y"
+#line 850 "idl.y"
     {(yyval.m_uint32_t) = 0;
 	delete((yysemantic_stack_[(1) - (1)].stringVal));}
     break;
@@ -1374,7 +1428,7 @@ namespace eprosima {
   case 137:
 
 /* Line 690 of lalr1.cc  */
-#line 840 "idl.y"
+#line 853 "idl.y"
     {(yyval.m_uint32_t) = 0;
 	delete((yysemantic_stack_[(3) - (1)].stringVal));}
     break;
@@ -1382,7 +1436,7 @@ namespace eprosima {
   case 138:
 
 /* Line 690 of lalr1.cc  */
-#line 845 "idl.y"
+#line 858 "idl.y"
     {
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
     (yyval.m_uint32_t) = 0;
@@ -1392,7 +1446,7 @@ namespace eprosima {
   case 139:
 
 /* Line 690 of lalr1.cc  */
-#line 850 "idl.y"
+#line 863 "idl.y"
     {
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
     (yyval.m_uint32_t) = 0;
@@ -1402,7 +1456,7 @@ namespace eprosima {
   case 140:
 
 /* Line 690 of lalr1.cc  */
-#line 855 "idl.y"
+#line 868 "idl.y"
     {
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
     (yyval.m_uint32_t) = 0;
@@ -1412,7 +1466,7 @@ namespace eprosima {
   case 141:
 
 /* Line 690 of lalr1.cc  */
-#line 869 "idl.y"
+#line 882 "idl.y"
     {
 	if((yysemantic_stack_[(1) - (1)].mp_TypeLiteral)->type == NUMBER_TYPE)
 		(yyval.m_uint32_t) = (uint32_t)(yysemantic_stack_[(1) - (1)].mp_TypeLiteral)->num;
@@ -1425,7 +1479,7 @@ namespace eprosima {
   case 142:
 
 /* Line 690 of lalr1.cc  */
-#line 880 "idl.y"
+#line 893 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = SCOPED_TYPE;
 	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].mp_string);
@@ -1436,21 +1490,21 @@ namespace eprosima {
   case 143:
 
 /* Line 690 of lalr1.cc  */
-#line 886 "idl.y"
+#line 899 "idl.y"
     {(yyval.mp_TypeLiteral) = (yysemantic_stack_[(1) - (1)].mp_TypeLiteral);}
     break;
 
   case 144:
 
 /* Line 690 of lalr1.cc  */
-#line 888 "idl.y"
+#line 901 "idl.y"
     {(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (2)].mp_TypeLiteral);}
     break;
 
   case 145:
 
 /* Line 690 of lalr1.cc  */
-#line 890 "idl.y"
+#line 903 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean | (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
@@ -1467,7 +1521,7 @@ namespace eprosima {
   case 146:
 
 /* Line 690 of lalr1.cc  */
-#line 902 "idl.y"
+#line 915 "idl.y"
     {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
@@ -1485,7 +1539,7 @@ namespace eprosima {
   case 147:
 
 /* Line 690 of lalr1.cc  */
-#line 915 "idl.y"
+#line 928 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean & (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
@@ -1502,7 +1556,7 @@ namespace eprosima {
   case 148:
 
 /* Line 690 of lalr1.cc  */
-#line 927 "idl.y"
+#line 940 "idl.y"
     {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
@@ -1510,7 +1564,7 @@ namespace eprosima {
 	}
 	else
 	{
-		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num << (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (int)(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num << (int)(yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
 	}
 	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
 	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
@@ -1520,7 +1574,7 @@ namespace eprosima {
   case 149:
 
 /* Line 690 of lalr1.cc  */
-#line 940 "idl.y"
+#line 953 "idl.y"
     {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
@@ -1528,7 +1582,7 @@ namespace eprosima {
 	}
 	else
 	{
-		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num >> (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (int)(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num >> (int)(yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
 	}
 	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
 	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
@@ -1538,7 +1592,7 @@ namespace eprosima {
   case 150:
 
 /* Line 690 of lalr1.cc  */
-#line 953 "idl.y"
+#line 966 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 	{
@@ -1565,7 +1619,7 @@ namespace eprosima {
   case 151:
 
 /* Line 690 of lalr1.cc  */
-#line 975 "idl.y"
+#line 988 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == STRING_TYPE || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == SCOPED_TYPE)
 	{
@@ -1584,7 +1638,7 @@ namespace eprosima {
   case 152:
 
 /* Line 690 of lalr1.cc  */
-#line 989 "idl.y"
+#line 1002 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1603,7 +1657,7 @@ namespace eprosima {
   case 153:
 
 /* Line 690 of lalr1.cc  */
-#line 1003 "idl.y"
+#line 1016 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1622,7 +1676,7 @@ namespace eprosima {
   case 154:
 
 /* Line 690 of lalr1.cc  */
-#line 1017 "idl.y"
+#line 1030 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1631,7 +1685,7 @@ namespace eprosima {
 	}
 	else
 	{
-		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num % (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
+		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num = (int)(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->num % (int)(yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->num;
 	}
 	delete((yysemantic_stack_[(3) - (3)].mp_TypeLiteral));
 	(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral);
@@ -1641,7 +1695,7 @@ namespace eprosima {
   case 155:
 
 /* Line 690 of lalr1.cc  */
-#line 1031 "idl.y"
+#line 1044 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1657,7 +1711,7 @@ namespace eprosima {
   case 156:
 
 /* Line 690 of lalr1.cc  */
-#line 1042 "idl.y"
+#line 1055 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1673,7 +1727,7 @@ namespace eprosima {
   case 157:
 
 /* Line 690 of lalr1.cc  */
-#line 1053 "idl.y"
+#line 1066 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type == STRING_TYPE)
 	{
@@ -1695,7 +1749,7 @@ namespace eprosima {
   case 158:
 
 /* Line 690 of lalr1.cc  */
-#line 1075 "idl.y"
+#line 1088 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = NUMBER_TYPE;
 	(yyval.mp_TypeLiteral)->num = (yysemantic_stack_[(1) - (1)].integerVal);
@@ -1705,7 +1759,7 @@ namespace eprosima {
   case 159:
 
 /* Line 690 of lalr1.cc  */
-#line 1080 "idl.y"
+#line 1093 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = NUMBER_TYPE;
 	(yyval.mp_TypeLiteral)->num = (yysemantic_stack_[(1) - (1)].doubleVal);
@@ -1715,7 +1769,7 @@ namespace eprosima {
   case 160:
 
 /* Line 690 of lalr1.cc  */
-#line 1085 "idl.y"
+#line 1098 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = STRING_TYPE;
 	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].stringVal);
@@ -1726,7 +1780,7 @@ namespace eprosima {
   case 161:
 
 /* Line 690 of lalr1.cc  */
-#line 1091 "idl.y"
+#line 1104 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = STRING_TYPE;
 	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].stringVal);
@@ -1737,7 +1791,7 @@ namespace eprosima {
   case 162:
 
 /* Line 690 of lalr1.cc  */
-#line 1097 "idl.y"
+#line 1110 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = BOOL_TYPE;
 	(yyval.mp_TypeLiteral)->boolean = (yysemantic_stack_[(1) - (1)].integerVal);
@@ -1747,7 +1801,7 @@ namespace eprosima {
   case 163:
 
 /* Line 690 of lalr1.cc  */
-#line 1120 "idl.y"
+#line 1133 "idl.y"
     {std::cout << "Warning: \"const\" token not allowed" << std::endl;
 	 PrimitiveTypeCode* auxptrTC = new PrimitiveTypeCode(TypeCode::KIND_NULL);
 	 (yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -1758,7 +1812,7 @@ namespace eprosima {
   case 164:
 
 /* Line 690 of lalr1.cc  */
-#line 1128 "idl.y"
+#line 1141 "idl.y"
     {std::cout << "Warning: \"exception\" token not allowed" << std::endl;
 	PrimitiveTypeCode* auxptrTC = new PrimitiveTypeCode(TypeCode::KIND_NULL);
 	 (yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -1769,7 +1823,7 @@ namespace eprosima {
 
 
 /* Line 690 of lalr1.cc  */
-#line 1773 "idl.tab.cc"
+#line 1827 "IDLParser.cc"
 	default:
           break;
       }
@@ -1947,45 +2001,133 @@ namespace eprosima {
 
   // Generate an error message.
   std::string
-  IDLParser::yysyntax_error_ (int, int)
+  IDLParser::yysyntax_error_ (int yystate, int yytoken)
   {
-    return YY_("syntax error");
+    std::string yyres;
+    // Number of reported tokens (one for the "unexpected", one per
+    // "expected").
+    size_t yycount = 0;
+    // Its maximum.
+    enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
+    // Arguments of yyformat.
+    char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
+
+    /* There are many possibilities here to consider:
+       - If this state is a consistent state with a default action, then
+         the only way this function was invoked is if the default action
+         is an error action.  In that case, don't check for expected
+         tokens because there are none.
+       - The only way there can be no lookahead present (in yytoken) is
+         if this state is a consistent state with a default action.
+         Thus, detecting the absence of a lookahead is sufficient to
+         determine that there is no unexpected or expected token to
+         report.  In that case, just report a simple "syntax error".
+       - Don't assume there isn't a lookahead just because this state is
+         a consistent state with a default action.  There might have
+         been a previous inconsistent state, consistent state with a
+         non-default action, or user semantic action that manipulated
+         yychar.
+       - Of course, the expected token list depends on states to have
+         correct lookahead information, and it depends on the parser not
+         to perform extra reductions after fetching a lookahead from the
+         scanner and before detecting a syntax error.  Thus, state
+         merging (from LALR or IELR) and default reductions corrupt the
+         expected token list.  However, the list is correct for
+         canonical LR with one exception: it will still contain any
+         token that will not be accepted due to an error action in a
+         later state.
+    */
+    if (yytoken != yyempty_)
+      {
+        yyarg[yycount++] = yytname_[yytoken];
+        int yyn = yypact_[yystate];
+        if (!yy_pact_value_is_default_ (yyn))
+          {
+            /* Start YYX at -YYN if negative to avoid negative indexes in
+               YYCHECK.  In other words, skip the first -YYN actions for
+               this state because they are default actions.  */
+            int yyxbegin = yyn < 0 ? -yyn : 0;
+            /* Stay within bounds of both yycheck and yytname.  */
+            int yychecklim = yylast_ - yyn + 1;
+            int yyxend = yychecklim < yyntokens_ ? yychecklim : yyntokens_;
+            for (int yyx = yyxbegin; yyx < yyxend; ++yyx)
+              if (yycheck_[yyx + yyn] == yyx && yyx != yyterror_
+                  && !yy_table_value_is_error_ (yytable_[yyx + yyn]))
+                {
+                  if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
+                    {
+                      yycount = 1;
+                      break;
+                    }
+                  else
+                    yyarg[yycount++] = yytname_[yyx];
+                }
+          }
+      }
+
+    char const* yyformat = 0;
+    switch (yycount)
+      {
+#define YYCASE_(N, S)                         \
+        case N:                               \
+          yyformat = S;                       \
+        break
+        YYCASE_(0, YY_("syntax error"));
+        YYCASE_(1, YY_("syntax error, unexpected %s"));
+        YYCASE_(2, YY_("syntax error, unexpected %s, expecting %s"));
+        YYCASE_(3, YY_("syntax error, unexpected %s, expecting %s or %s"));
+        YYCASE_(4, YY_("syntax error, unexpected %s, expecting %s or %s or %s"));
+        YYCASE_(5, YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s"));
+#undef YYCASE_
+      }
+
+    // Argument number.
+    size_t yyi = 0;
+    for (char const* yyp = yyformat; *yyp; ++yyp)
+      if (yyp[0] == '%' && yyp[1] == 's' && yyi < yycount)
+        {
+          yyres += yytnamerr_ (yyarg[yyi++]);
+          ++yyp;
+        }
+      else
+        yyres += *yyp;
+    return yyres;
   }
 
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
      STATE-NUM.  */
-  const short int IDLParser::yypact_ninf_ = -166;
+  const short int IDLParser::yypact_ninf_ = -161;
   const short int
   IDLParser::yypact_[] =
   {
-         1,   -27,     8,    20,    76,    83,    84,    43,    91,  -166,
-    -166,  -166,   107,  -166,     1,  -166,    64,    65,  -166,  -166,
-      85,  -166,  -166,    75,  -166,    90,    92,  -166,    93,  -166,
-      -7,    96,    97,  -166,   100,  -166,  -166,  -166,  -166,  -166,
-     113,  -166,  -166,   120,     4,  -166,     1,   149,   103,   118,
-    -166,   239,  -166,  -166,  -166,  -166,    19,  -166,  -166,   134,
-    -166,    94,     9,  -166,  -166,   153,   119,  -166,  -166,  -166,
-    -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,
-    -166,  -166,  -166,   125,   113,  -166,  -166,   121,   128,   195,
-     156,  -166,   130,   132,  -166,   131,   136,  -166,   137,   133,
-     124,  -166,   142,   149,   183,  -166,  -166,  -166,  -166,  -166,
-    -166,  -166,  -166,  -166,   270,     4,   185,  -166,  -166,   239,
-      24,   170,  -166,   157,  -166,  -166,  -166,  -166,  -166,   197,
-     155,  -166,  -166,  -166,   120,     4,  -166,   229,  -166,  -166,
-     154,   165,   163,  -166,  -166,  -166,   189,  -166,  -166,  -166,
-    -166,  -166,   161,  -166,  -166,   168,  -166,   185,  -166,  -166,
-    -166,  -166,  -166,    24,    24,    24,    24,  -166,   162,   283,
-    -166,  -166,  -166,   155,     0,  -166,   191,  -166,  -166,    -4,
-      24,  -166,   154,  -166,   183,   173,   185,  -166,  -166,  -166,
-     255,  -166,  -166,    24,    24,    24,    24,    24,    24,    24,
-      24,    24,    24,  -166,  -166,  -166,  -166,  -166,   169,   175,
-     239,   172,   210,    24,  -166,   174,  -166,  -166,    36,  -166,
-    -166,    35,    35,    41,    41,   305,   309,   331,  -166,  -166,
-    -166,  -166,    79,   185,     4,   177,  -166,   171,  -166,    24,
-     186,   184,    36,   149,    36,  -166,  -166,   188,   233,  -166,
-     277,  -166,  -166,  -166,   183,   199,  -166,  -166,   196,   192,
-    -166,  -166,  -166,   233,  -166,  -166
+         1,   -28,    22,    20,    68,    75,    84,    53,    91,  -161,
+    -161,  -161,   106,  -161,     1,  -161,    61,    62,  -161,  -161,
+      76,  -161,  -161,    74,  -161,    80,    82,  -161,    78,  -161,
+       5,    83,    86,  -161,    72,  -161,  -161,  -161,  -161,  -161,
+     143,  -161,  -161,   119,     3,  -161,     1,   195,    81,    93,
+    -161,  -161,   289,  -161,  -161,  -161,    29,  -161,  -161,   124,
+    -161,    89,    16,  -161,  -161,   136,   104,  -161,  -161,  -161,
+    -161,  -161,  -161,  -161,  -161,  -161,  -161,  -161,  -161,  -161,
+    -161,  -161,  -161,   103,   143,  -161,  -161,   114,   120,   229,
+     142,  -161,   122,   127,  -161,   126,   130,  -161,   137,   128,
+     132,  -161,   141,   195,   180,  -161,  -161,  -161,  -161,  -161,
+    -161,  -161,  -161,  -161,     4,     3,   181,  -161,  -161,   289,
+      95,   166,  -161,   150,  -161,  -161,  -161,  -161,  -161,   185,
+     146,  -161,  -161,  -161,   119,     3,  -161,   263,  -161,  -161,
+     138,   162,   159,  -161,  -161,  -161,   186,  -161,  -161,  -161,
+    -161,  -161,   156,  -161,  -161,   163,  -161,   181,  -161,  -161,
+    -161,  -161,  -161,    95,    95,    95,    95,  -161,   161,   291,
+    -161,  -161,  -161,   146,    10,  -161,   188,  -161,  -161,   -21,
+      95,  -161,   138,  -161,   180,   169,   181,  -161,  -161,  -161,
+      79,  -161,  -161,    95,    95,    95,    95,    95,    95,    95,
+      95,    95,    95,  -161,  -161,  -161,  -161,  -161,   165,   172,
+     289,   170,   208,    95,  -161,   167,  -161,  -161,    17,  -161,
+    -161,   197,   197,    25,    25,   305,   319,   333,  -161,  -161,
+    -161,  -161,    63,   181,     3,   173,  -161,   175,  -161,    95,
+     184,   194,    17,   195,    17,  -161,  -161,   190,   228,  -161,
+     277,  -161,  -161,  -161,   180,   200,  -161,  -161,   193,   192,
+    -161,  -161,  -161,   228,  -161,  -161
   };
 
   /* YYDEFACT[S] -- default reduction number in state S.  Performed when
@@ -1999,7 +2141,7 @@ namespace eprosima {
        0,    79,    80,     0,    17,     0,     0,   163,     0,   164,
       82,     0,     0,    15,     0,     1,     4,     9,     5,     8,
       85,     6,     7,     0,     0,    84,     0,     0,     0,    95,
-      37,     0,    69,    68,    54,    53,    60,    70,   121,     0,
+      69,    37,     0,    68,    54,    53,    60,    70,   121,     0,
       62,    76,     0,   123,    36,     0,     0,   140,   138,    35,
       34,    29,    30,    56,    58,    59,    57,    63,    64,    31,
       32,    33,   139,     0,    85,    28,    97,     0,     0,     0,
@@ -2027,14 +2169,14 @@ namespace eprosima {
   const short int
   IDLParser::yypgoto_[] =
   {
-      -166,  -166,     6,  -166,  -166,  -166,   -28,   -42,   150,  -166,
-      13,   122,   -46,   -45,  -166,  -166,  -166,  -166,    82,    15,
-    -106,  -166,  -166,    78,  -166,  -166,   178,  -166,  -166,  -166,
-    -166,  -166,  -166,   179,   180,  -166,   -44,   141,  -166,   -41,
-    -166,  -166,  -166,  -166,  -166,   193,  -166,  -166,  -126,   -40,
-     147,   -39,  -166,    34,  -166,    40,  -166,  -166,  -166,  -121,
-    -166,   106,  -166,   198,  -166,    54,  -166,  -166,  -166,  -166,
-      25,   -38,  -165,   -81,  -166,   -24,   -15
+      -161,  -161,    31,  -161,  -161,  -161,   -24,   -42,   149,  -161,
+      11,   116,   -46,   -45,  -161,  -161,  -161,  -161,    85,     2,
+    -106,  -161,  -161,    77,  -161,  -161,   144,  -161,  -161,  -161,
+    -161,  -161,  -161,   151,   152,  -161,   -44,   133,  -161,   -41,
+    -161,  -161,  -161,  -161,  -161,   196,  -161,  -161,  -124,   -40,
+     153,   -39,  -161,    35,  -161,    37,  -161,  -161,  -161,  -130,
+    -161,   110,  -161,   198,  -161,    47,  -161,  -161,  -161,  -161,
+      21,   -43,  -160,   -82,  -161,   -17,   -15
   };
 
   /* YYDEFGOTO[NTERM-NUM].  */
@@ -2058,92 +2200,92 @@ namespace eprosima {
   const short int
   IDLParser::yytable_[] =
   {
-        85,   106,   107,   110,    98,   101,   111,    85,   113,   178,
-     155,    85,    66,   116,    49,   215,    92,     1,    28,    27,
-      36,     2,     3,   204,   205,    93,     4,   158,     5,   159,
-     206,   160,   161,   162,    49,   121,   187,     6,   117,     7,
-     -83,     8,    44,   122,    85,   118,   213,    65,   237,    85,
-     239,   155,    99,   214,   240,   207,    66,   106,   107,   110,
-      92,   101,   111,    85,   113,   219,    29,    65,   147,    93,
-     151,     9,    10,    11,    85,   153,   163,   164,   165,    85,
-     155,   157,   188,   189,   190,   191,    30,   195,   196,    33,
-     166,   106,   107,    31,    32,    98,   111,    85,   200,   201,
-     202,    34,   204,   205,   200,   201,   202,    35,   247,   206,
-      37,    38,   221,   222,   223,   224,   225,   226,   227,   228,
-     229,   230,    40,    49,    50,    51,    52,   246,    53,     1,
-      94,    39,    54,     2,     3,    55,    41,    48,    42,    56,
-      43,    57,    58,    46,    47,    59,   119,    60,    61,     6,
-     120,     7,    62,     8,    63,    64,    65,   114,   250,    49,
-      50,   115,    52,   123,    53,   124,   130,   127,    54,     2,
-      85,    55,   233,   125,   128,    56,   131,    57,   132,   133,
-     137,   136,   100,    60,    61,     6,   134,   135,    62,     8,
-     138,    64,    65,   140,    98,   154,   171,   106,   107,   110,
-      65,   101,   111,    85,   113,    49,    50,   173,    52,   174,
-      53,   183,   180,   184,    54,   118,   185,    55,   186,   192,
-     218,    56,   211,    57,   231,   232,   234,   235,   249,    60,
-      61,   248,   252,   238,    62,   251,    63,    64,    65,    49,
-      50,   258,    52,   257,    53,   262,   263,   264,    54,    49,
-      50,    55,    52,   139,    53,    56,   254,    57,    54,   179,
-     216,    55,   100,    60,    61,    56,   217,    57,    62,   261,
-     172,    64,    65,    60,    61,   177,   253,   126,    62,   203,
-      49,    64,    65,    52,   256,    53,   245,   129,   265,     0,
-       2,     0,   148,   149,   150,     0,   146,     0,     0,   193,
-     194,     0,     0,     0,    60,     0,     0,   195,   196,    62,
-     220,     0,     0,    65,     0,   197,   198,   199,   200,   201,
-     202,   193,   194,     0,     0,     0,   260,   193,   194,   195,
-     196,     0,     0,     0,     0,   195,   196,   197,   198,   199,
-     200,   201,   202,   197,   198,   199,   200,   201,   202,   193,
-     194,     0,     0,   193,   194,     0,     0,   195,   196,     0,
-       0,   195,   196,     0,     0,     0,   198,   199,   200,   201,
-     202,   199,   200,   201,   202,   193,   194,     0,     0,     0,
-       0,     0,     0,   195,   196,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,   200,   201,   202
+        85,   106,   107,   110,    98,   101,   111,    85,   113,   116,
+     155,   178,    85,    49,    49,    50,    66,     1,    27,    53,
+     215,     2,     3,    92,     2,    93,     4,   187,     5,   213,
+     146,   239,    28,   204,   205,   240,   214,     6,    60,     7,
+     206,     8,   121,    62,    85,    36,    65,    65,   117,    85,
+     122,   155,   -83,   237,    44,   118,   219,   106,   107,   110,
+      66,   101,   111,    85,   113,   207,    29,    92,   147,    93,
+     151,     9,    10,    11,    85,   153,   157,    99,    30,    85,
+     155,   188,   189,   190,   191,    31,   204,   205,   200,   201,
+     202,   106,   107,   206,    32,    98,   111,    85,   158,    33,
+     159,    34,   160,   161,   162,    49,    35,    37,    38,    48,
+     247,   221,   222,   223,   224,   225,   226,   227,   228,   229,
+     230,    40,    39,   193,   194,    43,    41,   246,    42,    94,
+      46,   195,   196,    47,   220,   114,   115,   119,    65,   197,
+     198,   199,   200,   201,   202,   120,   123,   163,   164,   165,
+     124,   125,   130,    49,    50,    51,    52,   250,    53,     1,
+     127,   166,    54,     2,     3,    55,   128,   233,   131,    56,
+      85,    57,    58,   132,   133,    59,   136,    60,    61,     6,
+     134,     7,    62,     8,    63,    64,    65,   135,   137,   138,
+     140,   154,   171,    65,    98,   173,   180,   106,   107,   110,
+     174,   101,   111,    85,   113,    49,    50,    51,   183,   184,
+      53,   185,   118,   186,    54,     2,   218,    55,   192,   211,
+     231,    56,   232,    57,   234,   235,   238,   248,   100,    60,
+      61,     6,   249,   251,    62,     8,   258,    64,    65,    49,
+      50,    51,   252,   263,    53,   257,   262,   264,    54,   195,
+     196,    55,   139,   179,   254,    56,   261,    57,   148,   216,
+     200,   201,   202,    60,    61,   149,   150,   177,    62,   217,
+      63,    64,    65,    49,    50,    51,   172,   253,    53,   245,
+     126,   256,    54,   203,   265,    55,     0,   129,     0,    56,
+       0,    57,     0,     0,     0,     0,   100,    60,    61,    49,
+      50,    51,    62,     0,    53,    64,    65,     0,    54,     0,
+       0,    55,     0,     0,     0,    56,     0,    57,     0,     0,
+       0,   193,   194,    60,    61,     0,   260,     0,    62,   195,
+     196,    64,    65,     0,     0,   193,   194,   197,   198,   199,
+     200,   201,   202,   195,   196,     0,     0,     0,     0,   193,
+     194,   197,   198,   199,   200,   201,   202,   195,   196,     0,
+       0,     0,     0,   193,   194,     0,   198,   199,   200,   201,
+     202,   195,   196,     0,     0,     0,     0,   193,   194,     0,
+       0,   199,   200,   201,   202,   195,   196,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,   200,   201,   202
   };
 
   /* YYCHECK.  */
   const short int
   IDLParser::yycheck_[] =
   {
-        40,    47,    47,    47,    44,    47,    47,    47,    47,   135,
-     116,    51,    40,    51,    10,   180,    40,    16,    10,    46,
-      14,    20,    21,    23,    24,    40,    25,     3,    27,     5,
-      30,     7,     8,     9,    10,    26,   157,    36,    19,    38,
-      47,    40,    49,    34,    84,    26,    50,    43,   213,    89,
-      14,   157,    46,    57,    18,    55,    84,   103,   103,   103,
-      84,   103,   103,   103,   103,   186,    46,    43,   114,    84,
-     114,    70,    71,    72,   114,   115,    52,    53,    54,   119,
-     186,   119,   163,   164,   165,   166,    10,    52,    53,    46,
-      66,   137,   137,    10,    10,   135,   137,   137,    63,    64,
-      65,    10,    23,    24,    63,    64,    65,     0,   234,    30,
-      46,    46,   193,   194,   195,   196,   197,   198,   199,   200,
-     201,   202,    47,    10,    11,    12,    13,   233,    15,    16,
-      10,    46,    19,    20,    21,    22,    46,    37,    46,    26,
-      47,    28,    29,    47,    47,    32,    12,    34,    35,    36,
-      56,    38,    39,    40,    41,    42,    43,    54,   239,    10,
-      11,    43,    13,    10,    15,    46,    10,    46,    19,    20,
-     210,    22,   210,    48,    46,    26,    46,    28,    46,    48,
-      56,    48,    33,    34,    35,    36,    50,    50,    39,    40,
-      48,    42,    43,    10,   234,    10,    26,   243,   243,   243,
-      43,   243,   243,   243,   243,    10,    11,    10,    13,    54,
-      15,    46,    58,    50,    19,    26,    55,    22,    50,    57,
-      47,    26,    31,    28,    55,    50,    54,    17,    57,    34,
-      35,    54,    48,    59,    39,    49,    41,    42,    43,    10,
-      11,     8,    13,    55,    15,    46,    50,    55,    19,    10,
-      11,    22,    13,   103,    15,    26,   243,    28,    19,   137,
-     182,    22,    33,    34,    35,    26,   184,    28,    39,   254,
-     123,    42,    43,    34,    35,   134,   242,    84,    39,   173,
-      10,    42,    43,    13,   244,    15,   232,    89,   263,    -1,
-      20,    -1,   114,   114,   114,    -1,    26,    -1,    -1,    44,
-      45,    -1,    -1,    -1,    34,    -1,    -1,    52,    53,    39,
-      55,    -1,    -1,    43,    -1,    60,    61,    62,    63,    64,
-      65,    44,    45,    -1,    -1,    -1,    49,    44,    45,    52,
-      53,    -1,    -1,    -1,    -1,    52,    53,    60,    61,    62,
-      63,    64,    65,    60,    61,    62,    63,    64,    65,    44,
-      45,    -1,    -1,    44,    45,    -1,    -1,    52,    53,    -1,
-      -1,    52,    53,    -1,    -1,    -1,    61,    62,    63,    64,
-      65,    62,    63,    64,    65,    44,    45,    -1,    -1,    -1,
-      -1,    -1,    -1,    52,    53,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    63,    64,    65
+        40,    47,    47,    47,    44,    47,    47,    47,    47,    52,
+     116,   135,    52,    10,    10,    11,    40,    16,    46,    15,
+     180,    20,    21,    40,    20,    40,    25,   157,    27,    50,
+      26,    14,    10,    23,    24,    18,    57,    36,    34,    38,
+      30,    40,    26,    39,    84,    14,    43,    43,    19,    89,
+      34,   157,    47,   213,    49,    26,   186,   103,   103,   103,
+      84,   103,   103,   103,   103,    55,    46,    84,   114,    84,
+     114,    70,    71,    72,   114,   115,   119,    46,    10,   119,
+     186,   163,   164,   165,   166,    10,    23,    24,    63,    64,
+      65,   137,   137,    30,    10,   135,   137,   137,     3,    46,
+       5,    10,     7,     8,     9,    10,     0,    46,    46,    37,
+     234,   193,   194,   195,   196,   197,   198,   199,   200,   201,
+     202,    47,    46,    44,    45,    47,    46,   233,    46,    10,
+      47,    52,    53,    47,    55,    54,    43,    13,    43,    60,
+      61,    62,    63,    64,    65,    56,    10,    52,    53,    54,
+      46,    48,    10,    10,    11,    12,    13,   239,    15,    16,
+      46,    66,    19,    20,    21,    22,    46,   210,    46,    26,
+     210,    28,    29,    46,    48,    32,    48,    34,    35,    36,
+      50,    38,    39,    40,    41,    42,    43,    50,    56,    48,
+      10,    10,    26,    43,   234,    10,    58,   243,   243,   243,
+      54,   243,   243,   243,   243,    10,    11,    12,    46,    50,
+      15,    55,    26,    50,    19,    20,    47,    22,    57,    31,
+      55,    26,    50,    28,    54,    17,    59,    54,    33,    34,
+      35,    36,    57,    49,    39,    40,     8,    42,    43,    10,
+      11,    12,    48,    50,    15,    55,    46,    55,    19,    52,
+      53,    22,   103,   137,   243,    26,   254,    28,   114,   182,
+      63,    64,    65,    34,    35,   114,   114,   134,    39,   184,
+      41,    42,    43,    10,    11,    12,   123,   242,    15,   232,
+      84,   244,    19,   173,   263,    22,    -1,    89,    -1,    26,
+      -1,    28,    -1,    -1,    -1,    -1,    33,    34,    35,    10,
+      11,    12,    39,    -1,    15,    42,    43,    -1,    19,    -1,
+      -1,    22,    -1,    -1,    -1,    26,    -1,    28,    -1,    -1,
+      -1,    44,    45,    34,    35,    -1,    49,    -1,    39,    52,
+      53,    42,    43,    -1,    -1,    44,    45,    60,    61,    62,
+      63,    64,    65,    52,    53,    -1,    -1,    -1,    -1,    44,
+      45,    60,    61,    62,    63,    64,    65,    52,    53,    -1,
+      -1,    -1,    -1,    44,    45,    -1,    61,    62,    63,    64,
+      65,    52,    53,    -1,    -1,    -1,    -1,    44,    45,    -1,
+      -1,    62,    63,    64,    65,    52,    53,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    63,    64,    65
   };
 
   /* STOS_[STATE-NUM] -- The (internal number of the) accessing
@@ -2162,7 +2304,7 @@ namespace eprosima {
      110,   111,   115,   121,   122,   125,   126,   134,   136,   138,
      139,   147,   151,   152,    10,   113,   114,   124,   125,    78,
       33,    83,    84,    85,    86,    87,    88,    89,    92,    93,
-     112,   115,   116,   127,    54,    43,   147,    19,    26,    12,
+     112,   115,   116,   127,    54,    43,   147,    19,    26,    13,
       56,    26,    34,    10,    46,    48,   121,    46,    46,   139,
       10,    46,    46,    48,    50,    50,    48,    56,    48,    84,
       10,    94,    95,    96,    97,    98,    26,    88,   102,   109,
@@ -2249,10 +2391,10 @@ namespace eprosima {
   const char*
   const IDLParser::yytname_[] =
   {
-    "$end", "error", "$undefined", "INTEGER_LITERAL", "LONG_LITERAL",
+    "END", "error", "$undefined", "INTEGER_LITERAL", "LONG_LITERAL",
   "FLOAT_LITERAL", "DOUBLE_LITERAL", "BOOLEAN_LITERAL", "STRING_LITERAL",
-  "CHARACTER_LITERAL", "IDENTIFIER", "ANY_TOKEN", "ATTRIBUTE_TOKEN",
-  "BOOLEAN_TOKEN", "CASE_TOKEN", "CHAR_TOKEN", "CONST_TOKEN",
+  "CHARACTER_LITERAL", "IDENTIFIER", "BOOLEAN_TOKEN", "ANY_TOKEN",
+  "ATTRIBUTE_TOKEN", "CASE_TOKEN", "CHAR_TOKEN", "CONST_TOKEN",
   "CONTEXT_TOKEN", "DEFAULT_TOKEN", "DOUBLE_TOKEN", "ENUM_TOKEN",
   "EXCEPTION_TOKEN", "FLOAT_TOKEN", "IN_TOKEN", "INOUT_TOKEN",
   "INTERFACE_TOKEN", "LONG_TOKEN", "MODULE_TOKEN", "OCTET_TOKEN",
@@ -2301,14 +2443,14 @@ namespace eprosima {
       94,    46,    -1,    87,    -1,    93,    -1,    89,    -1,    92,
       -1,    88,    -1,   125,    -1,   101,    -1,   102,    -1,   109,
       -1,   110,    -1,   111,    -1,    91,    -1,    90,    -1,    42,
-      -1,    11,    -1,   116,    -1,   115,    -1,    83,    -1,   127,
+      -1,    12,    -1,   116,    -1,   115,    -1,    83,    -1,   127,
       -1,   112,    -1,    95,    -1,    95,    50,    94,    -1,    96,
       -1,    97,    -1,    10,    -1,    98,    -1,    10,    99,    -1,
      100,    -1,   100,    99,    -1,    58,   148,    59,    -1,    22,
       -1,    19,    -1,    26,    19,    -1,   103,    -1,   106,    -1,
      104,    -1,   105,    -1,    26,    -1,    26,    26,    -1,    34,
       -1,   107,    -1,   108,    -1,    39,    26,    -1,    39,    26,
-      26,    -1,    39,    34,    -1,    15,    -1,    13,    -1,    28,
+      26,    -1,    39,    34,    -1,    15,    -1,    11,    -1,    28,
       -1,    20,    10,    47,   113,    48,    -1,   114,    -1,   114,
       50,   113,    -1,    10,    -1,    35,    56,   148,    57,    -1,
       35,    -1,    33,    56,    87,    50,   148,    57,    -1,    33,
@@ -2323,7 +2465,7 @@ namespace eprosima {
      110,    -1,   112,    -1,    88,    -1,   130,    -1,   130,   129,
       -1,   131,   133,    46,    -1,   132,    -1,   132,   131,    -1,
       14,   149,    49,    -1,    18,    49,    -1,    86,    95,    -1,
-      12,   147,   135,    -1,    32,    12,   147,   135,    -1,    96,
+      13,   147,   135,    -1,    32,    13,   147,   135,    -1,    96,
       -1,    96,    50,   135,    -1,   139,    10,   137,    -1,   138,
      139,    10,   137,    -1,   140,   144,   145,    -1,    29,    -1,
      147,    -1,    41,    -1,    54,   141,    55,    -1,    54,    55,
@@ -2369,23 +2511,23 @@ namespace eprosima {
   const unsigned short int
   IDLParser::yyrline_[] =
   {
-         0,   163,   163,   167,   171,   182,   183,   184,   185,   186,
-     187,   190,   192,   194,   198,   218,   220,   221,   222,   225,
-     238,   240,   255,   307,   308,   315,   316,   317,   320,   331,
-     332,   333,   334,   335,   336,   337,   339,   345,   350,   351,
-     354,   355,   356,   359,   364,   371,   372,   374,   381,   384,
-     392,   397,   402,   408,   410,   412,   416,   417,   420,   421,
-     423,   425,   428,   432,   433,   435,   437,   440,   443,   446,
-     449,   454,   471,   477,   480,   486,   491,   497,   503,   512,
-     513,   516,   544,   551,   554,   559,   560,   569,   570,   571,
-     572,   577,   580,   586,   590,   596,   601,   608,   611,   618,
-     628,   687,   688,   689,   690,   694,   697,   702,   708,   715,
-     717,   724,   747,   754,   765,   768,   773,   777,   782,   785,
-     789,   792,   796,   797,   801,   803,   807,   809,   812,   816,
-     818,   820,   825,   826,   831,   832,   836,   839,   844,   849,
-     854,   868,   879,   885,   887,   889,   901,   914,   926,   939,
-     952,   974,   988,  1002,  1016,  1030,  1041,  1052,  1074,  1079,
-    1084,  1090,  1096,  1119,  1127
+         0,   187,   187,   191,   195,   206,   207,   208,   209,   210,
+     211,   214,   216,   218,   222,   242,   244,   245,   246,   249,
+     262,   264,   279,   320,   321,   328,   329,   330,   333,   344,
+     345,   346,   347,   348,   349,   350,   352,   358,   363,   364,
+     367,   368,   369,   372,   377,   384,   385,   387,   394,   397,
+     405,   410,   415,   421,   423,   425,   429,   430,   433,   434,
+     436,   438,   441,   445,   446,   448,   450,   453,   456,   459,
+     462,   467,   484,   490,   493,   499,   504,   510,   516,   525,
+     526,   529,   557,   564,   567,   572,   573,   582,   583,   584,
+     585,   590,   593,   599,   603,   609,   614,   621,   624,   631,
+     641,   700,   701,   702,   703,   707,   710,   715,   721,   728,
+     730,   737,   760,   767,   778,   781,   786,   790,   795,   798,
+     802,   805,   809,   810,   814,   816,   820,   822,   825,   829,
+     831,   833,   838,   839,   844,   845,   849,   852,   857,   862,
+     867,   881,   892,   898,   900,   902,   914,   927,   939,   952,
+     965,   987,  1001,  1015,  1029,  1043,  1054,  1065,  1087,  1092,
+    1097,  1103,  1109,  1132,  1140
   };
 
   // Print the state stack on the debug stream.
@@ -2464,7 +2606,7 @@ namespace eprosima {
   }
 
   const int IDLParser::yyeof_ = 0;
-  const int IDLParser::yylast_ = 396;
+  const int IDLParser::yylast_ = 398;
   const int IDLParser::yynnts_ = 77;
   const int IDLParser::yyempty_ = -2;
   const int IDLParser::yyfinal_ = 35;
@@ -2479,22 +2621,20 @@ namespace eprosima {
 } // eprosima
 
 /* Line 1136 of lalr1.cc  */
-#line 2483 "idl.tab.cc"
+#line 2625 "IDLParser.cc"
 
 
 /* Line 1138 of lalr1.cc  */
-#line 1138 "idl.y"
+#line 1151 "idl.y"
 
 
 // directly include the nonterm defs here
 //@NONTERMTYPES@
 
-/* Override yyerror */
-public
-void
-yyverror(String s) throws ParseException
-{
-    String msg = yyerror_verbose(s);
-    yyerror(msg);
-}
 
+
+void eprosima::IDLParser::error(const IDLParser::location_type& l,
+                             const std::string& m)
+ {
+     TCprovider.error(l, m);
+ }

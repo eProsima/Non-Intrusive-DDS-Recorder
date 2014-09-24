@@ -14,6 +14,14 @@ StructTypeCode::StructTypeCode() : MemberedTypeCode(TypeCode::KIND_STRUCT)
 {
 }
 
+StructTypeCode::StructTypeCode(const StructTypeCode& copy): MemberedTypeCode(TypeCode::KIND_STRUCT)
+{
+	m_members = copy.m_members;
+	m_name = copy.m_name;
+	m_memberCount = copy.m_memberCount;
+
+}
+
 bool StructTypeCode::deserialize(Cdr &cdr)
 {
     bool returnedValue = true;
@@ -98,6 +106,11 @@ bool StructTypeCode::print(IDLPrinter &printer, bool write) const
 	}
 
     return returnedValue;
+}
+
+void StructTypeCode::addMember(StructMember* m)
+{
+	this->addMemberPtr((Member*)m);
 }
 
 bool eProsima::operator<<(IDLPrinter &printer, const StructTypeCode *typeCode)

@@ -49,21 +49,32 @@ public:
 	}
 };
 
-TypeCode* findTypeCodebyName(std::string& in)
-{
-return new PrimitiveTypeCode(TypeCode::KIND_NULL); //TO FIX LATER
-}
 
-int32_t findENUMvalue(std::string& in)
-{
-return 0; //TO FIX LATER
-}
 
 }
 
 %skeleton "lalr1.cc"
 %define "parser_class_name" "IDLParser"
 %name-prefix="eprosima"
+
+%locations
+%initial-action
+{
+// initialize the initial location object
+     @$.begin.filename = @$.end.filename = &TCprovider.streamname;
+};
+ 
+ /* The driver is passed by reference to the parser and to the scanner. This
+  * provides a simple but effective pure interface, not relying on global
+ * variables. */
+%parse-param { class UserTypeCodeProvider& TCprovider }
+ 
+/* verbose error messages */
+%error-verbose
+
+
+%debug
+
 %defines
 
 
@@ -86,13 +97,16 @@ return 0; //TO FIX LATER
  	std::string* stringVal;
  } 
 
+%token  <tokenVal>  END          0
+
 %token <integerVal> INTEGER_LITERAL LONG_LITERAL
 %token <doubleVal> FLOAT_LITERAL DOUBLE_LITERAL
 %token <integerVal> BOOLEAN_LITERAL
 %token <stringVal> STRING_LITERAL CHARACTER_LITERAL
 %token <stringVal> IDENTIFIER
+%token <integerVal> BOOLEAN_TOKEN
 
-%token <tokenVal> ANY_TOKEN ATTRIBUTE_TOKEN BOOLEAN_TOKEN CASE_TOKEN
+%token <tokenVal> ANY_TOKEN ATTRIBUTE_TOKEN CASE_TOKEN
 %token <tokenVal> CHAR_TOKEN CONST_TOKEN CONTEXT_TOKEN DEFAULT_TOKEN
 %token <tokenVal> DOUBLE_TOKEN ENUM_TOKEN EXCEPTION_TOKEN FLOAT_TOKEN
 %token <tokenVal> IN_TOKEN INOUT_TOKEN INTERFACE_TOKEN LONG_TOKEN
@@ -151,7 +165,17 @@ REMOVED SECTION 4
 %type <m_uint32_t> param_dcl param_attribute	raises_expr context_expr string_literal_list param_type_spec
 
 
-
+%{
+ 
+ #include "UserTypeCodeProvider.h"
+ #include "IDLScanner.h"
+  /* this "connects" the bison parser in the UserTypeCodeProvider to the flex scanner class
+  * object. it defines the yylex() function call to pull the next token from the
+  * current lexer object of the UserTypeCodeProvider context. */
+ #undef yylex
+ #define yylex TCprovider.lexer->lex
+ 
+%}
 
 %start specification
 
@@ -267,18 +291,7 @@ struct_member : type_spec declarators ';'
 	for(DeclaratorVec::iterator it=$2->begin();it!=$2->end();++it)
 	{
 		TypeCode* pTC = $1;
-		if(!first)
-		{
-			switch(pTC->getKind())
-			{
-			case TypeCode::KIND_SHORT:
-			{
-				pTC = new PrimitiveTypeCode(TypeCode::KIND_SHORT);
-				break;
-			}
-			// TO FINISH THIS FOR ALL TYPES
-			}
-		}
+		pTC = TCprovider.copyTypeCode(pTC, first);
 		first = false;
 		StructMember* sm = new StructMember((*it)->first,0,0);
 		if((*it)->second.size()==0)
@@ -319,7 +332,7 @@ simple_type_spec :
     
 scoped_name : scoped_name_str
     {
-    TypeCode* pTC = findTypeCodebyName(*$1);
+    TypeCode* pTC = TCprovider.findTypeCodebyName(*$1);
     delete($1);
     $$ = pTC;
     }
@@ -741,7 +754,7 @@ case_label :
 	}
 	else if($2->type == SCOPED_TYPE)
 	{
-	dCL->second.push_back(findENUMvalue($2->str));
+	dCL->second.push_back(TCprovider.findENUMvalue($2->str));
 	}
 	} /* semantic */
     | DEFAULT_TOKEN ':'	/* NULL=DEFAULT */
@@ -931,7 +944,7 @@ expr :
 	}
 	else
 	{
-		$1->num = $1->num << $3->num;
+		$1->num = (int)$1->num << (int)$3->num;
 	}
 	delete($3);
 	$$ = $1;
@@ -944,7 +957,7 @@ expr :
 	}
 	else
 	{
-		$1->num = $1->num >> $3->num;
+		$1->num = (int)$1->num >> (int)$3->num;
 	}
 	delete($3);
 	$$ = $1;
@@ -1022,7 +1035,7 @@ expr :
 	}
 	else
 	{
-		$1->num = $1->num % $3->num;
+		$1->num = (int)$1->num % (int)$3->num;
 	}
 	delete($3);
 	$$ = $1;
@@ -1140,11 +1153,10 @@ except_dcl : EXCEPTION_TOKEN ';'
 // directly include the nonterm defs here
 //@NONTERMTYPES@
 
-/* Override yyerror */
-public
-void
-yyverror(String s) throws ParseException
-{
-    String msg = yyerror_verbose(s);
-    yyerror(msg);
-}
+
+
+void eprosima::IDLParser::error(const IDLParser::location_type& l,
+                             const std::string& m)
+ {
+     TCprovider.error(l, m);
+ }
