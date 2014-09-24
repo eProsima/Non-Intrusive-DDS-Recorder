@@ -140,7 +140,7 @@ REMOVED SECTION 4
 %type <mp_TypeCode> template_type_spec 
 %type <mp_TypeCodeVec> struct_type union_type enum_type constr_type_spec
 %type <mp_TypeCode> sequence_type string_type
-%type <mp_TypeCodeVec> specification definition_list definition
+%type <mp_TypeCodeVec> definition_list definition
 %type <mp_TypeCodeVec> forward_dcl interface_dcl interface_body op_dcl
 
 %type <mp_MemberVec> struct_member_list struct_member switch_body
@@ -185,7 +185,12 @@ REMOVED SECTION 4
 	/******* RULES SECTION *******/
 
 specification : definition_list
-    {$$ = $1; }
+    {for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }
+    delete($1);
+    }
     ;
 definition_list : 
     definition
@@ -194,12 +199,12 @@ definition_list :
 	}
     | definition definition_list
 	{
-	for(TypeCodeVec::iterator it = $2->begin();it!=$2->end();++it)
+	for(TypeCodeVec::iterator it = $1->begin();it!=$1->end();++it)
 	{
-	$1->push_back(*it);
+	$2->push_back(*it);
 	}
-	delete($2);
-	$$ = $1;
+	delete($1);
+	$$ = $2;
 	}
     ;
 definition : 

@@ -29,17 +29,11 @@ public:
 	UserTypeCodeProvider();
 	virtual ~UserTypeCodeProvider();
 
-	void addTypeCode(TypeCode*);
+	TypeCode* findTypeCodebyName(std::string& in);
 
-	TypeCode* findTypeCodebyName(std::string& in)
-	{
-		return new PrimitiveTypeCode(TypeCode::KIND_NULL); //TO FIX LATER
-	}
+	int32_t findENUMvalue(std::string& in);
 
-	int32_t findENUMvalue(std::string& in)
-	{
-		return 0; //TO FIX LATER
-	}
+	bool addTypeCode(TypeCode* TC);
 
 
 
@@ -67,9 +61,11 @@ public:
 
 	class IDLScanner* lexer;
 
-	std::vector<TypeCode*> m_typecodes;
+
 
 	TypeCode* copyTypeCode(TypeCode* tc, bool first);
+private:
+	std::vector<TypeCode*> m_typeCodes;
 
 
 };
