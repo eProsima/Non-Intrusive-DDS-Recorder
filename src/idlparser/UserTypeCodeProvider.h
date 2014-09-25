@@ -35,6 +35,7 @@ public:
 
 	bool addTypeCode(TypeCode* TC);
 
+	bool getStructTypeCode(const std::string& name, TypeCode** ppTC);
 
 
 	bool trace_scanning;
@@ -61,9 +62,20 @@ public:
 
 	class IDLScanner* lexer;
 
+	void printTypeCodes();
+
+	void deleteTypeCodes();
 
 
 	TypeCode* copyTypeCode(TypeCode* tc, bool first);
+	enum ProviderError
+	{
+		NO_ERROR,
+		TYPECODE_NOTFOUND,
+		IDLPARSER_ERROR,
+		REPEATED_STRUCT_MEMBER_ERROR
+	};
+	ProviderError m_errorCode;
 private:
 	std::vector<TypeCode*> m_typeCodes;
 

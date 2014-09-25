@@ -21,7 +21,7 @@ bool StringTypeCode::deserialize(Cdr &cdr)
 bool StringTypeCode::print(IDLPrinter &printer, bool write) const
 {
 	if(write)
-		printer.getOut() << "string ";
+		printer.getOut() << "string<"<< m_maxLength << ">";
 	return true;
 }
 

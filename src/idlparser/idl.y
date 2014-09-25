@@ -185,10 +185,7 @@ REMOVED SECTION 4
 	/******* RULES SECTION *******/
 
 specification : definition_list
-    {for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
     {
-    	TCprovider.addTypeCode(*it);
-    }
     delete($1);
     }
     ;
@@ -199,21 +196,44 @@ definition_list :
 	}
     | definition definition_list
 	{
-	for(TypeCodeVec::iterator it = $1->begin();it!=$1->end();++it)
+	for(TypeCodeVec::iterator it = $2->begin();it!=$2->end();++it)
 	{
-	$2->push_back(*it);
+	$1->push_back(*it);
 	}
-	delete($1);
-	$$ = $2;
+	delete($2);
+	$$ = $1;
 	}
     ;
 definition : 
-    type_dcl ';' {$$ = $1;}
-    | const_dcl ';' {$$ = $1;}
-    | except_dcl ';' {$$ = $1;}
-    | interface ';' {$$ = $1;}
-    | module ';' {$$ = $1;}
-    | sharp_declaratives {$$ = $1;}
+    type_dcl ';' {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
+    | const_dcl ';' {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
+    | except_dcl ';' {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
+    | interface ';' {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
+    | module ';' 
+    {
+    $$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
+    | sharp_declaratives 
+    {
+    $$ = $1;
+    for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
     
 sharp_declaratives:
       PRAGMA_INFO
@@ -226,6 +246,7 @@ sharp_declaratives:
 
 module : MODULE_TOKEN IDENTIFIER '{' definition_list '}'
 	{
+	std::cout << "Setting MODULE NAMES " << std::endl;
 	for(TypeCodeVec::iterator it = $4->begin();it!=$4->end();++it)
 	{
 	if((*it)->getKind() == TypeCode::KIND_STRUCT || 
@@ -233,13 +254,14 @@ module : MODULE_TOKEN IDENTIFIER '{' definition_list '}'
 		(*it)->getKind() == TypeCode::KIND_ENUM)
 	{
 		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		$2->append("::");
-		$2->append(membered->getName());
-		membered->setName(*$2);
-		delete($2);
+		std::string name = membered->getName();
+		name.insert(0,"::");
+		name.insert(0,*$2);
+		membered->setName(name);
 	}
 	}
 	$$ = $4;
+	delete($2);
 	}
     ;
 
@@ -252,15 +274,29 @@ type_dcl :
     ;
    
 struct_type : STRUCT_TOKEN IDENTIFIER '{'  struct_member_list  '}'
-	{StructTypeCode* sTC = new StructTypeCode();
+	{
+	if($4 == NULL)
+	{
+		$$ = new TypeCodeVec();
+		$$->push_back(new PrimitiveTypeCode(TypeCode::KIND_NULL));
+	}
+	else
+	{
+	StructTypeCode* sTC = new StructTypeCode();
 	sTC->setName(*$2);
 	delete($2);
 	for(MemberVec::iterator it= $4->begin();it!=$4->end();++it)
 	{
-		sTC->addMember((StructMember*)(*it));
+		if(!sTC->addMember((StructMember*)(*it)))
+		{
+			std::cout << "Warning: StructMember with repeated name, second instance not added " << std::endl; //TODO MOfidicar para que devuelva error
+			TCprovider.m_errorCode = UserTypeCodeProvider::REPEATED_STRUCT_MEMBER_ERROR;
+			delete(*it);
+		}
 	}
 	$$ = new TypeCodeVec();
 	$$->push_back((TypeCode*)sTC);
+	}
 	}
     ;
 struct_member_list : 
@@ -268,16 +304,18 @@ struct_member_list :
 	{$$ = $1;}
     | struct_member struct_member_list
 	{
-	if($1 ==NULL)
-		$$ = $2;
+	if($1 ==NULL || $2 == NULL)
+	{
+		$$ = NULL;
+	}
 	else
 	{
-	for(std::vector<Member*>::iterator it = $1->begin();it!=$1->end();++it)
+	for(std::vector<Member*>::iterator it = $2->begin();it!=$2->end();++it)
 	{
-		$2->push_back(*it);
+		$1->push_back(*it);
 	}
-	delete($1);
-	$$ = $2;
+	delete($2);
+	$$ = $1;
 	}
 	}
     ;
@@ -285,8 +323,8 @@ struct_member : type_spec declarators ';'
 	{
 	if($1->getKind() == TypeCode::KIND_NULL)
 	{
-		delete($1);
 		delete($2);
+		delete($1);
 		$$ = NULL;
 	}
 	else
@@ -295,6 +333,7 @@ struct_member : type_spec declarators ';'
 	bool first = true;
 	for(DeclaratorVec::iterator it=$2->begin();it!=$2->end();++it)
 	{
+		std::cout << "Declarator: " << (*it)->first<< std::endl;
 		TypeCode* pTC = $1;
 		pTC = TCprovider.copyTypeCode(pTC, first);
 		first = false;
@@ -311,6 +350,8 @@ struct_member : type_spec declarators ';'
 		}
 		MV->push_back(sm);
 	}
+	for(std::vector<Declarator*>::iterator it = $2->begin();it!=$2->end();++it)
+		delete(*it);
 	delete($2);
 	$$ = MV;
 	}
@@ -338,6 +379,11 @@ simple_type_spec :
 scoped_name : scoped_name_str
     {
     TypeCode* pTC = TCprovider.findTypeCodebyName(*$1);
+    if(pTC->getKind()==TypeCode::KIND_NULL)
+    {
+    	std::cout << "Warning, TypeCode with name: " << *$1 << " not found."<< std::endl;
+    	TCprovider.m_errorCode = UserTypeCodeProvider::TYPECODE_NOTFOUND;
+    }
     delete($1);
     $$ = pTC;
     }
@@ -381,7 +427,7 @@ declarators :
 	}
     | declarator  ','  declarators
 	{
-	$3->push_back($1); 
+	$3->insert($3->begin(),$1); 
 	$$ = $3;
 	}
     ;
@@ -478,7 +524,11 @@ enum_type : ENUM_TOKEN IDENTIFIER '{' enumerator_list  '}'
 	for(StringVec::iterator it=$4->begin();it!=$4->end();++it)
 	{
 		EnumMember* eMember = new EnumMember(*it,ord);
-		enTC->addMember(eMember);
+		if(!enTC->addMember(eMember))
+		{
+			std::cout << "Warning: EnumMember with repeated name, second instance not added " << std::endl; //TODO MOfidicar para que devuelva error
+			delete(eMember);
+		}
 		++ord;
 	}
 	delete($4);
@@ -493,7 +543,7 @@ enumerator_list	: enumerator
 	delete($1);
 	}
     | enumerator ',' enumerator_list
-	{$3->push_back(*$1); $$ = $3;delete($1);}
+	{$3->insert($3->begin(),*$1); $$ = $3;delete($1);}
     ; 
 enumerator : IDENTIFIER
 	{$$ = new std::string(*$1);
@@ -541,10 +591,10 @@ interface_dcl : interface_header '{' interface_body '}'
 		(*it)->getKind() == TypeCode::KIND_ENUM)
 	{
 		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		$1->append("::");
-		$1->append(membered->getName());
-		membered->setName(*$1);
-		delete($1);
+		std::string name = membered->getName();
+		name.insert(0,"::");
+		name.insert(0,*$1);
+		membered->setName(name);
 	}
 	else
 	{
@@ -557,6 +607,7 @@ interface_dcl : interface_header '{' interface_body '}'
 	}
 	}
 	$$ = $3;
+	delete($1);
 	}
     ;
 forward_dcl : INTERFACE_TOKEN IDENTIFIER
@@ -648,7 +699,8 @@ union_type : UNION_TOKEN IDENTIFIER SWITCH_TOKEN '(' switch_type_spec  ')' '{' s
 	UnionTypeCode* uTC = new UnionTypeCode();
 	uTC->setName(*$2);
 	delete($2);
-	uTC->setDiscriminatorTypeCode($5);
+	TypeCode* discTC = TCprovider.copyTypeCode($5,true);
+	uTC->setDiscriminatorTypeCode(discTC);
 	UnionMember* uM_boolWithDefault = NULL;
 	bool isTrue = false;
 	for(MemberVec::iterator it = $8->begin();it!=$8->end();++it)
@@ -657,17 +709,20 @@ union_type : UNION_TOKEN IDENTIFIER SWITCH_TOKEN '(' switch_type_spec  ')' '{' s
 		std::vector<int32_t> labels = uM->getLabels();
 		bool change = false;
 		bool boolDefaultFound = false;
+		bool defaultIndex = false;
 		for(std::vector<int32_t>::iterator it = labels.begin();it!=labels.end();++it)
 		{
 			if($5->getKind() == TypeCode::KIND_CHAR && (*it) == -1000)
 			{
 				(*it) = 254;
 				change = true;
+				defaultIndex = true;
 			}
 			if($5->getKind() == TypeCode::KIND_ENUM && (*it) == -1000)
 			{
 				(*it) = 0;
 				change = true;
+				defaultIndex = true;
 			}
 			if($5->getKind() == TypeCode::KIND_BOOLEAN && (*it) == -1000)
 			{
@@ -678,11 +733,29 @@ union_type : UNION_TOKEN IDENTIFIER SWITCH_TOKEN '(' switch_type_spec  ')' '{' s
 			{
 				isTrue = (bool)(*it);
 			}
+			if((*it) == -1000) //REST OF THE CASES
+			{
+				change = true;
+				defaultIndex = true;
+			}
 		}
 		if(change)
 			uM->setLabels(labels);
 		if(!boolDefaultFound)
-			uTC->addMember(uM);
+		{
+			if(!uTC->addMember(uM))
+			{
+			std::cout << "Warning: UnionMember with repeated name, second instance not added " << std::endl; //TODO MOfidicar para que devuelva error
+			delete(uM);
+			}
+			else
+			{
+				if(defaultIndex)
+				{
+					uTC->setDefaultIndex(uTC->getMemberCount()-1);
+				}
+			}
+		}
 	}
 	if(uM_boolWithDefault !=NULL)
 	{
@@ -693,7 +766,11 @@ union_type : UNION_TOKEN IDENTIFIER SWITCH_TOKEN '(' switch_type_spec  ')' '{' s
 			*it = !isTrue;
 	}
 	uM_boolWithDefault->setLabels(labels);
-	uTC->addMember(uM_boolWithDefault);
+	if(!uTC->addMember(uM_boolWithDefault))
+			{
+			std::cout << "Warning: UnionMember with repeated name, second instance not added " << std::endl; //TODO MOfidicar para que devuelva error
+			delete(uM_boolWithDefault);
+			}
 	}
 	delete($8);
 	$$ = new TypeCodeVec();
@@ -707,7 +784,7 @@ switch_type_spec :
     | boolean_type
     | enum_type
     {
-    $$ = * $1->begin();
+    $$ = *($1->begin());
     }
     | scoped_name
     ;
@@ -719,7 +796,7 @@ switch_body :
 	}
     | case switch_body
 	{
-	$2->push_back($1); 
+	$2->insert($2->begin(),$1);
 	$$ = $2;
 	}
     ;
@@ -734,9 +811,9 @@ case_label_list :
 	{$$ = $1;}
     | case_label case_label_list
 	{
-	$2->second.push_back(*($1->second.begin()));
-	$$ = $2;
-	delete($1);}
+	$1->second.push_back(*($2->second.begin()));
+	$$ = $1;
+	delete($2);}
     ;
 case_label : 
     CASE_TOKEN  expr  ':'
@@ -748,7 +825,10 @@ case_label :
 	}
 	else if($2->type == BOOL_TYPE)
 	{
-		dCL->second.push_back($2->boolean);	
+		if($2->boolean == true)
+			dCL->second.push_back(1);
+		else	
+			dCL->second.push_back(0);
 	}
 	else if($2->type == STRING_TYPE)
 	{
@@ -761,6 +841,7 @@ case_label :
 	{
 	dCL->second.push_back(TCprovider.findENUMvalue($2->str));
 	}
+	$$ = dCL;
 	} /* semantic */
     | DEFAULT_TOKEN ':'	/* NULL=DEFAULT */
 	{

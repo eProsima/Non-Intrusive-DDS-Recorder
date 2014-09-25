@@ -22,6 +22,8 @@ namespace eProsima
 
         UnionMember();
 
+        UnionMember(const UnionMember& copy);
+
         virtual ~UnionMember(){}
 
         uint32_t getLabelCount() const;
@@ -57,6 +59,8 @@ namespace eProsima
 
         int32_t getDefaultIndex() const;
 
+        void setDefaultIndex(int32_t def);
+
         /*!
          * @brief This function deserializes a union that is contained in a CDR stream.
          *
@@ -71,9 +75,11 @@ namespace eProsima
 
         friend bool operator<<(IDLPrinter &printer, const UnionTypeCode *unionTypeCode);
 
-        void addMember(UnionMember* member);
+        bool addMember(UnionMember* member);
 
         void setDiscriminatorTypeCode(TypeCode*);
+
+
 
     private:
         

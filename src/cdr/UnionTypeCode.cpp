@@ -18,6 +18,16 @@ UnionMember::UnionMember():m_labelCount(0)
 
 }
 
+UnionMember::UnionMember(const UnionMember& copy)
+{
+	std::string name = copy.getName();
+	this->setName(name);
+	TypeCode* TC = TypeCodeCopy::copy(copy.getTypeCode());
+	this->setTypeCode(TC);
+	m_labelCount = copy.getLabelCount();
+	m_labels = copy.getLabels();
+}
+
 uint32_t UnionMember::getLabelCount() const
 {
 	return m_labelCount;
@@ -31,6 +41,7 @@ int32_t UnionMember::getLabel(uint32_t pos) const
 void UnionMember::setLabels(std::vector<int32_t>& labels)
 {
 	m_labels = labels;
+	m_labelCount = m_labels.size();
 }
 
 std::vector<int32_t> UnionMember::getLabels() const
@@ -39,14 +50,19 @@ std::vector<int32_t> UnionMember::getLabels() const
 }
 
 
-UnionTypeCode::UnionTypeCode() : MemberedTypeCode(TypeCode::KIND_UNION), m_defaultIndex(0),
+UnionTypeCode::UnionTypeCode() : MemberedTypeCode(TypeCode::KIND_UNION), m_defaultIndex(-1),
 		m_discriminatorTypeCode(NULL)
 {
 }
 
 UnionTypeCode::UnionTypeCode(const UnionTypeCode& copy): MemberedTypeCode(TypeCode::KIND_UNION)
 {
-	m_members = copy.m_members;
+	for(std::vector<Member*>::const_iterator it = copy.m_members.begin();it!= copy.m_members.end();++it)
+	{
+		UnionMember* sM = (UnionMember*)(*it);
+		sM = new UnionMember(*sM);
+		m_members.push_back(sM);
+	}
 	m_name = copy.m_name;
 	m_memberCount = copy.m_memberCount;
 	this->m_defaultIndex = copy.m_defaultIndex;
@@ -64,6 +80,11 @@ UnionTypeCode::~UnionTypeCode()
 int32_t UnionTypeCode::getDefaultIndex() const
 {
 	return m_defaultIndex;
+}
+
+void UnionTypeCode::setDefaultIndex(int32_t def)
+{
+	m_defaultIndex = def;
 }
 
 bool UnionTypeCode::deserialize(Cdr &cdr)
@@ -130,7 +151,9 @@ bool UnionTypeCode::print(IDLPrinter &printer, bool write) const
 	if(!printer.isTypePrinterAndUp("union " + getName()))
 	{
 		IDLPrinter *tPrinter = new IDLPrinter(printer);
-		tPrinter->getOut() << "union " << getName() << " {" << std::endl;
+		tPrinter->getOut() << "union " << getName() << " switch (";
+		*tPrinter << this->m_discriminatorTypeCode;
+		tPrinter->getOut() << ") {" << std::endl;
 
 		for(uint32_t count = 0; count < getMemberCount(); ++count)
 		{
@@ -143,8 +166,8 @@ bool UnionTypeCode::print(IDLPrinter &printer, bool write) const
 				{
 					if(count == (uint32_t)m_defaultIndex)
 						tPrinter->getOut() << "   default:" << std::endl;
-						else
-							tPrinter->getOut() << "   case " << member->getLabel(lCount) << ":" << std::endl;
+					else
+						tPrinter->getOut() << "   case " << member->getLabel(lCount) << ":" << std::endl;
 
 				}
 				tPrinter->getOut() << "      ";
@@ -176,9 +199,12 @@ bool UnionTypeCode::print(IDLPrinter &printer, bool write) const
 	return returnedValue;
 }
 
-void UnionTypeCode::addMember(UnionMember* member)
+bool UnionTypeCode::addMember(UnionMember* member)
 {
+	if(isMemberWithName(member->getName()))
+		return false;
 	this->addMemberPtr((Member*)member);
+	return true;
 }
 
 void UnionTypeCode::setDiscriminatorTypeCode(TypeCode* TC)

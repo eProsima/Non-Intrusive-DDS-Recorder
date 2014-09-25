@@ -18,6 +18,8 @@ namespace eProsima
     public:
         EnumMember(std::string &name, uint32_t ordinal);
 
+        EnumMember(const EnumMember& copy);
+
         virtual ~EnumMember(){}
 
         bool deserialize(Cdr &cdr);
@@ -66,7 +68,7 @@ namespace eProsima
 
         friend bool operator<<(IDLPrinter &printer, const EnumTypeCode *typeCode);
 
-        void addMember(EnumMember* mem);
+        bool addMember(EnumMember* mem);
 
     private:
         

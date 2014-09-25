@@ -27,6 +27,32 @@ void printHelp()
     printf("    -help: Print help information.\n");
 }
 
+#include "src/idlparser/UserTypeCodeProvider.h"
+using namespace eprosima;
+
+int main(int argc, char *argv[])
+{
+	if(argc>0)
+	{
+		std::string filename = argv[1];
+		UserTypeCodeProvider prov;
+		if(prov.parse_file(filename))
+		{
+			prov.printTypeCodes();
+		}
+		else
+		{
+			std::cout << "There was an error parsing the file "<<std::endl;
+		}
+		prov.deleteTypeCodes();
+		std::cout << "Deleting all found TypeCodes. "<<std::endl;
+
+	}
+	else
+		std::cout << "Enter FileName" << std::endl;
+}
+
+/*
 int main(int argc, char *argv[])
 {
     int returnedValue = -1;
@@ -39,7 +65,7 @@ int main(int argc, char *argv[])
     DDSRecorder *rtpsdumper = NULL;
     unsigned int numRTPSPackets = 0;
 
-    /* Check options */
+    /* Check options * /
     for(int i = 1; i < argc; i++)
     {
         if(strcmp(argv[i], "-help") == 0)
@@ -80,7 +106,7 @@ int main(int argc, char *argv[])
     }
 
     /*NDDS_Config_Logger_set_verbosity(NDDS_Config_Logger_get_instance(),
-            NDDS_CONFIG_LOG_VERBOSITY_STATUS_ALL);*/
+            NDDS_CONFIG_LOG_VERBOSITY_STATUS_ALL);* /
 
     if(!filename.empty())
     {
@@ -129,3 +155,4 @@ int main(int argc, char *argv[])
 
     return returnedValue;
 }
+*/

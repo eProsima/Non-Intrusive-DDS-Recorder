@@ -459,10 +459,7 @@ namespace eprosima {
 
 /* Line 690 of lalr1.cc  */
 #line 188 "idl.y"
-    {for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->end();++it)
     {
-    	TCprovider.addTypeCode(*it);
-    }
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec));
     }
     break;
@@ -470,7 +467,7 @@ namespace eprosima {
   case 3:
 
 /* Line 690 of lalr1.cc  */
-#line 197 "idl.y"
+#line 194 "idl.y"
     {
 	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec);
 	}
@@ -479,85 +476,107 @@ namespace eprosima {
   case 4:
 
 /* Line 690 of lalr1.cc  */
-#line 201 "idl.y"
+#line 198 "idl.y"
     {
-	for(TypeCodeVec::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
+	for(TypeCodeVec::iterator it = (yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->end();++it)
 	{
-	(yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->push_back(*it);
+	(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->push_back(*it);
 	}
-	delete((yysemantic_stack_[(2) - (1)].mp_TypeCodeVec));
-	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (2)].mp_TypeCodeVec);
+	delete((yysemantic_stack_[(2) - (2)].mp_TypeCodeVec));
+	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);
 	}
     break;
 
   case 5:
 
 /* Line 690 of lalr1.cc  */
-#line 211 "idl.y"
-    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
+#line 208 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
     break;
 
   case 6:
 
 /* Line 690 of lalr1.cc  */
 #line 212 "idl.y"
-    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
     break;
 
   case 7:
 
 /* Line 690 of lalr1.cc  */
-#line 213 "idl.y"
-    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
+#line 216 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
     break;
 
   case 8:
 
 /* Line 690 of lalr1.cc  */
-#line 214 "idl.y"
-    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
+#line 220 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
     break;
 
   case 9:
 
 /* Line 690 of lalr1.cc  */
-#line 215 "idl.y"
-    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);}
+#line 225 "idl.y"
+    {
+    (yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
     break;
 
   case 10:
 
 /* Line 690 of lalr1.cc  */
-#line 216 "idl.y"
-    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec);}
+#line 231 "idl.y"
+    {
+    (yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec);
+    for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    }}
     break;
 
   case 11:
 
 /* Line 690 of lalr1.cc  */
-#line 220 "idl.y"
+#line 240 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 12:
 
 /* Line 690 of lalr1.cc  */
-#line 222 "idl.y"
+#line 242 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 13:
 
 /* Line 690 of lalr1.cc  */
-#line 224 "idl.y"
+#line 244 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 14:
 
 /* Line 690 of lalr1.cc  */
-#line 228 "idl.y"
+#line 248 "idl.y"
     {
+	std::cout << "Setting MODULE NAMES " << std::endl;
 	for(TypeCodeVec::iterator it = (yysemantic_stack_[(5) - (4)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(5) - (4)].mp_TypeCodeVec)->end();++it)
 	{
 	if((*it)->getKind() == TypeCode::KIND_STRUCT || 
@@ -565,61 +584,78 @@ namespace eprosima {
 		(*it)->getKind() == TypeCode::KIND_ENUM)
 	{
 		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		(yysemantic_stack_[(5) - (2)].stringVal)->append("::");
-		(yysemantic_stack_[(5) - (2)].stringVal)->append(membered->getName());
-		membered->setName(*(yysemantic_stack_[(5) - (2)].stringVal));
-		delete((yysemantic_stack_[(5) - (2)].stringVal));
+		std::string name = membered->getName();
+		name.insert(0,"::");
+		name.insert(0,*(yysemantic_stack_[(5) - (2)].stringVal));
+		membered->setName(name);
 	}
 	}
 	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(5) - (4)].mp_TypeCodeVec);
+	delete((yysemantic_stack_[(5) - (2)].stringVal));
 	}
     break;
 
   case 15:
 
 /* Line 690 of lalr1.cc  */
-#line 248 "idl.y"
+#line 270 "idl.y"
     {std::cout << "Warning: \"typedef\" token not allowed" << std::endl;}
     break;
 
   case 19:
 
 /* Line 690 of lalr1.cc  */
-#line 255 "idl.y"
-    {StructTypeCode* sTC = new StructTypeCode();
+#line 277 "idl.y"
+    {
+	if((yysemantic_stack_[(5) - (4)].mp_MemberVec) == NULL)
+	{
+		(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+		(yyval.mp_TypeCodeVec)->push_back(new PrimitiveTypeCode(TypeCode::KIND_NULL));
+	}
+	else
+	{
+	StructTypeCode* sTC = new StructTypeCode();
 	sTC->setName(*(yysemantic_stack_[(5) - (2)].stringVal));
 	delete((yysemantic_stack_[(5) - (2)].stringVal));
 	for(MemberVec::iterator it= (yysemantic_stack_[(5) - (4)].mp_MemberVec)->begin();it!=(yysemantic_stack_[(5) - (4)].mp_MemberVec)->end();++it)
 	{
-		sTC->addMember((StructMember*)(*it));
+		if(!sTC->addMember((StructMember*)(*it)))
+		{
+			std::cout << "Warning: StructMember with repeated name, second instance not added " << std::endl; //TODO MOfidicar para que devuelva error
+			TCprovider.m_errorCode = UserTypeCodeProvider::REPEATED_STRUCT_MEMBER_ERROR;
+			delete(*it);
+		}
 	}
 	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
 	(yyval.mp_TypeCodeVec)->push_back((TypeCode*)sTC);
+	}
 	}
     break;
 
   case 20:
 
 /* Line 690 of lalr1.cc  */
-#line 268 "idl.y"
+#line 304 "idl.y"
     {(yyval.mp_MemberVec) = (yysemantic_stack_[(1) - (1)].mp_MemberVec);}
     break;
 
   case 21:
 
 /* Line 690 of lalr1.cc  */
-#line 270 "idl.y"
+#line 306 "idl.y"
     {
-	if((yysemantic_stack_[(2) - (1)].mp_MemberVec) ==NULL)
-		(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
+	if((yysemantic_stack_[(2) - (1)].mp_MemberVec) ==NULL || (yysemantic_stack_[(2) - (2)].mp_MemberVec) == NULL)
+	{
+		(yyval.mp_MemberVec) = NULL;
+	}
 	else
 	{
-	for(std::vector<Member*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_MemberVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_MemberVec)->end();++it)
+	for(std::vector<Member*>::iterator it = (yysemantic_stack_[(2) - (2)].mp_MemberVec)->begin();it!=(yysemantic_stack_[(2) - (2)].mp_MemberVec)->end();++it)
 	{
-		(yysemantic_stack_[(2) - (2)].mp_MemberVec)->push_back(*it);
+		(yysemantic_stack_[(2) - (1)].mp_MemberVec)->push_back(*it);
 	}
-	delete((yysemantic_stack_[(2) - (1)].mp_MemberVec));
-	(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
+	delete((yysemantic_stack_[(2) - (2)].mp_MemberVec));
+	(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (1)].mp_MemberVec);
 	}
 	}
     break;
@@ -627,12 +663,12 @@ namespace eprosima {
   case 22:
 
 /* Line 690 of lalr1.cc  */
-#line 285 "idl.y"
+#line 323 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeCode)->getKind() == TypeCode::KIND_NULL)
 	{
-		delete((yysemantic_stack_[(3) - (1)].mp_TypeCode));
 		delete((yysemantic_stack_[(3) - (2)].mp_DeclaratorVec));
+		delete((yysemantic_stack_[(3) - (1)].mp_TypeCode));
 		(yyval.mp_MemberVec) = NULL;
 	}
 	else
@@ -641,6 +677,7 @@ namespace eprosima {
 	bool first = true;
 	for(DeclaratorVec::iterator it=(yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->begin();it!=(yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->end();++it)
 	{
+		std::cout << "Declarator: " << (*it)->first<< std::endl;
 		TypeCode* pTC = (yysemantic_stack_[(3) - (1)].mp_TypeCode);
 		pTC = TCprovider.copyTypeCode(pTC, first);
 		first = false;
@@ -657,6 +694,8 @@ namespace eprosima {
 		}
 		MV->push_back(sm);
 	}
+	for(std::vector<Declarator*>::iterator it = (yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->begin();it!=(yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->end();++it)
+		delete(*it);
 	delete((yysemantic_stack_[(3) - (2)].mp_DeclaratorVec));
 	(yyval.mp_MemberVec) = MV;
 	}
@@ -666,7 +705,7 @@ namespace eprosima {
   case 24:
 
 /* Line 690 of lalr1.cc  */
-#line 327 "idl.y"
+#line 368 "idl.y"
     {
     (yyval.mp_TypeCode) = *((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin());
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec));
@@ -676,9 +715,14 @@ namespace eprosima {
   case 28:
 
 /* Line 690 of lalr1.cc  */
-#line 339 "idl.y"
+#line 380 "idl.y"
     {
     TypeCode* pTC = TCprovider.findTypeCodebyName(*(yysemantic_stack_[(1) - (1)].mp_string));
+    if(pTC->getKind()==TypeCode::KIND_NULL)
+    {
+    	std::cout << "Warning, TypeCode with name: " << *(yysemantic_stack_[(1) - (1)].mp_string) << " not found."<< std::endl;
+    	TCprovider.m_errorCode = UserTypeCodeProvider::TYPECODE_NOTFOUND;
+    }
     delete((yysemantic_stack_[(1) - (1)].mp_string));
     (yyval.mp_TypeCode) = pTC;
     }
@@ -687,7 +731,7 @@ namespace eprosima {
   case 36:
 
 /* Line 690 of lalr1.cc  */
-#line 358 "idl.y"
+#line 404 "idl.y"
     {
 	std::cout << "Warning: \"Object\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);
@@ -697,7 +741,7 @@ namespace eprosima {
   case 37:
 
 /* Line 690 of lalr1.cc  */
-#line 364 "idl.y"
+#line 410 "idl.y"
     {std::cout << "Warning: \"any\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
@@ -705,7 +749,7 @@ namespace eprosima {
   case 43:
 
 /* Line 690 of lalr1.cc  */
-#line 378 "idl.y"
+#line 424 "idl.y"
     {
 	(yyval.mp_DeclaratorVec) = new DeclaratorVec();
 	(yyval.mp_DeclaratorVec)->push_back((yysemantic_stack_[(1) - (1)].mp_Declarator));
@@ -715,9 +759,9 @@ namespace eprosima {
   case 44:
 
 /* Line 690 of lalr1.cc  */
-#line 383 "idl.y"
+#line 429 "idl.y"
     {
-	(yysemantic_stack_[(3) - (3)].mp_DeclaratorVec)->push_back((yysemantic_stack_[(3) - (1)].mp_Declarator)); 
+	(yysemantic_stack_[(3) - (3)].mp_DeclaratorVec)->insert((yysemantic_stack_[(3) - (3)].mp_DeclaratorVec)->begin(),(yysemantic_stack_[(3) - (1)].mp_Declarator)); 
 	(yyval.mp_DeclaratorVec) = (yysemantic_stack_[(3) - (3)].mp_DeclaratorVec);
 	}
     break;
@@ -725,7 +769,7 @@ namespace eprosima {
   case 47:
 
 /* Line 690 of lalr1.cc  */
-#line 393 "idl.y"
+#line 439 "idl.y"
     {
 	(yyval.mp_Declarator) = new Declarator();
 	(yyval.mp_Declarator)->first = *(yysemantic_stack_[(1) - (1)].stringVal);
@@ -736,7 +780,7 @@ namespace eprosima {
   case 49:
 
 /* Line 690 of lalr1.cc  */
-#line 403 "idl.y"
+#line 449 "idl.y"
     {
 	(yysemantic_stack_[(2) - (2)].mp_Declarator)->first = *(yysemantic_stack_[(2) - (1)].stringVal);
 	delete((yysemantic_stack_[(2) - (1)].stringVal));
@@ -747,7 +791,7 @@ namespace eprosima {
   case 50:
 
 /* Line 690 of lalr1.cc  */
-#line 411 "idl.y"
+#line 457 "idl.y"
     {
 	(yyval.mp_Declarator) = new Declarator();
 	(yyval.mp_Declarator)->second.push_back((yysemantic_stack_[(1) - (1)].m_uint32_t));
@@ -757,7 +801,7 @@ namespace eprosima {
   case 51:
 
 /* Line 690 of lalr1.cc  */
-#line 416 "idl.y"
+#line 462 "idl.y"
     {
 	(yysemantic_stack_[(2) - (2)].mp_Declarator)->second.push_back((yysemantic_stack_[(2) - (1)].m_uint32_t)); 
 	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (2)].mp_Declarator);}
@@ -766,98 +810,98 @@ namespace eprosima {
   case 52:
 
 /* Line 690 of lalr1.cc  */
-#line 421 "idl.y"
+#line 467 "idl.y"
     {(yyval.m_uint32_t) = (yysemantic_stack_[(3) - (2)].m_uint32_t);}
     break;
 
   case 53:
 
 /* Line 690 of lalr1.cc  */
-#line 427 "idl.y"
+#line 473 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_FLOAT);}
     break;
 
   case 54:
 
 /* Line 690 of lalr1.cc  */
-#line 429 "idl.y"
+#line 475 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_DOUBLE);}
     break;
 
   case 55:
 
 /* Line 690 of lalr1.cc  */
-#line 431 "idl.y"
+#line 477 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGDOUBLE);}
     break;
 
   case 60:
 
 /* Line 690 of lalr1.cc  */
-#line 442 "idl.y"
+#line 488 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONG);}
     break;
 
   case 61:
 
 /* Line 690 of lalr1.cc  */
-#line 444 "idl.y"
+#line 490 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGLONG);}
     break;
 
   case 62:
 
 /* Line 690 of lalr1.cc  */
-#line 447 "idl.y"
+#line 493 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_SHORT);}
     break;
 
   case 65:
 
 /* Line 690 of lalr1.cc  */
-#line 454 "idl.y"
+#line 500 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONG);}
     break;
 
   case 66:
 
 /* Line 690 of lalr1.cc  */
-#line 456 "idl.y"
+#line 502 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONGLONG);}
     break;
 
   case 67:
 
 /* Line 690 of lalr1.cc  */
-#line 459 "idl.y"
+#line 505 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_USHORT);}
     break;
 
   case 68:
 
 /* Line 690 of lalr1.cc  */
-#line 462 "idl.y"
+#line 508 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_CHAR);}
     break;
 
   case 69:
 
 /* Line 690 of lalr1.cc  */
-#line 465 "idl.y"
+#line 511 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_BOOLEAN);}
     break;
 
   case 70:
 
 /* Line 690 of lalr1.cc  */
-#line 468 "idl.y"
+#line 514 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_OCTET);}
     break;
 
   case 71:
 
 /* Line 690 of lalr1.cc  */
-#line 473 "idl.y"
+#line 519 "idl.y"
     {
 	EnumTypeCode* enTC= new EnumTypeCode();
 	enTC->setName(*(yysemantic_stack_[(5) - (2)].stringVal));
@@ -866,7 +910,11 @@ namespace eprosima {
 	for(StringVec::iterator it=(yysemantic_stack_[(5) - (4)].mp_StringVec)->begin();it!=(yysemantic_stack_[(5) - (4)].mp_StringVec)->end();++it)
 	{
 		EnumMember* eMember = new EnumMember(*it,ord);
-		enTC->addMember(eMember);
+		if(!enTC->addMember(eMember))
+		{
+			std::cout << "Warning: EnumMember with repeated name, second instance not added " << std::endl; //TODO MOfidicar para que devuelva error
+			delete(eMember);
+		}
 		++ord;
 	}
 	delete((yysemantic_stack_[(5) - (4)].mp_StringVec));
@@ -878,7 +926,7 @@ namespace eprosima {
   case 72:
 
 /* Line 690 of lalr1.cc  */
-#line 490 "idl.y"
+#line 540 "idl.y"
     {
 	(yyval.mp_StringVec) = new StringVec();
 	(yyval.mp_StringVec)->push_back(*(yysemantic_stack_[(1) - (1)].mp_string));
@@ -889,14 +937,14 @@ namespace eprosima {
   case 73:
 
 /* Line 690 of lalr1.cc  */
-#line 496 "idl.y"
-    {(yysemantic_stack_[(3) - (3)].mp_StringVec)->push_back(*(yysemantic_stack_[(3) - (1)].mp_string)); (yyval.mp_StringVec) = (yysemantic_stack_[(3) - (3)].mp_StringVec);delete((yysemantic_stack_[(3) - (1)].mp_string));}
+#line 546 "idl.y"
+    {(yysemantic_stack_[(3) - (3)].mp_StringVec)->insert((yysemantic_stack_[(3) - (3)].mp_StringVec)->begin(),*(yysemantic_stack_[(3) - (1)].mp_string)); (yyval.mp_StringVec) = (yysemantic_stack_[(3) - (3)].mp_StringVec);delete((yysemantic_stack_[(3) - (1)].mp_string));}
     break;
 
   case 74:
 
 /* Line 690 of lalr1.cc  */
-#line 499 "idl.y"
+#line 549 "idl.y"
     {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].stringVal));
 	delete((yysemantic_stack_[(1) - (1)].stringVal));}
     break;
@@ -904,7 +952,7 @@ namespace eprosima {
   case 75:
 
 /* Line 690 of lalr1.cc  */
-#line 505 "idl.y"
+#line 555 "idl.y"
     {
 	StringTypeCode* pSTC = new StringTypeCode((yysemantic_stack_[(4) - (3)].m_uint32_t));
 	(yyval.mp_TypeCode) = (TypeCode*)pSTC;
@@ -914,7 +962,7 @@ namespace eprosima {
   case 76:
 
 /* Line 690 of lalr1.cc  */
-#line 510 "idl.y"
+#line 560 "idl.y"
     {StringTypeCode* pSTC = new StringTypeCode(255);
 	(yyval.mp_TypeCode) = (TypeCode*)pSTC;}
     break;
@@ -922,7 +970,7 @@ namespace eprosima {
   case 77:
 
 /* Line 690 of lalr1.cc  */
-#line 516 "idl.y"
+#line 566 "idl.y"
     {
 	SequenceTypeCode* sTC = new SequenceTypeCode((yysemantic_stack_[(6) - (5)].m_uint32_t));
 	sTC->setContentTypeCode((yysemantic_stack_[(6) - (3)].mp_TypeCode));
@@ -933,7 +981,7 @@ namespace eprosima {
   case 78:
 
 /* Line 690 of lalr1.cc  */
-#line 522 "idl.y"
+#line 572 "idl.y"
     {
 	SequenceTypeCode* sTC = new SequenceTypeCode(255);
 	sTC->setContentTypeCode((yysemantic_stack_[(4) - (3)].mp_TypeCode));
@@ -944,7 +992,7 @@ namespace eprosima {
   case 81:
 
 /* Line 690 of lalr1.cc  */
-#line 535 "idl.y"
+#line 585 "idl.y"
     {
 	std::vector<int> index_to_remove;
 	for(TypeCodeVec::iterator it = (yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->end();++it)
@@ -954,10 +1002,10 @@ namespace eprosima {
 		(*it)->getKind() == TypeCode::KIND_ENUM)
 	{
 		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		(yysemantic_stack_[(4) - (1)].mp_string)->append("::");
-		(yysemantic_stack_[(4) - (1)].mp_string)->append(membered->getName());
-		membered->setName(*(yysemantic_stack_[(4) - (1)].mp_string));
-		delete((yysemantic_stack_[(4) - (1)].mp_string));
+		std::string name = membered->getName();
+		name.insert(0,"::");
+		name.insert(0,*(yysemantic_stack_[(4) - (1)].mp_string));
+		membered->setName(name);
 	}
 	else
 	{
@@ -970,13 +1018,14 @@ namespace eprosima {
 	}
 	}
 	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(4) - (3)].mp_TypeCodeVec);
+	delete((yysemantic_stack_[(4) - (1)].mp_string));
 	}
     break;
 
   case 82:
 
 /* Line 690 of lalr1.cc  */
-#line 563 "idl.y"
+#line 614 "idl.y"
     {
 	delete((yysemantic_stack_[(2) - (2)].stringVal));
 	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -986,7 +1035,7 @@ namespace eprosima {
   case 83:
 
 /* Line 690 of lalr1.cc  */
-#line 570 "idl.y"
+#line 621 "idl.y"
     {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(2) - (2)].stringVal));
 	delete((yysemantic_stack_[(2) - (2)].stringVal));}
     break;
@@ -994,7 +1043,7 @@ namespace eprosima {
   case 84:
 
 /* Line 690 of lalr1.cc  */
-#line 573 "idl.y"
+#line 624 "idl.y"
     {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(3) - (2)].stringVal));
 	delete((yysemantic_stack_[(3) - (2)].stringVal));}
     break;
@@ -1002,14 +1051,14 @@ namespace eprosima {
   case 85:
 
 /* Line 690 of lalr1.cc  */
-#line 577 "idl.y"
+#line 628 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 86:
 
 /* Line 690 of lalr1.cc  */
-#line 579 "idl.y"
+#line 630 "idl.y"
     {
 	for(TypeCodeVec::iterator it = (yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (2)].mp_TypeCodeVec)->end();++it)
 		(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->push_back(*it);
@@ -1021,7 +1070,7 @@ namespace eprosima {
   case 90:
 
 /* Line 690 of lalr1.cc  */
-#line 591 "idl.y"
+#line 642 "idl.y"
     {
     delete((yysemantic_stack_[(2) - (1)].mp_TypeCode));
     (yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -1031,7 +1080,7 @@ namespace eprosima {
   case 92:
 
 /* Line 690 of lalr1.cc  */
-#line 599 "idl.y"
+#line 650 "idl.y"
     {(yyval.mp_string) = new std::string("");
 	delete((yysemantic_stack_[(2) - (2)].mp_string));}
     break;
@@ -1039,7 +1088,7 @@ namespace eprosima {
   case 93:
 
 /* Line 690 of lalr1.cc  */
-#line 605 "idl.y"
+#line 656 "idl.y"
     {
 	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].mp_string));
 	delete((yysemantic_stack_[(1) - (1)].mp_string));}
@@ -1048,7 +1097,7 @@ namespace eprosima {
   case 94:
 
 /* Line 690 of lalr1.cc  */
-#line 609 "idl.y"
+#line 660 "idl.y"
     {(yyval.mp_string) = (yysemantic_stack_[(3) - (3)].mp_string);
 	delete((yysemantic_stack_[(3) - (1)].mp_string));
 	}
@@ -1057,7 +1106,7 @@ namespace eprosima {
   case 95:
 
 /* Line 690 of lalr1.cc  */
-#line 615 "idl.y"
+#line 666 "idl.y"
     {
 	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].stringVal));
 	delete((yysemantic_stack_[(1) - (1)].stringVal));
@@ -1067,7 +1116,7 @@ namespace eprosima {
   case 96:
 
 /* Line 690 of lalr1.cc  */
-#line 620 "idl.y"
+#line 671 "idl.y"
     {
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,"::");
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,*(yysemantic_stack_[(3) - (1)].stringVal));
@@ -1079,7 +1128,7 @@ namespace eprosima {
   case 98:
 
 /* Line 690 of lalr1.cc  */
-#line 630 "idl.y"
+#line 681 "idl.y"
     {
 	std::string* aux_str = new std::string("::");
 	aux_str->append(*(yysemantic_stack_[(2) - (2)].stringVal));
@@ -1091,7 +1140,7 @@ namespace eprosima {
   case 99:
 
 /* Line 690 of lalr1.cc  */
-#line 637 "idl.y"
+#line 688 "idl.y"
     {
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,*(yysemantic_stack_[(3) - (2)].stringVal));
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,"::");
@@ -1103,12 +1152,13 @@ namespace eprosima {
   case 100:
 
 /* Line 690 of lalr1.cc  */
-#line 647 "idl.y"
+#line 698 "idl.y"
     {
 	UnionTypeCode* uTC = new UnionTypeCode();
 	uTC->setName(*(yysemantic_stack_[(9) - (2)].stringVal));
 	delete((yysemantic_stack_[(9) - (2)].stringVal));
-	uTC->setDiscriminatorTypeCode((yysemantic_stack_[(9) - (5)].mp_TypeCode));
+	TypeCode* discTC = TCprovider.copyTypeCode((yysemantic_stack_[(9) - (5)].mp_TypeCode),true);
+	uTC->setDiscriminatorTypeCode(discTC);
 	UnionMember* uM_boolWithDefault = NULL;
 	bool isTrue = false;
 	for(MemberVec::iterator it = (yysemantic_stack_[(9) - (8)].mp_MemberVec)->begin();it!=(yysemantic_stack_[(9) - (8)].mp_MemberVec)->end();++it)
@@ -1117,17 +1167,20 @@ namespace eprosima {
 		std::vector<int32_t> labels = uM->getLabels();
 		bool change = false;
 		bool boolDefaultFound = false;
+		bool defaultIndex = false;
 		for(std::vector<int32_t>::iterator it = labels.begin();it!=labels.end();++it)
 		{
 			if((yysemantic_stack_[(9) - (5)].mp_TypeCode)->getKind() == TypeCode::KIND_CHAR && (*it) == -1000)
 			{
 				(*it) = 254;
 				change = true;
+				defaultIndex = true;
 			}
 			if((yysemantic_stack_[(9) - (5)].mp_TypeCode)->getKind() == TypeCode::KIND_ENUM && (*it) == -1000)
 			{
 				(*it) = 0;
 				change = true;
+				defaultIndex = true;
 			}
 			if((yysemantic_stack_[(9) - (5)].mp_TypeCode)->getKind() == TypeCode::KIND_BOOLEAN && (*it) == -1000)
 			{
@@ -1138,11 +1191,29 @@ namespace eprosima {
 			{
 				isTrue = (bool)(*it);
 			}
+			if((*it) == -1000) //REST OF THE CASES
+			{
+				change = true;
+				defaultIndex = true;
+			}
 		}
 		if(change)
 			uM->setLabels(labels);
 		if(!boolDefaultFound)
-			uTC->addMember(uM);
+		{
+			if(!uTC->addMember(uM))
+			{
+			std::cout << "Warning: UnionMember with repeated name, second instance not added " << std::endl; //TODO MOfidicar para que devuelva error
+			delete(uM);
+			}
+			else
+			{
+				if(defaultIndex)
+				{
+					uTC->setDefaultIndex(uTC->getMemberCount()-1);
+				}
+			}
+		}
 	}
 	if(uM_boolWithDefault !=NULL)
 	{
@@ -1153,7 +1224,11 @@ namespace eprosima {
 			*it = !isTrue;
 	}
 	uM_boolWithDefault->setLabels(labels);
-	uTC->addMember(uM_boolWithDefault);
+	if(!uTC->addMember(uM_boolWithDefault))
+			{
+			std::cout << "Warning: UnionMember with repeated name, second instance not added " << std::endl; //TODO MOfidicar para que devuelva error
+			delete(uM_boolWithDefault);
+			}
 	}
 	delete((yysemantic_stack_[(9) - (8)].mp_MemberVec));
 	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -1164,16 +1239,16 @@ namespace eprosima {
   case 104:
 
 /* Line 690 of lalr1.cc  */
-#line 709 "idl.y"
+#line 786 "idl.y"
     {
-    (yyval.mp_TypeCode) = * (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin();
+    (yyval.mp_TypeCode) = *((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin());
     }
     break;
 
   case 106:
 
 /* Line 690 of lalr1.cc  */
-#line 716 "idl.y"
+#line 793 "idl.y"
     {
 	(yyval.mp_MemberVec) = new MemberVec();
 	(yyval.mp_MemberVec)->push_back((yysemantic_stack_[(1) - (1)].mp_Member));
@@ -1183,9 +1258,9 @@ namespace eprosima {
   case 107:
 
 /* Line 690 of lalr1.cc  */
-#line 721 "idl.y"
+#line 798 "idl.y"
     {
-	(yysemantic_stack_[(2) - (2)].mp_MemberVec)->push_back((yysemantic_stack_[(2) - (1)].mp_Member)); 
+	(yysemantic_stack_[(2) - (2)].mp_MemberVec)->insert((yysemantic_stack_[(2) - (2)].mp_MemberVec)->begin(),(yysemantic_stack_[(2) - (1)].mp_Member));
 	(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
 	}
     break;
@@ -1193,7 +1268,7 @@ namespace eprosima {
   case 108:
 
 /* Line 690 of lalr1.cc  */
-#line 727 "idl.y"
+#line 804 "idl.y"
     {
 	((UnionMember*)((yysemantic_stack_[(3) - (2)].mp_Member)))->setLabels((yysemantic_stack_[(3) - (1)].mp_Declarator)->second);
 	(yyval.mp_Member) = (yysemantic_stack_[(3) - (2)].mp_Member);
@@ -1203,24 +1278,24 @@ namespace eprosima {
   case 109:
 
 /* Line 690 of lalr1.cc  */
-#line 734 "idl.y"
+#line 811 "idl.y"
     {(yyval.mp_Declarator) = (yysemantic_stack_[(1) - (1)].mp_Declarator);}
     break;
 
   case 110:
 
 /* Line 690 of lalr1.cc  */
-#line 736 "idl.y"
+#line 813 "idl.y"
     {
-	(yysemantic_stack_[(2) - (2)].mp_Declarator)->second.push_back(*((yysemantic_stack_[(2) - (1)].mp_Declarator)->second.begin()));
-	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (2)].mp_Declarator);
-	delete((yysemantic_stack_[(2) - (1)].mp_Declarator));}
+	(yysemantic_stack_[(2) - (1)].mp_Declarator)->second.push_back(*((yysemantic_stack_[(2) - (2)].mp_Declarator)->second.begin()));
+	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (1)].mp_Declarator);
+	delete((yysemantic_stack_[(2) - (2)].mp_Declarator));}
     break;
 
   case 111:
 
 /* Line 690 of lalr1.cc  */
-#line 743 "idl.y"
+#line 820 "idl.y"
     {
 	Declarator * dCL = new Declarator();
 	if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == NUMBER_TYPE)
@@ -1229,7 +1304,10 @@ namespace eprosima {
 	}
 	else if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == BOOL_TYPE)
 	{
-		dCL->second.push_back((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->boolean);	
+		if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->boolean == true)
+			dCL->second.push_back(1);
+		else	
+			dCL->second.push_back(0);
 	}
 	else if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == STRING_TYPE)
 	{
@@ -1242,13 +1320,14 @@ namespace eprosima {
 	{
 	dCL->second.push_back(TCprovider.findENUMvalue((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->str));
 	}
+	(yyval.mp_Declarator) = dCL;
 	}
     break;
 
   case 112:
 
 /* Line 690 of lalr1.cc  */
-#line 766 "idl.y"
+#line 847 "idl.y"
     {
 	Declarator * dCL = new Declarator();
 	dCL->second.push_back(-1000);
@@ -1259,7 +1338,7 @@ namespace eprosima {
   case 113:
 
 /* Line 690 of lalr1.cc  */
-#line 773 "idl.y"
+#line 854 "idl.y"
     {
 	UnionMember* uM = new UnionMember();
 	uM->setName((yysemantic_stack_[(2) - (2)].mp_Declarator)->first);
@@ -1272,7 +1351,7 @@ namespace eprosima {
   case 114:
 
 /* Line 690 of lalr1.cc  */
-#line 784 "idl.y"
+#line 865 "idl.y"
     {std::cout << "Warning: \"attribute\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
@@ -1280,7 +1359,7 @@ namespace eprosima {
   case 115:
 
 /* Line 690 of lalr1.cc  */
-#line 787 "idl.y"
+#line 868 "idl.y"
     {std::cout << "Warning: \"readonly attribute\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
@@ -1288,7 +1367,7 @@ namespace eprosima {
   case 116:
 
 /* Line 690 of lalr1.cc  */
-#line 792 "idl.y"
+#line 873 "idl.y"
     {
     (yyval.mp_TypeCode) = NULL;
     }
@@ -1297,14 +1376,14 @@ namespace eprosima {
   case 117:
 
 /* Line 690 of lalr1.cc  */
-#line 796 "idl.y"
+#line 877 "idl.y"
     {(yyval.mp_TypeCode) = NULL;}
     break;
 
   case 118:
 
 /* Line 690 of lalr1.cc  */
-#line 801 "idl.y"
+#line 882 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
 	delete((yysemantic_stack_[(3) - (2)].stringVal));}
     break;
@@ -1312,7 +1391,7 @@ namespace eprosima {
   case 119:
 
 /* Line 690 of lalr1.cc  */
-#line 804 "idl.y"
+#line 885 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
 	delete((yysemantic_stack_[(4) - (3)].stringVal));}
     break;
@@ -1320,112 +1399,112 @@ namespace eprosima {
   case 120:
 
 /* Line 690 of lalr1.cc  */
-#line 808 "idl.y"
+#line 889 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 121:
 
 /* Line 690 of lalr1.cc  */
-#line 811 "idl.y"
+#line 892 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 123:
 
 /* Line 690 of lalr1.cc  */
-#line 816 "idl.y"
+#line 897 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 124:
 
 /* Line 690 of lalr1.cc  */
-#line 820 "idl.y"
+#line 901 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 125:
 
 /* Line 690 of lalr1.cc  */
-#line 822 "idl.y"
+#line 903 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 126:
 
 /* Line 690 of lalr1.cc  */
-#line 826 "idl.y"
+#line 907 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 127:
 
 /* Line 690 of lalr1.cc  */
-#line 828 "idl.y"
+#line 909 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 128:
 
 /* Line 690 of lalr1.cc  */
-#line 831 "idl.y"
+#line 912 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 129:
 
 /* Line 690 of lalr1.cc  */
-#line 835 "idl.y"
+#line 916 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 130:
 
 /* Line 690 of lalr1.cc  */
-#line 837 "idl.y"
+#line 918 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 131:
 
 /* Line 690 of lalr1.cc  */
-#line 839 "idl.y"
+#line 920 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 132:
 
 /* Line 690 of lalr1.cc  */
-#line 843 "idl.y"
+#line 924 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 133:
 
 /* Line 690 of lalr1.cc  */
-#line 845 "idl.y"
+#line 926 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 134:
 
 /* Line 690 of lalr1.cc  */
-#line 849 "idl.y"
+#line 930 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 135:
 
 /* Line 690 of lalr1.cc  */
-#line 851 "idl.y"
+#line 932 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 136:
 
 /* Line 690 of lalr1.cc  */
-#line 855 "idl.y"
+#line 936 "idl.y"
     {(yyval.m_uint32_t) = 0;
 	delete((yysemantic_stack_[(1) - (1)].stringVal));}
     break;
@@ -1433,7 +1512,7 @@ namespace eprosima {
   case 137:
 
 /* Line 690 of lalr1.cc  */
-#line 858 "idl.y"
+#line 939 "idl.y"
     {(yyval.m_uint32_t) = 0;
 	delete((yysemantic_stack_[(3) - (1)].stringVal));}
     break;
@@ -1441,7 +1520,7 @@ namespace eprosima {
   case 138:
 
 /* Line 690 of lalr1.cc  */
-#line 863 "idl.y"
+#line 944 "idl.y"
     {
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
     (yyval.m_uint32_t) = 0;
@@ -1451,7 +1530,7 @@ namespace eprosima {
   case 139:
 
 /* Line 690 of lalr1.cc  */
-#line 868 "idl.y"
+#line 949 "idl.y"
     {
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
     (yyval.m_uint32_t) = 0;
@@ -1461,7 +1540,7 @@ namespace eprosima {
   case 140:
 
 /* Line 690 of lalr1.cc  */
-#line 873 "idl.y"
+#line 954 "idl.y"
     {
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
     (yyval.m_uint32_t) = 0;
@@ -1471,7 +1550,7 @@ namespace eprosima {
   case 141:
 
 /* Line 690 of lalr1.cc  */
-#line 887 "idl.y"
+#line 968 "idl.y"
     {
 	if((yysemantic_stack_[(1) - (1)].mp_TypeLiteral)->type == NUMBER_TYPE)
 		(yyval.m_uint32_t) = (uint32_t)(yysemantic_stack_[(1) - (1)].mp_TypeLiteral)->num;
@@ -1484,7 +1563,7 @@ namespace eprosima {
   case 142:
 
 /* Line 690 of lalr1.cc  */
-#line 898 "idl.y"
+#line 979 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = SCOPED_TYPE;
 	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].mp_string);
@@ -1495,21 +1574,21 @@ namespace eprosima {
   case 143:
 
 /* Line 690 of lalr1.cc  */
-#line 904 "idl.y"
+#line 985 "idl.y"
     {(yyval.mp_TypeLiteral) = (yysemantic_stack_[(1) - (1)].mp_TypeLiteral);}
     break;
 
   case 144:
 
 /* Line 690 of lalr1.cc  */
-#line 906 "idl.y"
+#line 987 "idl.y"
     {(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (2)].mp_TypeLiteral);}
     break;
 
   case 145:
 
 /* Line 690 of lalr1.cc  */
-#line 908 "idl.y"
+#line 989 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean | (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
@@ -1526,7 +1605,7 @@ namespace eprosima {
   case 146:
 
 /* Line 690 of lalr1.cc  */
-#line 920 "idl.y"
+#line 1001 "idl.y"
     {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
@@ -1544,7 +1623,7 @@ namespace eprosima {
   case 147:
 
 /* Line 690 of lalr1.cc  */
-#line 933 "idl.y"
+#line 1014 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean & (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
@@ -1561,7 +1640,7 @@ namespace eprosima {
   case 148:
 
 /* Line 690 of lalr1.cc  */
-#line 945 "idl.y"
+#line 1026 "idl.y"
     {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
@@ -1579,7 +1658,7 @@ namespace eprosima {
   case 149:
 
 /* Line 690 of lalr1.cc  */
-#line 958 "idl.y"
+#line 1039 "idl.y"
     {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
@@ -1597,7 +1676,7 @@ namespace eprosima {
   case 150:
 
 /* Line 690 of lalr1.cc  */
-#line 971 "idl.y"
+#line 1052 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 	{
@@ -1624,7 +1703,7 @@ namespace eprosima {
   case 151:
 
 /* Line 690 of lalr1.cc  */
-#line 993 "idl.y"
+#line 1074 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == STRING_TYPE || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == SCOPED_TYPE)
 	{
@@ -1643,7 +1722,7 @@ namespace eprosima {
   case 152:
 
 /* Line 690 of lalr1.cc  */
-#line 1007 "idl.y"
+#line 1088 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1662,7 +1741,7 @@ namespace eprosima {
   case 153:
 
 /* Line 690 of lalr1.cc  */
-#line 1021 "idl.y"
+#line 1102 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1681,7 +1760,7 @@ namespace eprosima {
   case 154:
 
 /* Line 690 of lalr1.cc  */
-#line 1035 "idl.y"
+#line 1116 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1700,7 +1779,7 @@ namespace eprosima {
   case 155:
 
 /* Line 690 of lalr1.cc  */
-#line 1049 "idl.y"
+#line 1130 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1716,7 +1795,7 @@ namespace eprosima {
   case 156:
 
 /* Line 690 of lalr1.cc  */
-#line 1060 "idl.y"
+#line 1141 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1732,7 +1811,7 @@ namespace eprosima {
   case 157:
 
 /* Line 690 of lalr1.cc  */
-#line 1071 "idl.y"
+#line 1152 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type == STRING_TYPE)
 	{
@@ -1754,7 +1833,7 @@ namespace eprosima {
   case 158:
 
 /* Line 690 of lalr1.cc  */
-#line 1093 "idl.y"
+#line 1174 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = NUMBER_TYPE;
 	(yyval.mp_TypeLiteral)->num = (yysemantic_stack_[(1) - (1)].integerVal);
@@ -1764,7 +1843,7 @@ namespace eprosima {
   case 159:
 
 /* Line 690 of lalr1.cc  */
-#line 1098 "idl.y"
+#line 1179 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = NUMBER_TYPE;
 	(yyval.mp_TypeLiteral)->num = (yysemantic_stack_[(1) - (1)].doubleVal);
@@ -1774,7 +1853,7 @@ namespace eprosima {
   case 160:
 
 /* Line 690 of lalr1.cc  */
-#line 1103 "idl.y"
+#line 1184 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = STRING_TYPE;
 	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].stringVal);
@@ -1785,7 +1864,7 @@ namespace eprosima {
   case 161:
 
 /* Line 690 of lalr1.cc  */
-#line 1109 "idl.y"
+#line 1190 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = STRING_TYPE;
 	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].stringVal);
@@ -1796,7 +1875,7 @@ namespace eprosima {
   case 162:
 
 /* Line 690 of lalr1.cc  */
-#line 1115 "idl.y"
+#line 1196 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = BOOL_TYPE;
 	(yyval.mp_TypeLiteral)->boolean = (yysemantic_stack_[(1) - (1)].integerVal);
@@ -1806,7 +1885,7 @@ namespace eprosima {
   case 163:
 
 /* Line 690 of lalr1.cc  */
-#line 1138 "idl.y"
+#line 1219 "idl.y"
     {std::cout << "Warning: \"const\" token not allowed" << std::endl;
 	 PrimitiveTypeCode* auxptrTC = new PrimitiveTypeCode(TypeCode::KIND_NULL);
 	 (yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -1817,7 +1896,7 @@ namespace eprosima {
   case 164:
 
 /* Line 690 of lalr1.cc  */
-#line 1146 "idl.y"
+#line 1227 "idl.y"
     {std::cout << "Warning: \"exception\" token not allowed" << std::endl;
 	PrimitiveTypeCode* auxptrTC = new PrimitiveTypeCode(TypeCode::KIND_NULL);
 	 (yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -1828,7 +1907,7 @@ namespace eprosima {
 
 
 /* Line 690 of lalr1.cc  */
-#line 1832 "IDLParser.cc"
+#line 1911 "IDLParser.cc"
 	default:
           break;
       }
@@ -2516,23 +2595,23 @@ namespace eprosima {
   const unsigned short int
   IDLParser::yyrline_[] =
   {
-         0,   187,   187,   196,   200,   211,   212,   213,   214,   215,
-     216,   219,   221,   223,   227,   247,   249,   250,   251,   254,
-     267,   269,   284,   325,   326,   333,   334,   335,   338,   349,
-     350,   351,   352,   353,   354,   355,   357,   363,   368,   369,
-     372,   373,   374,   377,   382,   389,   390,   392,   399,   402,
-     410,   415,   420,   426,   428,   430,   434,   435,   438,   439,
-     441,   443,   446,   450,   451,   453,   455,   458,   461,   464,
-     467,   472,   489,   495,   498,   504,   509,   515,   521,   530,
-     531,   534,   562,   569,   572,   577,   578,   587,   588,   589,
-     590,   595,   598,   604,   608,   614,   619,   626,   629,   636,
-     646,   705,   706,   707,   708,   712,   715,   720,   726,   733,
-     735,   742,   765,   772,   783,   786,   791,   795,   800,   803,
-     807,   810,   814,   815,   819,   821,   825,   827,   830,   834,
-     836,   838,   843,   844,   849,   850,   854,   857,   862,   867,
-     872,   886,   897,   903,   905,   907,   919,   932,   944,   957,
-     970,   992,  1006,  1020,  1034,  1048,  1059,  1070,  1092,  1097,
-    1102,  1108,  1114,  1137,  1145
+         0,   187,   187,   193,   197,   208,   212,   216,   220,   224,
+     230,   239,   241,   243,   247,   269,   271,   272,   273,   276,
+     303,   305,   322,   366,   367,   374,   375,   376,   379,   395,
+     396,   397,   398,   399,   400,   401,   403,   409,   414,   415,
+     418,   419,   420,   423,   428,   435,   436,   438,   445,   448,
+     456,   461,   466,   472,   474,   476,   480,   481,   484,   485,
+     487,   489,   492,   496,   497,   499,   501,   504,   507,   510,
+     513,   518,   539,   545,   548,   554,   559,   565,   571,   580,
+     581,   584,   613,   620,   623,   628,   629,   638,   639,   640,
+     641,   646,   649,   655,   659,   665,   670,   677,   680,   687,
+     697,   782,   783,   784,   785,   789,   792,   797,   803,   810,
+     812,   819,   846,   853,   864,   867,   872,   876,   881,   884,
+     888,   891,   895,   896,   900,   902,   906,   908,   911,   915,
+     917,   919,   924,   925,   930,   931,   935,   938,   943,   948,
+     953,   967,   978,   984,   986,   988,  1000,  1013,  1025,  1038,
+    1051,  1073,  1087,  1101,  1115,  1129,  1140,  1151,  1173,  1178,
+    1183,  1189,  1195,  1218,  1226
   };
 
   // Print the state stack on the debug stream.
@@ -2626,11 +2705,11 @@ namespace eprosima {
 } // eprosima
 
 /* Line 1136 of lalr1.cc  */
-#line 2630 "IDLParser.cc"
+#line 2709 "IDLParser.cc"
 
 
 /* Line 1138 of lalr1.cc  */
-#line 1156 "idl.y"
+#line 1237 "idl.y"
 
 
 // directly include the nonterm defs here

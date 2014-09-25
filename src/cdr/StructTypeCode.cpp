@@ -3,11 +3,23 @@
 #include "fastcdr/Cdr.h"
 #include "fastcdr/exceptions/Exception.h"
 
+#include "cdr/TypeCodeCopy.h"
+using namespace eprosima;
+
 using namespace eProsima;
+#include <iostream>
 
 StructMember::StructMember(std::string &name, uint16_t bits, uint8_t flags) : Member(name),
     m_bits(bits), m_flags(flags)
 {
+}
+
+StructMember::StructMember(const StructMember& copy):m_bits(0),m_flags(0)
+{
+	std::string name = copy.getName();
+	this->setName(name);
+	TypeCode* TC = TypeCodeCopy::copy(copy.getTypeCode());
+	this->setTypeCode(TC);
 }
 
 StructTypeCode::StructTypeCode() : MemberedTypeCode(TypeCode::KIND_STRUCT)
@@ -16,7 +28,12 @@ StructTypeCode::StructTypeCode() : MemberedTypeCode(TypeCode::KIND_STRUCT)
 
 StructTypeCode::StructTypeCode(const StructTypeCode& copy): MemberedTypeCode(TypeCode::KIND_STRUCT)
 {
-	m_members = copy.m_members;
+	for(std::vector<Member*>::const_iterator it = copy.m_members.begin();it!= copy.m_members.end();++it)
+	{
+		StructMember* sM = (StructMember*)(*it);
+		sM = new StructMember(*sM);
+		m_members.push_back(sM);
+	}
 	m_name = copy.m_name;
 	m_memberCount = copy.m_memberCount;
 
@@ -108,9 +125,12 @@ bool StructTypeCode::print(IDLPrinter &printer, bool write) const
     return returnedValue;
 }
 
-void StructTypeCode::addMember(StructMember* m)
+bool StructTypeCode::addMember(StructMember* m)
 {
+	if(isMemberWithName(m->getName()))
+		return false;
 	this->addMemberPtr((Member*)m);
+	return true;
 }
 
 bool eProsima::operator<<(IDLPrinter &printer, const StructTypeCode *typeCode)

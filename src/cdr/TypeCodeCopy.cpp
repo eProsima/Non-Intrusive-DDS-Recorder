@@ -49,34 +49,46 @@ TypeCode* TypeCodeCopy::copy(const TypeCode* pTC, bool first)
 		case TypeCode::KIND_NULL:
 		{
 			if(!first)
+			{
 				outpTC = (TypeCode*)new PrimitiveTypeCode(pTC->getKind());
+				std::cout << "COPYING PRIMITIVE TYPE CODE"<<std::endl;
+			}
 			break;
 		}
 		case TypeCode::KIND_STRUCT:
 		{
+			std::cout << "COPYING STRUCT TYPE CODE"<<std::endl;
 			outpTC = (TypeCode*) new StructTypeCode(*(StructTypeCode*)pTC);
 			break;
 		}
 		case TypeCode::KIND_UNION:
 		{
+			std::cout << "COPYING UNION TYPE CODE"<<std::endl;
 			outpTC = (TypeCode*) new UnionTypeCode(*(UnionTypeCode*)pTC);
 			break;
 		}
 		case TypeCode::KIND_ENUM:
 		{
+			std::cout << "COPYING ENUM TYPE CODE"<<std::endl;
 			outpTC = (TypeCode*) new EnumTypeCode(*(EnumTypeCode*)pTC);
 			break;
 		}
 		case TypeCode::KIND_STRING:
 		{
 			if(!first)
+			{
 				outpTC = (TypeCode*) new StringTypeCode(*(StringTypeCode*)pTC);
+				std::cout << "COPYING STRING TYPE CODE"<<std::endl;
+			}
 			break;
 		}
 		case TypeCode::KIND_SEQUENCE:
 		{
 			if(!first)
+			{
 				outpTC = (TypeCode*) new SequenceTypeCode(*(SequenceTypeCode*)pTC);
+				std::cout << "COPYING SEQUENCE TYPE CODE"<<std::endl;
+			}
 			break;
 		}
 		case TypeCode::KIND_ALIAS:

@@ -1,5 +1,5 @@
 #include "cdr/MemberedTypeCode.h"
-
+#include <iostream>
 using namespace eProsima;
 
 Member::Member(std::string &name) : m_name(name), m_typeCode(NULL)
@@ -13,6 +13,7 @@ Member::Member():m_typeCode(NULL)
 
 Member::~Member()
 {
+	std::cout << "Deleting memeber: "<< m_name << " typecode"<<std::endl;
     if(m_typeCode != NULL)
         delete m_typeCode;
 }
@@ -86,6 +87,16 @@ void MemberedTypeCode::addMemberPtr(Member* mem)
 {
 	m_members.push_back(mem);
 	m_memberCount++;
+}
+
+bool MemberedTypeCode::isMemberWithName(const std::string& name)
+{
+	for(std::vector<Member*>::iterator it = m_members.begin();it!=m_members.end();++it)
+	{
+		if((*it)->getName() == name)
+			return true;
+	}
+	return false;
 }
 
 bool MemberedTypeCode::deserializeMembers(Cdr &cdr)

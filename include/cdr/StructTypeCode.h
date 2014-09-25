@@ -18,6 +18,7 @@ namespace eProsima
     {
     public:
         StructMember(std::string &name, uint16_t bits, uint8_t flags);
+        StructMember(const StructMember& copy);
 
         virtual ~StructMember(){}
 
@@ -56,7 +57,7 @@ namespace eProsima
 
         friend bool operator<<(IDLPrinter &printer, const StructTypeCode *structTypeCode);
 
-        void addMember(StructMember* sm);
+        bool addMember(StructMember* sm);
 
     private:
         

@@ -84,6 +84,7 @@ namespace eProsima
         const Member* getMember(uint32_t index) const;
 
 
+       bool isMemberWithName(const std::string& name);
 
 
     protected:

@@ -21,6 +21,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "util/IDLPrinter.h"
+
 namespace eprosima {
 
 
@@ -31,7 +33,8 @@ UserTypeCodeProvider::~UserTypeCodeProvider() {
 UserTypeCodeProvider::UserTypeCodeProvider()
 : trace_scanning(false),
   trace_parsing(false),
-  lexer(NULL)
+  lexer(NULL),
+  m_errorCode(NO_ERROR)
 {
 }
 
@@ -45,7 +48,13 @@ bool UserTypeCodeProvider::parse_stream(std::istream& in, const std::string& sna
 
 	IDLParser parser(*this);
 	parser.set_debug_level((int)trace_parsing);
-	return (parser.parse() == 0);
+	if(parser.parse() != 0)
+	{
+		m_errorCode = IDLPARSER_ERROR;
+	}
+	if(m_errorCode != NO_ERROR)
+		return false;
+	return true;
 }
 
 bool UserTypeCodeProvider::parse_file(const std::string &filename)
@@ -74,7 +83,28 @@ void UserTypeCodeProvider::error(const std::string& m)
 
 TypeCode* UserTypeCodeProvider::copyTypeCode(TypeCode* pTC, bool first)
 {
+
 	return TypeCodeCopy::copy(pTC,first);
+}
+
+bool UserTypeCodeProvider::getStructTypeCode(const std::string& name, TypeCode** ppTC)
+{
+	TypeCode* pTC = NULL;
+
+	for(std::vector<TypeCode*>::iterator it = m_typeCodes.begin();
+			it!=m_typeCodes.end();++it)
+	{
+		pTC = (*it);
+		if(pTC->getKind() == TypeCode::KIND_STRUCT)
+		{
+			if(((StructTypeCode*)pTC)->getName() == name)
+			{
+				*ppTC = pTC;
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 
@@ -149,9 +179,27 @@ int32_t UserTypeCodeProvider::findENUMvalue(std::string& instr)
 
 bool UserTypeCodeProvider::addTypeCode(TypeCode* TC)
 {
+	//printf("Adding TYPECODE\n");
 	if(TC->getKind()!=TypeCode::KIND_NULL)
 	{
-		m_typeCodes.push_back(TC);
+		if(TC->getKind()== TypeCode::KIND_STRUCT || TC->getKind() == TypeCode::KIND_UNION ||
+				TC->getKind()==TypeCode::KIND_ENUM)
+		{
+			MemberedTypeCode* mTC = (MemberedTypeCode*)TC;
+			for(std::vector<TypeCode*>::iterator it = m_typeCodes.begin();it!=m_typeCodes.end();++it)
+			{
+				MemberedTypeCode* mTCin = (MemberedTypeCode*)(*it);
+				if(mTCin->getName() == mTC->getName())
+					return false;
+			}
+			IDLPrinter txtStream;
+			txtStream << TC;
+			std::cout << "*****************Adding TYpeCode "<<m_typeCodes.size() << " ::::::::::::::::::" <<std::endl<<txtStream.str();
+
+			m_typeCodes.push_back(TC);
+
+			std::cout << "*****************ADDED***************** "<<std::endl;
+		}
 		return true;
 	}
 	else
@@ -162,7 +210,25 @@ bool UserTypeCodeProvider::addTypeCode(TypeCode* TC)
 }
 
 
+void UserTypeCodeProvider::printTypeCodes()
+{
+	for(std::vector<TypeCode*>::iterator it = m_typeCodes.begin();it!=m_typeCodes.end();++it)
+	{
+		IDLPrinter txtStream;
+		txtStream << (*it);
+		std::cout << "TypeCode: ****  "<< std::distance(m_typeCodes.begin(), it) << " *****************" << std::endl<< std::endl;
+		std::cout << txtStream.str();
+	}
+}
 
+void UserTypeCodeProvider::deleteTypeCodes()
+{
+	for(std::vector<TypeCode*>::iterator it = m_typeCodes.begin();it!=m_typeCodes.end();++it)
+	{
+		std::cout << " Deleting typecode " << std::distance(m_typeCodes.begin(), it)<< std::endl;
+		delete(*it);
+	}
+}
 
 
 
