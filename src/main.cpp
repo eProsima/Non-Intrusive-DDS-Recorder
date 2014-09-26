@@ -25,6 +25,7 @@ void printHelp()
 	printf("    <pcapFile>: The sniffer file to process (PCAP format required)\n");
 	printf("    -db <database>: Database file to store the DDS traffic (Default: dump.db)\n");
 	printf("    -tcMaxSize <size>: TypeCode maximum allowed size (Default: 2048)\n");
+	printf("    -idl <idlfile>: An IDL file containing the description of the used types.\n");
 	printf("    -help: Print help information.\n");
 }
 
@@ -52,12 +53,12 @@ int main(int argc, char *argv[])
 	else
 		std::cout << "Enter FileName" << std::endl;
 }
- */
+*/
 
 int main(int argc, char *argv[])
 {
 	int returnedValue = -1;
-	string filename;
+	string filename;l
 	string db = "dump.db";
 	string idlfile;
 	int tcMaxSize = TYPECODE_MAX_SERIALIZED_LENGTH;
@@ -170,7 +171,8 @@ int main(int argc, char *argv[])
 	{
 		printHelp();
 	}
-
+	if(UTCprovider!=NULL)
+		delete UTCprovider;
 	return returnedValue;
 }
 

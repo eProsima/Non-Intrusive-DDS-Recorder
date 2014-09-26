@@ -333,7 +333,7 @@ struct_member : type_spec declarators ';'
 	bool first = true;
 	for(DeclaratorVec::iterator it=$2->begin();it!=$2->end();++it)
 	{
-		std::cout << "Declarator: " << (*it)->first<< std::endl;
+		//std::cout << "Declarator: " << (*it)->first<< std::endl;
 		TypeCode* pTC = $1;
 		pTC = TCprovider.copyTypeCode(pTC, first);
 		first = false;

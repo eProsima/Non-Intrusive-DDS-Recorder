@@ -28,6 +28,7 @@ namespace eprosima {
 
 UserTypeCodeProvider::~UserTypeCodeProvider() {
 	// TODO Auto-generated destructor stub
+	this->deleteTypeCodes();
 }
 
 UserTypeCodeProvider::UserTypeCodeProvider()
@@ -194,11 +195,11 @@ bool UserTypeCodeProvider::addTypeCode(TypeCode* TC)
 			}
 			IDLPrinter txtStream;
 			txtStream << TC;
-			std::cout << "*****************Adding TYpeCode "<<m_typeCodes.size() << " ::::::::::::::::::" <<std::endl<<txtStream.str();
+			//std::cout << "*****************Adding TYpeCode "<<m_typeCodes.size() << " ::::::::::::::::::" <<std::endl<<txtStream.str();
 
 			m_typeCodes.push_back(TC);
 
-			std::cout << "*****************ADDED***************** "<<std::endl;
+			//std::cout << "*****************ADDED***************** "<<std::endl;
 		}
 		return true;
 	}
@@ -225,7 +226,7 @@ void UserTypeCodeProvider::deleteTypeCodes()
 {
 	for(std::vector<TypeCode*>::iterator it = m_typeCodes.begin();it!=m_typeCodes.end();++it)
 	{
-		std::cout << " Deleting typecode " << std::distance(m_typeCodes.begin(), it)<< std::endl;
+		//std::cout << " Deleting typecode " << std::distance(m_typeCodes.begin(), it)<< std::endl;
 		delete(*it);
 	}
 }

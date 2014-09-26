@@ -13,7 +13,7 @@ Member::Member():m_typeCode(NULL)
 
 Member::~Member()
 {
-	std::cout << "Deleting memeber: "<< m_name << " typecode"<<std::endl;
+	//std::cout << "Deleting member: "<< m_name << " typecode"<<std::endl;
     if(m_typeCode != NULL)
         delete m_typeCode;
 }

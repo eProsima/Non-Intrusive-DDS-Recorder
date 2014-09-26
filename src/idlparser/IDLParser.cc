@@ -677,7 +677,7 @@ namespace eprosima {
 	bool first = true;
 	for(DeclaratorVec::iterator it=(yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->begin();it!=(yysemantic_stack_[(3) - (2)].mp_DeclaratorVec)->end();++it)
 	{
-		std::cout << "Declarator: " << (*it)->first<< std::endl;
+		//std::cout << "Declarator: " << (*it)->first<< std::endl;
 		TypeCode* pTC = (yysemantic_stack_[(3) - (1)].mp_TypeCode);
 		pTC = TCprovider.copyTypeCode(pTC, first);
 		first = false;
