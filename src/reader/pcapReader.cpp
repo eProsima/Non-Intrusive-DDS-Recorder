@@ -60,7 +60,7 @@ struct udphdr
 #endif
 
 using namespace std;
-using namespace eProsima;
+using namespace eprosima;
 
 static const char* const CLASS_NAME = "pcapReader";
 

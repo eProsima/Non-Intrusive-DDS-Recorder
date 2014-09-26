@@ -10,7 +10,7 @@
 #define TYPECODE_MAX_SERIALIZED_LENGTH 2048
 
 using namespace std;
-using namespace eProsima;
+using namespace eprosima;
 
 void printHelp()
 {

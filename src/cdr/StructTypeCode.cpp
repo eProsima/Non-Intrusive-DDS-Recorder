@@ -6,7 +6,7 @@
 #include "cdr/TypeCodeCopy.h"
 using namespace eprosima;
 
-using namespace eProsima;
+
 #include <iostream>
 
 StructMember::StructMember(std::string &name, uint16_t bits, uint8_t flags) : Member(name),
@@ -133,7 +133,7 @@ bool StructTypeCode::addMember(StructMember* m)
 	return true;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const StructTypeCode *typeCode)
+bool eprosima::operator<<(IDLPrinter &printer, const StructTypeCode *typeCode)
 {
     bool returnedValue = false;
 

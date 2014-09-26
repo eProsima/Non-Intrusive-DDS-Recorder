@@ -14,7 +14,7 @@
 
 #define TYPECODE_TABLE "_topics"
 
-using namespace eProsima;
+using namespace eprosima;
 using namespace std;
 
 static const char* const CLASS_NAME = "TypeCodeDB";

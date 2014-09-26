@@ -13,10 +13,10 @@
 
 #ifndef TYPECODECOPY_H_
 #define TYPECODECOPY_H_
-namespace eProsima{
+namespace eprosima{
 class TypeCode;
 }
-using namespace eProsima;
+
 
 namespace eprosima {
 

@@ -3,7 +3,7 @@
 
 #include "cdr/PrimitiveTypeCode.h"
 
-namespace eProsima
+namespace eprosima
 {
     class StringTypeCode : public PrimitiveTypeCode
     {

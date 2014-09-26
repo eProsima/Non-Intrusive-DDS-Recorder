@@ -13,7 +13,7 @@
 
 #include "cdr/TypeCodeCopy.h"
 #include "cdr/all_TypeCodes.h"
-using namespace eProsima;
+
 
 #include <iostream>
 

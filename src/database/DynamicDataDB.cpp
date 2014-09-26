@@ -24,7 +24,7 @@
 static const char* const CLASS_NAME = "DynamicDataDB";
 
 using namespace eprosima::fastcdr;
-using namespace eProsima;
+using namespace eprosima;
 using namespace std;
 
 DynamicDataDB::DynamicDataDB(eProsimaLog &log, sqlite3 *databaseH, string &tableName,

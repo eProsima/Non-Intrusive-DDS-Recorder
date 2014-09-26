@@ -7,7 +7,7 @@
 using namespace eprosima;
 
 
-using namespace eProsima;
+
 
 SequenceTypeCode::SequenceTypeCode() : ContentTypeCode(TypeCode::KIND_SEQUENCE),m_maxLength(0)
 {

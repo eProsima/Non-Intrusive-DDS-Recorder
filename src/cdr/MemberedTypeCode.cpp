@@ -1,6 +1,6 @@
 #include "cdr/MemberedTypeCode.h"
 #include <iostream>
-using namespace eProsima;
+using namespace eprosima;
 
 Member::Member(std::string &name) : m_name(name), m_typeCode(NULL)
 {

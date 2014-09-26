@@ -3,7 +3,7 @@
 #include "fastcdr/Cdr.h"
 #include "fastcdr/exceptions/Exception.h"
 
-using namespace eProsima;
+using namespace eprosima;
 
 bool StringTypeCode::deserialize(Cdr &cdr)
 {
@@ -25,7 +25,7 @@ bool StringTypeCode::print(IDLPrinter &printer, bool write) const
 	return true;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const StringTypeCode *typeCode)
+bool eprosima::operator<<(IDLPrinter &printer, const StringTypeCode *typeCode)
 {
     bool returnedValue = false;
 

@@ -6,7 +6,7 @@
 #include "fastcdr/Cdr.h"
 using namespace eprosima::fastcdr;
 
-namespace eProsima
+namespace eprosima
 {
 
     class IDLPrinter;

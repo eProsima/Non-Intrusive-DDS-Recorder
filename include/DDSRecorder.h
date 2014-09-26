@@ -14,7 +14,7 @@ namespace eprosima
 	class UserTypeCodeProvider;
 }
 using namespace eprosima;
-namespace eProsima
+namespace eprosima
 {
     class eProsimaLog;
     class TypeCodeDB;

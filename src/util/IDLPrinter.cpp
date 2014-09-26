@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <vector>
 
-using namespace eProsima;
+using namespace eprosima;
 
-bool eProsima::IDLPrinter_cmp(IDLPrinter *printer1, IDLPrinter *printer2)
+bool eprosima::IDLPrinter_cmp(IDLPrinter *printer1, IDLPrinter *printer2)
 {
 	return printer1->m_priority < printer2->m_priority;
 }

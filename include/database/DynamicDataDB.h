@@ -17,7 +17,7 @@ namespace eprosima{ namespace fastcdr{
 using namespace eprosima::fastcdr;
 
 
-namespace eProsima
+namespace eprosima
 {
     class eProsimaLog;
     class Member;

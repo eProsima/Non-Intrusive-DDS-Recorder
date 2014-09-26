@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-using namespace eProsima;
+using namespace eprosima;
 
 ContentTypeCode::ContentTypeCode(uint32_t kind) : TypeCode(kind),
     m_contentTypeCode(NULL)

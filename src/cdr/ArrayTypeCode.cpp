@@ -4,7 +4,7 @@
 #include "fastcdr/exceptions/Exception.h"
 
 using namespace eprosima::fastcdr;
-using namespace eProsima;
+using namespace eprosima;
 
 ArrayTypeCode::ArrayTypeCode() : ContentTypeCode(TypeCode::KIND_ARRAY), m_dimensionCount(0)
 {

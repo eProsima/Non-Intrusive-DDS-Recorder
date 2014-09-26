@@ -9,7 +9,7 @@
 #include <sqlite3.h>
 #include "RTPSPacketAnalyzer.h"
 
-namespace eProsima
+namespace eprosima
 {
     class eProsimaLog;
 

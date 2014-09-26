@@ -47,7 +47,7 @@
 #include <iostream>
 
 #include "cdr/all_TypeCodes.h"
-using namespace eProsima;
+using namespace eprosima;
 
 typedef std::pair<std::string,std::vector<int32_t>> Declarator;
 typedef std::vector<Declarator*> DeclaratorVec;

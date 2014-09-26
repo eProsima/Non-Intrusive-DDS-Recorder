@@ -27,7 +27,7 @@
 #define RTPS_PID_GUID (0x005A)
 
 using namespace eprosima::fastcdr;
-using namespace eProsima;
+using namespace eprosima;
 using namespace std;
 
 static const char* const CLASS_NAME = "DDSRecorder";

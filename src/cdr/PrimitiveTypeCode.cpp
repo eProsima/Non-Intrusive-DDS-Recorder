@@ -2,7 +2,7 @@
 #include "util/IDLPrinter.h"
 #include "fastcdr/Cdr.h"
 
-using namespace eProsima;
+using namespace eprosima;
 
 bool PrimitiveTypeCode::deserialize(Cdr &cdr)
 {
@@ -84,7 +84,7 @@ bool PrimitiveTypeCode::print(IDLPrinter &printer, bool write) const
     return returnedValue;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const PrimitiveTypeCode *typeCode)
+bool eprosima::operator<<(IDLPrinter &printer, const PrimitiveTypeCode *typeCode)
 {
     bool returnedValue = false;
 

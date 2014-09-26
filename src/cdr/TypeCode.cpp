@@ -13,7 +13,7 @@
 
 const char* const CLASS_NAME = "TypeCode";
 
-using namespace eProsima;
+using namespace eprosima;
 
 TypeCode::TypeCode(uint32_t kind) : m_kind(kind)
 {
@@ -146,7 +146,7 @@ uint32_t TypeCode::getKind() const
     return m_kind;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const TypeCode *typeCode)
+bool eprosima::operator<<(IDLPrinter &printer, const TypeCode *typeCode)
 {
     bool returnedValue = false;
 

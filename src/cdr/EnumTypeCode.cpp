@@ -6,7 +6,7 @@
 using namespace eprosima;
 #include <iostream>
 using namespace eprosima::fastcdr;
-using namespace eProsima;
+
 
 EnumMember::EnumMember(std::string &name, uint32_t ordinal) : Member(name),
 		m_ordinal(ordinal)
@@ -145,7 +145,7 @@ bool EnumTypeCode::addMember(EnumMember* mem)
 	return true;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const EnumTypeCode *typeCode)
+bool eprosima::operator<<(IDLPrinter &printer, const EnumTypeCode *typeCode)
 {
 	bool returnedValue = false;
 

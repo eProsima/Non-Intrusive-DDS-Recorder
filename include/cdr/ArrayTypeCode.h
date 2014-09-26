@@ -5,15 +5,14 @@
 
 #include <vector>
 
-namespace eprosima{ namespace fastcdr{
 
- class Cdr;
-}}
-using namespace eprosima::fastcdr;
-
-namespace eProsima
+namespace eprosima
 {
+	namespace fastcdr{
 
+	class Cdr;
+	}
+	using namespace fastcdr;
 
     class ArrayTypeCode : public ContentTypeCode
     {

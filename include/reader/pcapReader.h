@@ -7,7 +7,7 @@
 
 #include <string>
 
-namespace eProsima
+namespace eprosima
 {
     class eProsimaLog;
     class ipDefragmenter;

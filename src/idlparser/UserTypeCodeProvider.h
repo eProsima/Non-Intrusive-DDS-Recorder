@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 #include "cdr/all_TypeCodes.h"
-using namespace eProsima;
+
 #include <iostream>
 
 namespace eprosima {

@@ -4,7 +4,7 @@
 #include "fastcdr/Cdr.h"
 #include "fastcdr/exceptions/Exception.h"
 
-using namespace eProsima;
+
 using namespace eprosima;
 
 UnionMember::UnionMember(std::string &name, uint32_t labelCount, std::vector<int32_t> labels) : Member(name),
@@ -213,7 +213,7 @@ void UnionTypeCode::setDiscriminatorTypeCode(TypeCode* TC)
 }
 
 
-bool eProsima::operator<<(IDLPrinter &printer, const UnionTypeCode *typeCode)
+bool eprosima::operator<<(IDLPrinter &printer, const UnionTypeCode *typeCode)
 {
 	bool returnedValue = false;
 
