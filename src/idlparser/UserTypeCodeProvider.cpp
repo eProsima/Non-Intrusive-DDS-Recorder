@@ -100,7 +100,7 @@ bool UserTypeCodeProvider::getStructTypeCode(const std::string& name, TypeCode**
 		{
 			if(((StructTypeCode*)pTC)->getName() == name)
 			{
-				*ppTC = pTC;
+				*ppTC = TypeCodeCopy::copy((TypeCode*)pTC,false);
 				return true;
 			}
 		}
@@ -224,6 +224,7 @@ void UserTypeCodeProvider::printTypeCodes()
 
 void UserTypeCodeProvider::deleteTypeCodes()
 {
+	std::cout << "Deleting TypeCodes created when parsing IDL file"<<std::endl;
 	for(std::vector<TypeCode*>::iterator it = m_typeCodes.begin();it!=m_typeCodes.end();++it)
 	{
 		//std::cout << " Deleting typecode " << std::distance(m_typeCodes.begin(), it)<< std::endl;

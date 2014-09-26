@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
 	int returnedValue = -1;
-	string filename;l
+	string filename;
 	string db = "dump.db";
 	string idlfile;
 	int tcMaxSize = TYPECODE_MAX_SERIALIZED_LENGTH;
