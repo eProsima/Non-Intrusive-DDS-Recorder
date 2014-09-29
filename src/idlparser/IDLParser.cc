@@ -986,7 +986,7 @@ namespace eprosima {
 #line 563 "idl.y"
     {
 	SequenceTypeCode* sTC = new SequenceTypeCode((yysemantic_stack_[(6) - (5)].m_uint32_t));
-	sTC->setContentTypeCode((yysemantic_stack_[(6) - (3)].mp_TypeCode));
+	sTC->setContentTypeCode(TCprovider.copyTypeCode((yysemantic_stack_[(6) - (3)].mp_TypeCode),false));
 	(yyval.mp_TypeCode) = (TypeCode*) sTC;
 	}
     break;

@@ -16,6 +16,7 @@ Member::~Member()
 	//std::cout << "Deleting member: "<< m_name << " typecode"<<std::endl;
     if(m_typeCode != NULL)
         delete m_typeCode;
+   // printf("ok\n");
 }
 
 const std::string& Member::getName() const
@@ -49,6 +50,7 @@ MemberedTypeCode::MemberedTypeCode(uint32_t kind) : TypeCode(kind),m_memberCount
 
 MemberedTypeCode::~MemberedTypeCode()
 {
+	//printf("Deleting memebered typeCode\n");
     std::vector<Member*>::iterator it = m_members.begin();
     Member *member = NULL;
 

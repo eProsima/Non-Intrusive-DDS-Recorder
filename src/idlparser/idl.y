@@ -562,7 +562,7 @@ sequence_type :
     SEQUENCE_TOKEN '<' simple_type_spec ',' positive_int_const '>'
 	{
 	SequenceTypeCode* sTC = new SequenceTypeCode($5);
-	sTC->setContentTypeCode($3);
+	sTC->setContentTypeCode(TCprovider.copyTypeCode($3,false));
 	$$ = (TypeCode*) sTC;
 	}	
     | SEQUENCE_TOKEN  '<'  simple_type_spec  '>'

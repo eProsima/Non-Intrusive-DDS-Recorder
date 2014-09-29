@@ -31,27 +31,27 @@ void printHelp()
 
 #include "src/idlparser/UserTypeCodeProvider.h"
 using namespace eprosima;
-/*
-int main(int argc, char *argv[])
-{
-	if(argc>0)
-	{
-		std::string filename = argv[1];
-		UserTypeCodeProvider prov;
-		if(prov.parse_file(filename))
-		{
-			prov.printTypeCodes();
-		}
-		else
-		{
-			std::cout << "There was an error parsing the file "<<std::endl;
-		}
 
-	}
-	else
-		std::cout << "Enter FileName" << std::endl;
-}
-*/
+//int main(int argc, char *argv[])
+//{
+//	if(argc>0)
+//	{
+//		std::string filename = argv[1];
+//		UserTypeCodeProvider prov;
+//		if(prov.parse_file(filename))
+//		{
+//			prov.printTypeCodes();
+//		}
+//		else
+//		{
+//			std::cout << "There was an error parsing the file "<<std::endl;
+//		}
+//
+//	}
+//	else
+//		std::cout << "Enter FileName" << std::endl;
+//}
+
 
 int main(int argc, char *argv[])
 {

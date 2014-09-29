@@ -11,6 +11,7 @@ ContentTypeCode::ContentTypeCode(uint32_t kind) : TypeCode(kind),
 
 ContentTypeCode::~ContentTypeCode()
 {
+	//printf("Deleting contentTypeCode\n");
     if(m_contentTypeCode != NULL)
         delete m_contentTypeCode;
 }

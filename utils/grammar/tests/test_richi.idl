@@ -1,0 +1,37 @@
+module Minerva
+{
+    	module Zeus
+	{
+	    	enum Apolo
+		{
+			Apolillo, Apolon, Apolete
+		};
+	};
+
+	module Hera
+	{
+		struct Afrodita
+		{
+			Zeus::Apolo enumerado;
+			octet oc;
+			sequence<Zeus::Apolo, 10> apolitos;
+		};
+	};
+};
+
+module Kronos
+{
+	struct Percy
+	{
+		Minerva::Hera::Afrodita afro;
+		long lo;
+	};
+
+	module Jason
+	{
+		struct Annabel
+		{
+			Percy per;
+		};
+	};
+};
