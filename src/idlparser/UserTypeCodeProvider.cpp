@@ -108,8 +108,30 @@ bool UserTypeCodeProvider::getStructTypeCode(const std::string& name, TypeCode**
 	return false;
 }
 
-
 TypeCode* UserTypeCodeProvider::findTypeCodebyName(std::string& instr)
+{
+	TypeCode* pTC = findTypeCodeWithExactName(instr);
+	if(pTC !=NULL)
+		return pTC;
+
+	for(int i = m_namespaces.size();i>0;--i)
+	{
+		std::string name;
+		for(int j = 0;j<i;++j)
+		{
+			name.append(m_namespaces.at(j));
+			name.append("::");
+		}
+		name.append(instr);
+		pTC = findTypeCodeWithExactName(name);
+		if(pTC !=NULL)
+			return pTC;
+	}
+	return new PrimitiveTypeCode(TypeCode::KIND_NULL);
+}
+
+
+TypeCode* UserTypeCodeProvider::findTypeCodeWithExactName(std::string& instr)
 {
 	TypeCode* pTC = NULL;
 	for(std::vector<TypeCode*>::iterator it = m_typeCodes.begin();
@@ -156,7 +178,7 @@ TypeCode* UserTypeCodeProvider::findTypeCodebyName(std::string& instr)
 		}
 		}
 	}
-	return new PrimitiveTypeCode(TypeCode::KIND_NULL); //TO FIX LATER
+	return NULL; //TO FIX LATER
 }
 
 int32_t UserTypeCodeProvider::findENUMvalue(std::string& instr)
@@ -186,12 +208,21 @@ bool UserTypeCodeProvider::addTypeCode(TypeCode* TC)
 		if(TC->getKind()== TypeCode::KIND_STRUCT || TC->getKind() == TypeCode::KIND_UNION ||
 				TC->getKind()==TypeCode::KIND_ENUM)
 		{
+
 			MemberedTypeCode* mTC = (MemberedTypeCode*)TC;
+			std::string currentname = this->getCurrentNamespace();
+			//std::cout <<"Adding TC with name " << mTC->getName() << std::endl;
+			currentname.append(mTC->getName());
+			mTC->setName(currentname);
 			for(std::vector<TypeCode*>::iterator it = m_typeCodes.begin();it!=m_typeCodes.end();++it)
 			{
 				MemberedTypeCode* mTCin = (MemberedTypeCode*)(*it);
 				if(mTCin->getName() == mTC->getName())
+				{
+					std::cout << "Warning: TypeCode with name: "<< mTC->getName()<< " already defined, ignoring second definition"<<std::endl;
+					m_errorCode = REPEATED_TYPECODE_NAME_ERROR;
 					return false;
+				}
 			}
 			IDLPrinter txtStream;
 			txtStream << TC;

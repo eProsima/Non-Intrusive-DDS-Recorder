@@ -46,8 +46,6 @@ int main(int argc, char *argv[])
 		{
 			std::cout << "There was an error parsing the file "<<std::endl;
 		}
-		prov.deleteTypeCodes();
-		std::cout << "Deleting all found TypeCodes. "<<std::endl;
 
 	}
 	else
@@ -125,6 +123,12 @@ int main(int argc, char *argv[])
 	{
 		UTCprovider = new UserTypeCodeProvider();
 		UTCprovider->parse_file(idlfile);
+		if(UTCprovider->m_errorCode != UserTypeCodeProvider::NO_ERROR)
+		{
+			printf("Error parsing the IDL file\n");
+			delete(UTCprovider);
+			return 0;
+		}
 	}
 	if(!filename.empty())
 	{

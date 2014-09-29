@@ -1,0 +1,56 @@
+module M1
+{
+	module M2
+	{
+		struct S1
+		{
+			short l1;
+		};
+		struct S2
+		{
+			short l2;
+			S1 l3;
+			M1::M2::S1 l4;
+			M2::S1 l5;
+		};
+	};
+	struct S3
+	{
+		long l1;
+	};
+};
+
+
+interface I1
+{
+	struct S1
+	{
+		short l1;
+	};
+	struct S2
+	{
+		short l2;
+		S1 l3;
+		I1::S1 l5;
+	};
+}; 
+
+module M1
+{
+	struct S1
+	{
+		long l2;
+	};
+
+	struct S3
+	{
+		long l3;
+		S33 l5;
+	};
+	
+
+};
+
+typedef sequence<short> MySeq;
+
+

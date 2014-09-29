@@ -138,7 +138,7 @@ REMOVED SECTION 4
 %type <mp_TypeCode> signed_short_int unsigned_int unsigned_long_int unsigned_short_int
 %type <mp_TypeCode> char_type boolean_type octet_type object_type any_type
 %type <mp_TypeCode> template_type_spec 
-%type <mp_TypeCodeVec> struct_type union_type enum_type constr_type_spec
+%type <mp_TypeCodeVec> struct_type union_type enum_type constr_type_spec type_declarator
 %type <mp_TypeCode> sequence_type string_type
 %type <mp_TypeCodeVec> definition_list definition
 %type <mp_TypeCodeVec> forward_dcl interface_dcl interface_body op_dcl
@@ -208,6 +208,7 @@ definition :
     type_dcl ';' {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
     {
     	TCprovider.addTypeCode(*it);
+    	//printf("Added\n");
     }}
     | const_dcl ';' {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
     {
@@ -217,16 +218,13 @@ definition :
     {
     	TCprovider.addTypeCode(*it);
     }}
-    | interface ';' {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
-    {
-    	TCprovider.addTypeCode(*it);
-    }}
+    | interface ';' 
+    {$$ = $1;
+    }
     | module ';' 
     {
-    $$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
-    {
-    	TCprovider.addTypeCode(*it);
-    }}
+    $$ = $1;
+    }
     | sharp_declaratives 
     {
     $$ = $1;
@@ -244,34 +242,32 @@ sharp_declaratives:
 	{$$ = new TypeCodeVec();}
     ;    
 
-module : MODULE_TOKEN IDENTIFIER '{' definition_list '}'
+module : MODULE_TOKEN IDENTIFIER {TCprovider.addNamespace(*$2); } '{' definition_list '}'
 	{
-	std::cout << "Setting MODULE NAMES " << std::endl;
-	for(TypeCodeVec::iterator it = $4->begin();it!=$4->end();++it)
-	{
-	if((*it)->getKind() == TypeCode::KIND_STRUCT || 
-		(*it)->getKind() == TypeCode::KIND_UNION ||
-		(*it)->getKind() == TypeCode::KIND_ENUM)
-	{
-		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		std::string name = membered->getName();
-		name.insert(0,"::");
-		name.insert(0,*$2);
-		membered->setName(name);
-	}
-	}
-	$$ = $4;
+	$$ = $5;
 	delete($2);
+	TCprovider.removeNamespace();
 	}
     ;
 
 type_dcl : 
-    TYPEDEF_TOKEN ';'
-	{std::cout << "Warning: \"typedef\" token not allowed" << std::endl;}
+    TYPEDEF_TOKEN {std::cout << "Warning: \"typedef\" token not allowed" << std::endl;} type_declarator
+    {
+    	$$ = $3;
+    }
     | struct_type
     | union_type
     | enum_type
     ;
+ 
+type_declarator	: type_spec declarators
+	{$$ = new TypeCodeVec();
+	delete($1);
+	for(DeclaratorVec::iterator it = $2->begin();it!=$2->end();++it)
+		delete(*it);
+	delete($2);
+	}
+    ; 
    
 struct_type : STRUCT_TOKEN IDENTIFIER '{'  struct_member_list  '}'
 	{
@@ -296,6 +292,7 @@ struct_type : STRUCT_TOKEN IDENTIFIER '{'  struct_member_list  '}'
 	}
 	$$ = new TypeCodeVec();
 	$$->push_back((TypeCode*)sTC);
+	//printf("Structure defined\n");
 	}
 	}
     ;
@@ -590,11 +587,7 @@ interface_dcl : interface_header '{' interface_body '}'
 		(*it)->getKind() == TypeCode::KIND_UNION ||
 		(*it)->getKind() == TypeCode::KIND_ENUM)
 	{
-		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		std::string name = membered->getName();
-		name.insert(0,"::");
-		name.insert(0,*$1);
-		membered->setName(name);
+
 	}
 	else
 	{
@@ -608,6 +601,7 @@ interface_dcl : interface_header '{' interface_body '}'
 	}
 	$$ = $3;
 	delete($1);
+	TCprovider.removeNamespace();
 	}
     ;
 forward_dcl : INTERFACE_TOKEN IDENTIFIER
@@ -618,11 +612,17 @@ forward_dcl : INTERFACE_TOKEN IDENTIFIER
     ;
 interface_header : 
     INTERFACE_TOKEN IDENTIFIER
-	{$$ = new std::string(*$2);
-	delete($2);}
+	{
+	TCprovider.addNamespace(*$2);
+	$$ = new std::string(*$2);
+	delete($2);
+	}
     | INTERFACE_TOKEN IDENTIFIER inheritance_spec
-	{$$ = new std::string(*$2);
-	delete($2);}
+	{
+		TCprovider.addNamespace(*$2);
+	$$ = new std::string(*$2);
+	delete($2);
+ 	}
     ;
 interface_body  :  /*NULL*/
 	{$$ = new TypeCodeVec();}
@@ -635,9 +635,24 @@ interface_body  :  /*NULL*/
 	}
     ;
 export : 
-    type_dcl ';'
+    type_dcl ';' 
+    {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    	//printf("Added\n");
+    }}
     | const_dcl ';'
+    {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    	//printf("Added\n");
+    }}
     | except_dcl ';'
+    {$$ = $1;for(std::vector<TypeCode*>::iterator it = $1->begin();it!=$1->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    	//printf("Added\n");
+    }}
     | attr_dcl ';'
     {
     delete($1);

@@ -494,13 +494,14 @@ namespace eprosima {
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
     {
     	TCprovider.addTypeCode(*it);
+    	//printf("Added\n");
     }}
     break;
 
   case 6:
 
 /* Line 690 of lalr1.cc  */
-#line 212 "idl.y"
+#line 213 "idl.y"
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
     {
     	TCprovider.addTypeCode(*it);
@@ -510,7 +511,7 @@ namespace eprosima {
   case 7:
 
 /* Line 690 of lalr1.cc  */
-#line 216 "idl.y"
+#line 217 "idl.y"
     {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
     {
     	TCprovider.addTypeCode(*it);
@@ -520,11 +521,9 @@ namespace eprosima {
   case 8:
 
 /* Line 690 of lalr1.cc  */
-#line 220 "idl.y"
-    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
-    {
-    	TCprovider.addTypeCode(*it);
-    }}
+#line 222 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);
+    }
     break;
 
   case 9:
@@ -532,16 +531,14 @@ namespace eprosima {
 /* Line 690 of lalr1.cc  */
 #line 225 "idl.y"
     {
-    (yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
-    {
-    	TCprovider.addTypeCode(*it);
-    }}
+    (yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);
+    }
     break;
 
   case 10:
 
 /* Line 690 of lalr1.cc  */
-#line 231 "idl.y"
+#line 229 "idl.y"
     {
     (yyval.mp_TypeCodeVec) = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec);
     for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->end();++it)
@@ -553,59 +550,74 @@ namespace eprosima {
   case 11:
 
 /* Line 690 of lalr1.cc  */
-#line 240 "idl.y"
+#line 238 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 12:
 
 /* Line 690 of lalr1.cc  */
-#line 242 "idl.y"
+#line 240 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 13:
 
 /* Line 690 of lalr1.cc  */
-#line 244 "idl.y"
+#line 242 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
   case 14:
 
 /* Line 690 of lalr1.cc  */
-#line 248 "idl.y"
-    {
-	std::cout << "Setting MODULE NAMES " << std::endl;
-	for(TypeCodeVec::iterator it = (yysemantic_stack_[(5) - (4)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(5) - (4)].mp_TypeCodeVec)->end();++it)
-	{
-	if((*it)->getKind() == TypeCode::KIND_STRUCT || 
-		(*it)->getKind() == TypeCode::KIND_UNION ||
-		(*it)->getKind() == TypeCode::KIND_ENUM)
-	{
-		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		std::string name = membered->getName();
-		name.insert(0,"::");
-		name.insert(0,*(yysemantic_stack_[(5) - (2)].stringVal));
-		membered->setName(name);
-	}
-	}
-	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(5) - (4)].mp_TypeCodeVec);
-	delete((yysemantic_stack_[(5) - (2)].stringVal));
-	}
+#line 245 "idl.y"
+    {TCprovider.addNamespace(*(yysemantic_stack_[(2) - (2)].stringVal)); }
     break;
 
   case 15:
 
 /* Line 690 of lalr1.cc  */
-#line 270 "idl.y"
+#line 246 "idl.y"
+    {
+	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(6) - (5)].mp_TypeCodeVec);
+	delete((yysemantic_stack_[(6) - (2)].stringVal));
+	TCprovider.removeNamespace();
+	}
+    break;
+
+  case 16:
+
+/* Line 690 of lalr1.cc  */
+#line 254 "idl.y"
     {std::cout << "Warning: \"typedef\" token not allowed" << std::endl;}
     break;
 
-  case 19:
+  case 17:
 
 /* Line 690 of lalr1.cc  */
-#line 277 "idl.y"
+#line 255 "idl.y"
+    {
+    	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(3) - (3)].mp_TypeCodeVec);
+    }
+    break;
+
+  case 21:
+
+/* Line 690 of lalr1.cc  */
+#line 264 "idl.y"
+    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	delete((yysemantic_stack_[(2) - (1)].mp_TypeCode));
+	for(DeclaratorVec::iterator it = (yysemantic_stack_[(2) - (2)].mp_DeclaratorVec)->begin();it!=(yysemantic_stack_[(2) - (2)].mp_DeclaratorVec)->end();++it)
+		delete(*it);
+	delete((yysemantic_stack_[(2) - (2)].mp_DeclaratorVec));
+	}
+    break;
+
+  case 22:
+
+/* Line 690 of lalr1.cc  */
+#line 273 "idl.y"
     {
 	if((yysemantic_stack_[(5) - (4)].mp_MemberVec) == NULL)
 	{
@@ -628,21 +640,22 @@ namespace eprosima {
 	}
 	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
 	(yyval.mp_TypeCodeVec)->push_back((TypeCode*)sTC);
+	//printf("Structure defined\n");
 	}
 	}
     break;
 
-  case 20:
+  case 23:
 
 /* Line 690 of lalr1.cc  */
-#line 304 "idl.y"
+#line 301 "idl.y"
     {(yyval.mp_MemberVec) = (yysemantic_stack_[(1) - (1)].mp_MemberVec);}
     break;
 
-  case 21:
+  case 24:
 
 /* Line 690 of lalr1.cc  */
-#line 306 "idl.y"
+#line 303 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (1)].mp_MemberVec) ==NULL || (yysemantic_stack_[(2) - (2)].mp_MemberVec) == NULL)
 	{
@@ -660,10 +673,10 @@ namespace eprosima {
 	}
     break;
 
-  case 22:
+  case 25:
 
 /* Line 690 of lalr1.cc  */
-#line 323 "idl.y"
+#line 320 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeCode)->getKind() == TypeCode::KIND_NULL)
 	{
@@ -702,20 +715,20 @@ namespace eprosima {
 	}
     break;
 
-  case 24:
+  case 27:
 
 /* Line 690 of lalr1.cc  */
-#line 368 "idl.y"
+#line 365 "idl.y"
     {
     (yyval.mp_TypeCode) = *((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin());
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec));
     }
     break;
 
-  case 28:
+  case 31:
 
 /* Line 690 of lalr1.cc  */
-#line 380 "idl.y"
+#line 377 "idl.y"
     {
     TypeCode* pTC = TCprovider.findTypeCodebyName(*(yysemantic_stack_[(1) - (1)].mp_string));
     if(pTC->getKind()==TypeCode::KIND_NULL)
@@ -728,48 +741,48 @@ namespace eprosima {
     }
     break;
 
-  case 36:
+  case 39:
 
 /* Line 690 of lalr1.cc  */
-#line 404 "idl.y"
+#line 401 "idl.y"
     {
 	std::cout << "Warning: \"Object\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);
 	}
     break;
 
-  case 37:
+  case 40:
 
 /* Line 690 of lalr1.cc  */
-#line 410 "idl.y"
+#line 407 "idl.y"
     {std::cout << "Warning: \"any\" token not allowed" << std::endl;
 	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
 
-  case 43:
+  case 46:
 
 /* Line 690 of lalr1.cc  */
-#line 424 "idl.y"
+#line 421 "idl.y"
     {
 	(yyval.mp_DeclaratorVec) = new DeclaratorVec();
 	(yyval.mp_DeclaratorVec)->push_back((yysemantic_stack_[(1) - (1)].mp_Declarator));
 	}
     break;
 
-  case 44:
+  case 47:
 
 /* Line 690 of lalr1.cc  */
-#line 429 "idl.y"
+#line 426 "idl.y"
     {
 	(yysemantic_stack_[(3) - (3)].mp_DeclaratorVec)->insert((yysemantic_stack_[(3) - (3)].mp_DeclaratorVec)->begin(),(yysemantic_stack_[(3) - (1)].mp_Declarator)); 
 	(yyval.mp_DeclaratorVec) = (yysemantic_stack_[(3) - (3)].mp_DeclaratorVec);
 	}
     break;
 
-  case 47:
+  case 50:
 
 /* Line 690 of lalr1.cc  */
-#line 439 "idl.y"
+#line 436 "idl.y"
     {
 	(yyval.mp_Declarator) = new Declarator();
 	(yyval.mp_Declarator)->first = *(yysemantic_stack_[(1) - (1)].stringVal);
@@ -777,10 +790,10 @@ namespace eprosima {
 	}
     break;
 
-  case 49:
+  case 52:
 
 /* Line 690 of lalr1.cc  */
-#line 449 "idl.y"
+#line 446 "idl.y"
     {
 	(yysemantic_stack_[(2) - (2)].mp_Declarator)->first = *(yysemantic_stack_[(2) - (1)].stringVal);
 	delete((yysemantic_stack_[(2) - (1)].stringVal));
@@ -788,120 +801,120 @@ namespace eprosima {
 	}
     break;
 
-  case 50:
+  case 53:
 
 /* Line 690 of lalr1.cc  */
-#line 457 "idl.y"
+#line 454 "idl.y"
     {
 	(yyval.mp_Declarator) = new Declarator();
 	(yyval.mp_Declarator)->second.push_back((yysemantic_stack_[(1) - (1)].m_uint32_t));
 	}
     break;
 
-  case 51:
+  case 54:
 
 /* Line 690 of lalr1.cc  */
-#line 462 "idl.y"
+#line 459 "idl.y"
     {
 	(yysemantic_stack_[(2) - (2)].mp_Declarator)->second.push_back((yysemantic_stack_[(2) - (1)].m_uint32_t)); 
 	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (2)].mp_Declarator);}
     break;
 
-  case 52:
-
-/* Line 690 of lalr1.cc  */
-#line 467 "idl.y"
-    {(yyval.m_uint32_t) = (yysemantic_stack_[(3) - (2)].m_uint32_t);}
-    break;
-
-  case 53:
-
-/* Line 690 of lalr1.cc  */
-#line 473 "idl.y"
-    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_FLOAT);}
-    break;
-
-  case 54:
-
-/* Line 690 of lalr1.cc  */
-#line 475 "idl.y"
-    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_DOUBLE);}
-    break;
-
   case 55:
 
 /* Line 690 of lalr1.cc  */
-#line 477 "idl.y"
+#line 464 "idl.y"
+    {(yyval.m_uint32_t) = (yysemantic_stack_[(3) - (2)].m_uint32_t);}
+    break;
+
+  case 56:
+
+/* Line 690 of lalr1.cc  */
+#line 470 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_FLOAT);}
+    break;
+
+  case 57:
+
+/* Line 690 of lalr1.cc  */
+#line 472 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_DOUBLE);}
+    break;
+
+  case 58:
+
+/* Line 690 of lalr1.cc  */
+#line 474 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGDOUBLE);}
     break;
 
-  case 60:
+  case 63:
 
 /* Line 690 of lalr1.cc  */
-#line 488 "idl.y"
+#line 485 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONG);}
     break;
 
-  case 61:
+  case 64:
 
 /* Line 690 of lalr1.cc  */
-#line 490 "idl.y"
+#line 487 "idl.y"
     {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_LONGLONG);}
-    break;
-
-  case 62:
-
-/* Line 690 of lalr1.cc  */
-#line 493 "idl.y"
-    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_SHORT);}
     break;
 
   case 65:
 
 /* Line 690 of lalr1.cc  */
-#line 500 "idl.y"
-    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONG);}
-    break;
-
-  case 66:
-
-/* Line 690 of lalr1.cc  */
-#line 502 "idl.y"
-    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONGLONG);}
-    break;
-
-  case 67:
-
-/* Line 690 of lalr1.cc  */
-#line 505 "idl.y"
-    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_USHORT);}
+#line 490 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_SHORT);}
     break;
 
   case 68:
 
 /* Line 690 of lalr1.cc  */
-#line 508 "idl.y"
-    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_CHAR);}
+#line 497 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONG);}
     break;
 
   case 69:
 
 /* Line 690 of lalr1.cc  */
-#line 511 "idl.y"
-    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_BOOLEAN);}
+#line 499 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_ULONGLONG);}
     break;
 
   case 70:
 
 /* Line 690 of lalr1.cc  */
-#line 514 "idl.y"
-    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_OCTET);}
+#line 502 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_USHORT);}
     break;
 
   case 71:
 
 /* Line 690 of lalr1.cc  */
-#line 519 "idl.y"
+#line 505 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_CHAR);}
+    break;
+
+  case 72:
+
+/* Line 690 of lalr1.cc  */
+#line 508 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_BOOLEAN);}
+    break;
+
+  case 73:
+
+/* Line 690 of lalr1.cc  */
+#line 511 "idl.y"
+    {(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_OCTET);}
+    break;
+
+  case 74:
+
+/* Line 690 of lalr1.cc  */
+#line 516 "idl.y"
     {
 	EnumTypeCode* enTC= new EnumTypeCode();
 	enTC->setName(*(yysemantic_stack_[(5) - (2)].stringVal));
@@ -923,10 +936,10 @@ namespace eprosima {
 	}
     break;
 
-  case 72:
+  case 75:
 
 /* Line 690 of lalr1.cc  */
-#line 540 "idl.y"
+#line 537 "idl.y"
     {
 	(yyval.mp_StringVec) = new StringVec();
 	(yyval.mp_StringVec)->push_back(*(yysemantic_stack_[(1) - (1)].mp_string));
@@ -934,43 +947,43 @@ namespace eprosima {
 	}
     break;
 
-  case 73:
+  case 76:
 
 /* Line 690 of lalr1.cc  */
-#line 546 "idl.y"
+#line 543 "idl.y"
     {(yysemantic_stack_[(3) - (3)].mp_StringVec)->insert((yysemantic_stack_[(3) - (3)].mp_StringVec)->begin(),*(yysemantic_stack_[(3) - (1)].mp_string)); (yyval.mp_StringVec) = (yysemantic_stack_[(3) - (3)].mp_StringVec);delete((yysemantic_stack_[(3) - (1)].mp_string));}
     break;
 
-  case 74:
+  case 77:
 
 /* Line 690 of lalr1.cc  */
-#line 549 "idl.y"
+#line 546 "idl.y"
     {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].stringVal));
 	delete((yysemantic_stack_[(1) - (1)].stringVal));}
     break;
 
-  case 75:
+  case 78:
 
 /* Line 690 of lalr1.cc  */
-#line 555 "idl.y"
+#line 552 "idl.y"
     {
 	StringTypeCode* pSTC = new StringTypeCode((yysemantic_stack_[(4) - (3)].m_uint32_t));
 	(yyval.mp_TypeCode) = (TypeCode*)pSTC;
 	}
     break;
 
-  case 76:
+  case 79:
 
 /* Line 690 of lalr1.cc  */
-#line 560 "idl.y"
+#line 557 "idl.y"
     {StringTypeCode* pSTC = new StringTypeCode(255);
 	(yyval.mp_TypeCode) = (TypeCode*)pSTC;}
     break;
 
-  case 77:
+  case 80:
 
 /* Line 690 of lalr1.cc  */
-#line 566 "idl.y"
+#line 563 "idl.y"
     {
 	SequenceTypeCode* sTC = new SequenceTypeCode((yysemantic_stack_[(6) - (5)].m_uint32_t));
 	sTC->setContentTypeCode((yysemantic_stack_[(6) - (3)].mp_TypeCode));
@@ -978,10 +991,10 @@ namespace eprosima {
 	}
     break;
 
-  case 78:
+  case 81:
 
 /* Line 690 of lalr1.cc  */
-#line 572 "idl.y"
+#line 569 "idl.y"
     {
 	SequenceTypeCode* sTC = new SequenceTypeCode(255);
 	sTC->setContentTypeCode((yysemantic_stack_[(4) - (3)].mp_TypeCode));
@@ -989,10 +1002,10 @@ namespace eprosima {
 	}
     break;
 
-  case 81:
+  case 84:
 
 /* Line 690 of lalr1.cc  */
-#line 585 "idl.y"
+#line 582 "idl.y"
     {
 	std::vector<int> index_to_remove;
 	for(TypeCodeVec::iterator it = (yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(4) - (3)].mp_TypeCodeVec)->end();++it)
@@ -1001,11 +1014,7 @@ namespace eprosima {
 		(*it)->getKind() == TypeCode::KIND_UNION ||
 		(*it)->getKind() == TypeCode::KIND_ENUM)
 	{
-		MemberedTypeCode* membered = (MemberedTypeCode*)(*it);
-		std::string name = membered->getName();
-		name.insert(0,"::");
-		name.insert(0,*(yysemantic_stack_[(4) - (1)].mp_string));
-		membered->setName(name);
+
 	}
 	else
 	{
@@ -1019,43 +1028,50 @@ namespace eprosima {
 	}
 	(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(4) - (3)].mp_TypeCodeVec);
 	delete((yysemantic_stack_[(4) - (1)].mp_string));
+	TCprovider.removeNamespace();
 	}
     break;
 
-  case 82:
+  case 85:
 
 /* Line 690 of lalr1.cc  */
-#line 614 "idl.y"
+#line 608 "idl.y"
     {
 	delete((yysemantic_stack_[(2) - (2)].stringVal));
 	(yyval.mp_TypeCodeVec) = new TypeCodeVec();
 	}
     break;
 
-  case 83:
+  case 86:
+
+/* Line 690 of lalr1.cc  */
+#line 615 "idl.y"
+    {
+	TCprovider.addNamespace(*(yysemantic_stack_[(2) - (2)].stringVal));
+	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(2) - (2)].stringVal));
+	delete((yysemantic_stack_[(2) - (2)].stringVal));
+	}
+    break;
+
+  case 87:
 
 /* Line 690 of lalr1.cc  */
 #line 621 "idl.y"
-    {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(2) - (2)].stringVal));
-	delete((yysemantic_stack_[(2) - (2)].stringVal));}
+    {
+		TCprovider.addNamespace(*(yysemantic_stack_[(3) - (2)].stringVal));
+	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(3) - (2)].stringVal));
+	delete((yysemantic_stack_[(3) - (2)].stringVal));
+ 	}
     break;
 
-  case 84:
-
-/* Line 690 of lalr1.cc  */
-#line 624 "idl.y"
-    {(yyval.mp_string) = new std::string(*(yysemantic_stack_[(3) - (2)].stringVal));
-	delete((yysemantic_stack_[(3) - (2)].stringVal));}
-    break;
-
-  case 85:
+  case 88:
 
 /* Line 690 of lalr1.cc  */
 #line 628 "idl.y"
     {(yyval.mp_TypeCodeVec) = new TypeCodeVec();}
     break;
 
-  case 86:
+  case 89:
 
 /* Line 690 of lalr1.cc  */
 #line 630 "idl.y"
@@ -1070,47 +1086,52 @@ namespace eprosima {
   case 90:
 
 /* Line 690 of lalr1.cc  */
-#line 642 "idl.y"
+#line 639 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    	//printf("Added\n");
+    }}
+    break;
+
+  case 91:
+
+/* Line 690 of lalr1.cc  */
+#line 645 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    	//printf("Added\n");
+    }}
+    break;
+
+  case 92:
+
+/* Line 690 of lalr1.cc  */
+#line 651 "idl.y"
+    {(yyval.mp_TypeCodeVec) = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec);for(std::vector<TypeCode*>::iterator it = (yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->begin();it!=(yysemantic_stack_[(2) - (1)].mp_TypeCodeVec)->end();++it)
+    {
+    	TCprovider.addTypeCode(*it);
+    	//printf("Added\n");
+    }}
+    break;
+
+  case 93:
+
+/* Line 690 of lalr1.cc  */
+#line 657 "idl.y"
     {
     delete((yysemantic_stack_[(2) - (1)].mp_TypeCode));
     (yyval.mp_TypeCodeVec) = new TypeCodeVec();
     }
     break;
 
-  case 92:
-
-/* Line 690 of lalr1.cc  */
-#line 650 "idl.y"
-    {(yyval.mp_string) = new std::string("");
-	delete((yysemantic_stack_[(2) - (2)].mp_string));}
-    break;
-
-  case 93:
-
-/* Line 690 of lalr1.cc  */
-#line 656 "idl.y"
-    {
-	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].mp_string));
-	delete((yysemantic_stack_[(1) - (1)].mp_string));}
-    break;
-
-  case 94:
-
-/* Line 690 of lalr1.cc  */
-#line 660 "idl.y"
-    {(yyval.mp_string) = (yysemantic_stack_[(3) - (3)].mp_string);
-	delete((yysemantic_stack_[(3) - (1)].mp_string));
-	}
-    break;
-
   case 95:
 
 /* Line 690 of lalr1.cc  */
-#line 666 "idl.y"
-    {
-	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].stringVal));
-	delete((yysemantic_stack_[(1) - (1)].stringVal));
-	}
+#line 665 "idl.y"
+    {(yyval.mp_string) = new std::string("");
+	delete((yysemantic_stack_[(2) - (2)].mp_string));}
     break;
 
   case 96:
@@ -1118,10 +1139,16 @@ namespace eprosima {
 /* Line 690 of lalr1.cc  */
 #line 671 "idl.y"
     {
-	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,"::");
-	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,*(yysemantic_stack_[(3) - (1)].stringVal));
-	delete((yysemantic_stack_[(3) - (1)].stringVal));
-	(yyval.mp_string) = (yysemantic_stack_[(3) - (3)].mp_string);
+	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].mp_string));
+	delete((yysemantic_stack_[(1) - (1)].mp_string));}
+    break;
+
+  case 97:
+
+/* Line 690 of lalr1.cc  */
+#line 675 "idl.y"
+    {(yyval.mp_string) = (yysemantic_stack_[(3) - (3)].mp_string);
+	delete((yysemantic_stack_[(3) - (1)].mp_string));
 	}
     break;
 
@@ -1130,6 +1157,28 @@ namespace eprosima {
 /* Line 690 of lalr1.cc  */
 #line 681 "idl.y"
     {
+	(yyval.mp_string) = new std::string(*(yysemantic_stack_[(1) - (1)].stringVal));
+	delete((yysemantic_stack_[(1) - (1)].stringVal));
+	}
+    break;
+
+  case 99:
+
+/* Line 690 of lalr1.cc  */
+#line 686 "idl.y"
+    {
+	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,"::");
+	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,*(yysemantic_stack_[(3) - (1)].stringVal));
+	delete((yysemantic_stack_[(3) - (1)].stringVal));
+	(yyval.mp_string) = (yysemantic_stack_[(3) - (3)].mp_string);
+	}
+    break;
+
+  case 101:
+
+/* Line 690 of lalr1.cc  */
+#line 696 "idl.y"
+    {
 	std::string* aux_str = new std::string("::");
 	aux_str->append(*(yysemantic_stack_[(2) - (2)].stringVal));
 	delete((yysemantic_stack_[(2) - (2)].stringVal));
@@ -1137,10 +1186,10 @@ namespace eprosima {
 	}
     break;
 
-  case 99:
+  case 102:
 
 /* Line 690 of lalr1.cc  */
-#line 688 "idl.y"
+#line 703 "idl.y"
     {
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,*(yysemantic_stack_[(3) - (2)].stringVal));
 	(yysemantic_stack_[(3) - (3)].mp_string)->insert(0,"::");
@@ -1149,10 +1198,10 @@ namespace eprosima {
 	}
     break;
 
-  case 100:
+  case 103:
 
 /* Line 690 of lalr1.cc  */
-#line 698 "idl.y"
+#line 713 "idl.y"
     {
 	UnionTypeCode* uTC = new UnionTypeCode();
 	uTC->setName(*(yysemantic_stack_[(9) - (2)].stringVal));
@@ -1236,50 +1285,23 @@ namespace eprosima {
 	}
     break;
 
-  case 104:
+  case 107:
 
 /* Line 690 of lalr1.cc  */
-#line 786 "idl.y"
+#line 801 "idl.y"
     {
     (yyval.mp_TypeCode) = *((yysemantic_stack_[(1) - (1)].mp_TypeCodeVec)->begin());
     }
     break;
 
-  case 106:
+  case 109:
 
 /* Line 690 of lalr1.cc  */
-#line 793 "idl.y"
+#line 808 "idl.y"
     {
 	(yyval.mp_MemberVec) = new MemberVec();
 	(yyval.mp_MemberVec)->push_back((yysemantic_stack_[(1) - (1)].mp_Member));
 	}
-    break;
-
-  case 107:
-
-/* Line 690 of lalr1.cc  */
-#line 798 "idl.y"
-    {
-	(yysemantic_stack_[(2) - (2)].mp_MemberVec)->insert((yysemantic_stack_[(2) - (2)].mp_MemberVec)->begin(),(yysemantic_stack_[(2) - (1)].mp_Member));
-	(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
-	}
-    break;
-
-  case 108:
-
-/* Line 690 of lalr1.cc  */
-#line 804 "idl.y"
-    {
-	((UnionMember*)((yysemantic_stack_[(3) - (2)].mp_Member)))->setLabels((yysemantic_stack_[(3) - (1)].mp_Declarator)->second);
-	(yyval.mp_Member) = (yysemantic_stack_[(3) - (2)].mp_Member);
-	}
-    break;
-
-  case 109:
-
-/* Line 690 of lalr1.cc  */
-#line 811 "idl.y"
-    {(yyval.mp_Declarator) = (yysemantic_stack_[(1) - (1)].mp_Declarator);}
     break;
 
   case 110:
@@ -1287,15 +1309,42 @@ namespace eprosima {
 /* Line 690 of lalr1.cc  */
 #line 813 "idl.y"
     {
-	(yysemantic_stack_[(2) - (1)].mp_Declarator)->second.push_back(*((yysemantic_stack_[(2) - (2)].mp_Declarator)->second.begin()));
-	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (1)].mp_Declarator);
-	delete((yysemantic_stack_[(2) - (2)].mp_Declarator));}
+	(yysemantic_stack_[(2) - (2)].mp_MemberVec)->insert((yysemantic_stack_[(2) - (2)].mp_MemberVec)->begin(),(yysemantic_stack_[(2) - (1)].mp_Member));
+	(yyval.mp_MemberVec) = (yysemantic_stack_[(2) - (2)].mp_MemberVec);
+	}
     break;
 
   case 111:
 
 /* Line 690 of lalr1.cc  */
-#line 820 "idl.y"
+#line 819 "idl.y"
+    {
+	((UnionMember*)((yysemantic_stack_[(3) - (2)].mp_Member)))->setLabels((yysemantic_stack_[(3) - (1)].mp_Declarator)->second);
+	(yyval.mp_Member) = (yysemantic_stack_[(3) - (2)].mp_Member);
+	}
+    break;
+
+  case 112:
+
+/* Line 690 of lalr1.cc  */
+#line 826 "idl.y"
+    {(yyval.mp_Declarator) = (yysemantic_stack_[(1) - (1)].mp_Declarator);}
+    break;
+
+  case 113:
+
+/* Line 690 of lalr1.cc  */
+#line 828 "idl.y"
+    {
+	(yysemantic_stack_[(2) - (1)].mp_Declarator)->second.push_back(*((yysemantic_stack_[(2) - (2)].mp_Declarator)->second.begin()));
+	(yyval.mp_Declarator) = (yysemantic_stack_[(2) - (1)].mp_Declarator);
+	delete((yysemantic_stack_[(2) - (2)].mp_Declarator));}
+    break;
+
+  case 114:
+
+/* Line 690 of lalr1.cc  */
+#line 835 "idl.y"
     {
 	Declarator * dCL = new Declarator();
 	if((yysemantic_stack_[(3) - (2)].mp_TypeLiteral)->type == NUMBER_TYPE)
@@ -1324,10 +1373,10 @@ namespace eprosima {
 	}
     break;
 
-  case 112:
+  case 115:
 
 /* Line 690 of lalr1.cc  */
-#line 847 "idl.y"
+#line 862 "idl.y"
     {
 	Declarator * dCL = new Declarator();
 	dCL->second.push_back(-1000);
@@ -1335,10 +1384,10 @@ namespace eprosima {
 	}
     break;
 
-  case 113:
+  case 116:
 
 /* Line 690 of lalr1.cc  */
-#line 854 "idl.y"
+#line 869 "idl.y"
     {
 	UnionMember* uM = new UnionMember();
 	uM->setName((yysemantic_stack_[(2) - (2)].mp_Declarator)->first);
@@ -1348,209 +1397,209 @@ namespace eprosima {
 	}
     break;
 
-  case 114:
-
-/* Line 690 of lalr1.cc  */
-#line 865 "idl.y"
-    {std::cout << "Warning: \"attribute\" token not allowed" << std::endl;
-	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
-    break;
-
-  case 115:
-
-/* Line 690 of lalr1.cc  */
-#line 868 "idl.y"
-    {std::cout << "Warning: \"readonly attribute\" token not allowed" << std::endl;
-	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
-    break;
-
-  case 116:
-
-/* Line 690 of lalr1.cc  */
-#line 873 "idl.y"
-    {
-    (yyval.mp_TypeCode) = NULL;
-    }
-    break;
-
   case 117:
 
 /* Line 690 of lalr1.cc  */
-#line 877 "idl.y"
-    {(yyval.mp_TypeCode) = NULL;}
+#line 880 "idl.y"
+    {std::cout << "Warning: \"attribute\" token not allowed" << std::endl;
+	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
 
   case 118:
 
 /* Line 690 of lalr1.cc  */
-#line 882 "idl.y"
-    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
-	delete((yysemantic_stack_[(3) - (2)].stringVal));}
+#line 883 "idl.y"
+    {std::cout << "Warning: \"readonly attribute\" token not allowed" << std::endl;
+	(yyval.mp_TypeCode) = new PrimitiveTypeCode(TypeCode::KIND_NULL);}
     break;
 
   case 119:
 
 /* Line 690 of lalr1.cc  */
-#line 885 "idl.y"
-    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
-	delete((yysemantic_stack_[(4) - (3)].stringVal));}
+#line 888 "idl.y"
+    {
+    (yyval.mp_TypeCode) = NULL;
+    }
     break;
 
   case 120:
 
 /* Line 690 of lalr1.cc  */
-#line 889 "idl.y"
-    {(yyval.m_uint32_t) = 0;}
+#line 892 "idl.y"
+    {(yyval.mp_TypeCode) = NULL;}
     break;
 
   case 121:
 
 /* Line 690 of lalr1.cc  */
-#line 892 "idl.y"
-    {(yyval.m_uint32_t) = 0;}
+#line 897 "idl.y"
+    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	delete((yysemantic_stack_[(3) - (2)].stringVal));}
+    break;
+
+  case 122:
+
+/* Line 690 of lalr1.cc  */
+#line 900 "idl.y"
+    {(yyval.mp_TypeCodeVec) = new TypeCodeVec();
+	delete((yysemantic_stack_[(4) - (3)].stringVal));}
     break;
 
   case 123:
 
 /* Line 690 of lalr1.cc  */
-#line 897 "idl.y"
+#line 904 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 124:
 
 /* Line 690 of lalr1.cc  */
-#line 901 "idl.y"
-    {(yyval.m_uint32_t) = 0;}
-    break;
-
-  case 125:
-
-/* Line 690 of lalr1.cc  */
-#line 903 "idl.y"
+#line 907 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 126:
 
 /* Line 690 of lalr1.cc  */
-#line 907 "idl.y"
+#line 912 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 127:
 
 /* Line 690 of lalr1.cc  */
-#line 909 "idl.y"
+#line 916 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 128:
 
 /* Line 690 of lalr1.cc  */
-#line 912 "idl.y"
+#line 918 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 129:
 
 /* Line 690 of lalr1.cc  */
-#line 916 "idl.y"
+#line 922 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 130:
 
 /* Line 690 of lalr1.cc  */
-#line 918 "idl.y"
+#line 924 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 131:
 
 /* Line 690 of lalr1.cc  */
-#line 920 "idl.y"
+#line 927 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 132:
 
 /* Line 690 of lalr1.cc  */
-#line 924 "idl.y"
+#line 931 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 133:
 
 /* Line 690 of lalr1.cc  */
-#line 926 "idl.y"
+#line 933 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 134:
 
 /* Line 690 of lalr1.cc  */
-#line 930 "idl.y"
+#line 935 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 135:
 
 /* Line 690 of lalr1.cc  */
-#line 932 "idl.y"
+#line 939 "idl.y"
     {(yyval.m_uint32_t) = 0;}
     break;
 
   case 136:
 
 /* Line 690 of lalr1.cc  */
-#line 936 "idl.y"
-    {(yyval.m_uint32_t) = 0;
-	delete((yysemantic_stack_[(1) - (1)].stringVal));}
+#line 941 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 137:
 
 /* Line 690 of lalr1.cc  */
-#line 939 "idl.y"
-    {(yyval.m_uint32_t) = 0;
-	delete((yysemantic_stack_[(3) - (1)].stringVal));}
+#line 945 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 138:
 
 /* Line 690 of lalr1.cc  */
-#line 944 "idl.y"
-    {
-    delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
-    (yyval.m_uint32_t) = 0;
-    }
+#line 947 "idl.y"
+    {(yyval.m_uint32_t) = 0;}
     break;
 
   case 139:
 
 /* Line 690 of lalr1.cc  */
-#line 949 "idl.y"
-    {
-    delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
-    (yyval.m_uint32_t) = 0;
-    }
+#line 951 "idl.y"
+    {(yyval.m_uint32_t) = 0;
+	delete((yysemantic_stack_[(1) - (1)].stringVal));}
     break;
 
   case 140:
 
 /* Line 690 of lalr1.cc  */
 #line 954 "idl.y"
+    {(yyval.m_uint32_t) = 0;
+	delete((yysemantic_stack_[(3) - (1)].stringVal));}
+    break;
+
+  case 141:
+
+/* Line 690 of lalr1.cc  */
+#line 959 "idl.y"
     {
     delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
     (yyval.m_uint32_t) = 0;
     }
     break;
 
-  case 141:
+  case 142:
 
 /* Line 690 of lalr1.cc  */
-#line 968 "idl.y"
+#line 964 "idl.y"
+    {
+    delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
+    (yyval.m_uint32_t) = 0;
+    }
+    break;
+
+  case 143:
+
+/* Line 690 of lalr1.cc  */
+#line 969 "idl.y"
+    {
+    delete((yysemantic_stack_[(1) - (1)].mp_TypeCode));
+    (yyval.m_uint32_t) = 0;
+    }
+    break;
+
+  case 144:
+
+/* Line 690 of lalr1.cc  */
+#line 983 "idl.y"
     {
 	if((yysemantic_stack_[(1) - (1)].mp_TypeLiteral)->type == NUMBER_TYPE)
 		(yyval.m_uint32_t) = (uint32_t)(yysemantic_stack_[(1) - (1)].mp_TypeLiteral)->num;
@@ -1560,10 +1609,10 @@ namespace eprosima {
 	}
     break;
 
-  case 142:
+  case 145:
 
 /* Line 690 of lalr1.cc  */
-#line 979 "idl.y"
+#line 994 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = SCOPED_TYPE;
 	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].mp_string);
@@ -1571,24 +1620,24 @@ namespace eprosima {
 	}
     break;
 
-  case 143:
+  case 146:
 
 /* Line 690 of lalr1.cc  */
-#line 985 "idl.y"
+#line 1000 "idl.y"
     {(yyval.mp_TypeLiteral) = (yysemantic_stack_[(1) - (1)].mp_TypeLiteral);}
     break;
 
-  case 144:
+  case 147:
 
 /* Line 690 of lalr1.cc  */
-#line 987 "idl.y"
+#line 1002 "idl.y"
     {(yyval.mp_TypeLiteral) = (yysemantic_stack_[(3) - (2)].mp_TypeLiteral);}
     break;
 
-  case 145:
+  case 148:
 
 /* Line 690 of lalr1.cc  */
-#line 989 "idl.y"
+#line 1004 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean | (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
@@ -1602,10 +1651,10 @@ namespace eprosima {
 	}
     break;
 
-  case 146:
+  case 149:
 
 /* Line 690 of lalr1.cc  */
-#line 1001 "idl.y"
+#line 1016 "idl.y"
     {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
@@ -1620,10 +1669,10 @@ namespace eprosima {
 	}
     break;
 
-  case 147:
+  case 150:
 
 /* Line 690 of lalr1.cc  */
-#line 1014 "idl.y"
+#line 1029 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type && (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean = (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->boolean & (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->boolean;
@@ -1637,10 +1686,10 @@ namespace eprosima {
 	}
     break;
 
-  case 148:
+  case 151:
 
 /* Line 690 of lalr1.cc  */
-#line 1026 "idl.y"
+#line 1041 "idl.y"
     {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
@@ -1655,10 +1704,10 @@ namespace eprosima {
 	}
     break;
 
-  case 149:
+  case 152:
 
 /* Line 690 of lalr1.cc  */
-#line 1039 "idl.y"
+#line 1054 "idl.y"
     {if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
 		(yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type = NUMBER_TYPE;
@@ -1673,10 +1722,10 @@ namespace eprosima {
 	}
     break;
 
-  case 150:
+  case 153:
 
 /* Line 690 of lalr1.cc  */
-#line 1052 "idl.y"
+#line 1067 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE)
 	{
@@ -1700,10 +1749,10 @@ namespace eprosima {
 	}
     break;
 
-  case 151:
+  case 154:
 
 /* Line 690 of lalr1.cc  */
-#line 1074 "idl.y"
+#line 1089 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == BOOL_TYPE || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == STRING_TYPE || (yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type == SCOPED_TYPE)
 	{
@@ -1719,10 +1768,10 @@ namespace eprosima {
 	}
     break;
 
-  case 152:
+  case 155:
 
 /* Line 690 of lalr1.cc  */
-#line 1088 "idl.y"
+#line 1103 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1738,10 +1787,10 @@ namespace eprosima {
 	}
     break;
 
-  case 153:
+  case 156:
 
 /* Line 690 of lalr1.cc  */
-#line 1102 "idl.y"
+#line 1117 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1757,10 +1806,10 @@ namespace eprosima {
 	}
     break;
 
-  case 154:
+  case 157:
 
 /* Line 690 of lalr1.cc  */
-#line 1116 "idl.y"
+#line 1131 "idl.y"
     {
 	if((yysemantic_stack_[(3) - (1)].mp_TypeLiteral)->type != NUMBER_TYPE || (yysemantic_stack_[(3) - (3)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1776,10 +1825,10 @@ namespace eprosima {
 	}
     break;
 
-  case 155:
+  case 158:
 
 /* Line 690 of lalr1.cc  */
-#line 1130 "idl.y"
+#line 1145 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1792,10 +1841,10 @@ namespace eprosima {
 	}
     break;
 
-  case 156:
+  case 159:
 
 /* Line 690 of lalr1.cc  */
-#line 1141 "idl.y"
+#line 1156 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type != NUMBER_TYPE)
 	{
@@ -1808,10 +1857,10 @@ namespace eprosima {
 	}
     break;
 
-  case 157:
+  case 160:
 
 /* Line 690 of lalr1.cc  */
-#line 1152 "idl.y"
+#line 1167 "idl.y"
     {
 	if((yysemantic_stack_[(2) - (2)].mp_TypeLiteral)->type == STRING_TYPE)
 	{
@@ -1830,30 +1879,30 @@ namespace eprosima {
 	}
     break;
 
-  case 158:
+  case 161:
 
 /* Line 690 of lalr1.cc  */
-#line 1174 "idl.y"
+#line 1189 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = NUMBER_TYPE;
 	(yyval.mp_TypeLiteral)->num = (yysemantic_stack_[(1) - (1)].integerVal);
 	}
     break;
 
-  case 159:
+  case 162:
 
 /* Line 690 of lalr1.cc  */
-#line 1179 "idl.y"
+#line 1194 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = NUMBER_TYPE;
 	(yyval.mp_TypeLiteral)->num = (yysemantic_stack_[(1) - (1)].doubleVal);
 	}
     break;
 
-  case 160:
+  case 163:
 
 /* Line 690 of lalr1.cc  */
-#line 1184 "idl.y"
+#line 1199 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = STRING_TYPE;
 	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].stringVal);
@@ -1861,10 +1910,10 @@ namespace eprosima {
 	}
     break;
 
-  case 161:
+  case 164:
 
 /* Line 690 of lalr1.cc  */
-#line 1190 "idl.y"
+#line 1205 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = STRING_TYPE;
 	(yyval.mp_TypeLiteral)->str = *(yysemantic_stack_[(1) - (1)].stringVal);
@@ -1872,20 +1921,20 @@ namespace eprosima {
 	}
     break;
 
-  case 162:
+  case 165:
 
 /* Line 690 of lalr1.cc  */
-#line 1196 "idl.y"
+#line 1211 "idl.y"
     {(yyval.mp_TypeLiteral) = new TypeLiteral();
 	(yyval.mp_TypeLiteral)->type = BOOL_TYPE;
 	(yyval.mp_TypeLiteral)->boolean = (yysemantic_stack_[(1) - (1)].integerVal);
 	}
     break;
 
-  case 163:
+  case 166:
 
 /* Line 690 of lalr1.cc  */
-#line 1219 "idl.y"
+#line 1234 "idl.y"
     {std::cout << "Warning: \"const\" token not allowed" << std::endl;
 	 PrimitiveTypeCode* auxptrTC = new PrimitiveTypeCode(TypeCode::KIND_NULL);
 	 (yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -1893,10 +1942,10 @@ namespace eprosima {
 	}
     break;
 
-  case 164:
+  case 167:
 
 /* Line 690 of lalr1.cc  */
-#line 1227 "idl.y"
+#line 1242 "idl.y"
     {std::cout << "Warning: \"exception\" token not allowed" << std::endl;
 	PrimitiveTypeCode* auxptrTC = new PrimitiveTypeCode(TypeCode::KIND_NULL);
 	 (yyval.mp_TypeCodeVec) = new TypeCodeVec();
@@ -1907,7 +1956,7 @@ namespace eprosima {
 
 
 /* Line 690 of lalr1.cc  */
-#line 1911 "IDLParser.cc"
+#line 1960 "IDLParser.cc"
 	default:
           break;
       }
@@ -2181,37 +2230,37 @@ namespace eprosima {
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
      STATE-NUM.  */
-  const short int IDLParser::yypact_ninf_ = -161;
+  const short int IDLParser::yypact_ninf_ = -162;
   const short int
   IDLParser::yypact_[] =
   {
-         1,   -28,    22,    20,    68,    75,    84,    53,    91,  -161,
-    -161,  -161,   106,  -161,     1,  -161,    61,    62,  -161,  -161,
-      76,  -161,  -161,    74,  -161,    80,    82,  -161,    78,  -161,
-       5,    83,    86,  -161,    72,  -161,  -161,  -161,  -161,  -161,
-     143,  -161,  -161,   119,     3,  -161,     1,   195,    81,    93,
-    -161,  -161,   289,  -161,  -161,  -161,    29,  -161,  -161,   124,
-    -161,    89,    16,  -161,  -161,   136,   104,  -161,  -161,  -161,
-    -161,  -161,  -161,  -161,  -161,  -161,  -161,  -161,  -161,  -161,
-    -161,  -161,  -161,   103,   143,  -161,  -161,   114,   120,   229,
-     142,  -161,   122,   127,  -161,   126,   130,  -161,   137,   128,
-     132,  -161,   141,   195,   180,  -161,  -161,  -161,  -161,  -161,
-    -161,  -161,  -161,  -161,     4,     3,   181,  -161,  -161,   289,
-      95,   166,  -161,   150,  -161,  -161,  -161,  -161,  -161,   185,
-     146,  -161,  -161,  -161,   119,     3,  -161,   263,  -161,  -161,
-     138,   162,   159,  -161,  -161,  -161,   186,  -161,  -161,  -161,
-    -161,  -161,   156,  -161,  -161,   163,  -161,   181,  -161,  -161,
-    -161,  -161,  -161,    95,    95,    95,    95,  -161,   161,   291,
-    -161,  -161,  -161,   146,    10,  -161,   188,  -161,  -161,   -21,
-      95,  -161,   138,  -161,   180,   169,   181,  -161,  -161,  -161,
-      79,  -161,  -161,    95,    95,    95,    95,    95,    95,    95,
-      95,    95,    95,  -161,  -161,  -161,  -161,  -161,   165,   172,
-     289,   170,   208,    95,  -161,   167,  -161,  -161,    17,  -161,
-    -161,   197,   197,    25,    25,   305,   319,   333,  -161,  -161,
-    -161,  -161,    63,   181,     3,   173,  -161,   175,  -161,    95,
-     184,   194,    17,   195,    17,  -161,  -161,   190,   228,  -161,
-     277,  -161,  -161,  -161,   180,   200,  -161,  -161,   193,   192,
-    -161,  -161,  -161,   228,  -161,  -161
+        99,     2,    15,    54,    40,    46,    58,  -162,    92,  -162,
+    -162,  -162,   106,  -162,    99,  -162,    67,    68,  -162,  -162,
+      70,  -162,  -162,   -25,  -162,    71,    79,  -162,    84,  -162,
+     -10,  -162,    86,   211,   105,  -162,  -162,  -162,  -162,  -162,
+     162,  -162,  -162,   126,    -2,  -162,    97,   211,   104,  -162,
+    -162,  -162,  -162,  -162,    32,  -162,    94,  -162,   107,    12,
+    -162,   152,  -162,  -162,   154,  -162,  -162,  -162,  -162,  -162,
+    -162,  -162,  -162,  -162,  -162,  -162,  -162,  -162,  -162,  -162,
+    -162,  -162,  -162,  -162,  -162,  -162,  -162,  -162,  -162,   111,
+     305,  -162,   155,  -162,   121,  -162,  -162,  -162,   128,   162,
+     133,   134,   245,   175,  -162,   141,   143,  -162,   144,   145,
+    -162,   149,    99,   158,   211,   154,    -2,  -162,  -162,   279,
+     100,   167,  -162,   165,   151,  -162,   160,  -162,  -162,  -162,
+     112,   201,   305,  -162,  -162,  -162,  -162,  -162,   202,   159,
+    -162,  -162,  -162,   126,    -2,   166,  -162,  -162,   174,  -162,
+      10,  -162,  -162,  -162,  -162,  -162,   100,   100,   100,   100,
+    -162,   171,   312,  -162,  -162,  -162,   100,  -162,   151,   154,
+     203,  -162,  -162,  -162,  -162,  -162,   177,  -162,   184,  -162,
+     201,   159,     4,  -162,   204,  -162,  -162,  -162,  -162,   100,
+    -162,  -162,  -162,   290,  -162,  -162,   100,   100,   100,   100,
+     100,   100,   100,   100,   100,   100,   179,  -162,  -162,   189,
+     201,  -162,  -162,  -162,  -162,  -162,  -162,   185,   191,   305,
+     188,   226,   192,  -162,   213,   213,    65,    65,   317,   339,
+       0,  -162,  -162,  -162,  -162,    22,  -162,  -162,    31,   201,
+      -2,   194,  -162,  -162,   100,   209,   214,    22,   211,    22,
+    -162,  -162,   197,   251,    96,  -162,  -162,  -162,   154,   215,
+    -162,  -162,   218,   208,  -162,  -162,  -162,   251,  -162,  -162
   };
 
   /* YYDEFACT[S] -- default reduction number in state S.  Performed when
@@ -2220,156 +2269,158 @@ namespace eprosima {
   const unsigned char
   IDLParser::yydefact_[] =
   {
-         0,     0,     0,     0,     0,     0,     0,     0,     0,    11,
-      12,    13,     0,     2,     3,    10,     0,     0,    16,    18,
-       0,    79,    80,     0,    17,     0,     0,   163,     0,   164,
-      82,     0,     0,    15,     0,     1,     4,     9,     5,     8,
-      85,     6,     7,     0,     0,    84,     0,     0,     0,    95,
-      69,    37,     0,    68,    54,    53,    60,    70,   121,     0,
-      62,    76,     0,   123,    36,     0,     0,   140,   138,    35,
-      34,    29,    30,    56,    58,    59,    57,    63,    64,    31,
-      32,    33,   139,     0,    85,    28,    97,     0,     0,     0,
-       0,   122,     0,     0,    74,     0,    72,    92,    93,     0,
-       0,    40,     0,    20,     0,    23,    27,    25,    26,    24,
-      42,    39,    38,    41,     0,     0,     0,    55,    61,     0,
-       0,    65,    67,    98,    87,    81,    86,    90,    91,     0,
-       0,    88,    89,    71,     0,     0,    14,     0,    19,    21,
-      47,     0,    43,    45,    46,    48,    60,   105,   101,   102,
-     103,   104,     0,    96,    47,   116,   114,     0,   158,   159,
-     162,   160,   161,     0,     0,     0,     0,   142,     0,   141,
-     143,    66,    99,     0,     0,   118,   132,    73,    94,     0,
-       0,    49,    50,    22,     0,     0,     0,   115,   156,   155,
-       0,   157,    75,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,   119,   129,   131,   130,   125,     0,   126,
-       0,     0,   134,     0,    78,     0,    51,    44,     0,   117,
-     144,   148,   149,   150,   151,   145,   146,   147,   152,   153,
-     154,   124,     0,     0,     0,     0,   120,     0,    52,     0,
-       0,     0,   106,     0,   109,   127,   128,     0,     0,    77,
-       0,   112,   100,   107,     0,     0,   110,   133,   136,     0,
-     111,   113,   108,     0,   135,   137
+         0,     0,     0,     0,     0,     0,     0,    16,     0,    11,
+      12,    13,     0,     2,     3,    10,     0,     0,    18,    20,
+       0,    82,    83,     0,    19,     0,     0,   166,     0,   167,
+      85,    14,     0,     0,     0,     1,     4,     9,     5,     8,
+      88,     6,     7,     0,     0,    87,     0,     0,    98,    72,
+      40,    71,    57,    56,    63,    73,     0,    65,    79,     0,
+      39,     0,    17,    43,     0,    26,    30,    28,    38,    37,
+      29,    27,    32,    33,    59,    61,    62,    60,    66,    67,
+      34,    35,    36,    45,    42,    41,    31,   100,    44,     0,
+       0,   124,     0,   126,     0,   143,   141,   142,     0,    88,
+       0,     0,     0,     0,   125,     0,     0,    77,     0,    75,
+      95,    96,     0,     0,    23,     0,     0,    58,    64,     0,
+       0,    68,    70,   101,    50,    21,    46,    48,    49,    51,
+       0,     0,     0,    90,    84,    89,    93,    94,     0,     0,
+      91,    92,    74,     0,     0,     0,    22,    24,     0,    99,
+       0,   161,   162,   165,   163,   164,     0,     0,     0,     0,
+     145,     0,   144,   146,    69,   102,     0,    52,    53,     0,
+      63,   108,   104,   105,   106,   107,     0,    50,   119,   117,
+       0,     0,     0,   121,   135,    76,    97,    15,    25,     0,
+      81,   159,   158,     0,   160,    78,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    54,    47,     0,
+       0,   118,   122,   132,   134,   133,   128,     0,   129,     0,
+       0,   137,     0,   147,   151,   152,   153,   154,   148,   149,
+     150,   155,   156,   157,    55,     0,   120,   127,     0,     0,
+       0,     0,   123,    80,     0,     0,     0,   109,     0,   112,
+     130,   131,     0,     0,     0,   115,   103,   110,     0,     0,
+     113,   136,   139,     0,   114,   116,   111,     0,   138,   140
   };
 
   /* YYPGOTO[NTERM-NUM].  */
   const short int
   IDLParser::yypgoto_[] =
   {
-      -161,  -161,    31,  -161,  -161,  -161,   -24,   -42,   149,  -161,
-      11,   116,   -46,   -45,  -161,  -161,  -161,  -161,    85,     2,
-    -106,  -161,  -161,    77,  -161,  -161,   144,  -161,  -161,  -161,
-    -161,  -161,  -161,   151,   152,  -161,   -44,   133,  -161,   -41,
-    -161,  -161,  -161,  -161,  -161,   196,  -161,  -161,  -124,   -40,
-     153,   -39,  -161,    35,  -161,    37,  -161,  -161,  -161,  -130,
-    -161,   110,  -161,   198,  -161,    47,  -161,  -161,  -161,  -161,
-      21,   -43,  -160,   -82,  -161,   -17,   -15
+      -162,  -162,    -8,  -162,  -162,  -162,  -162,   -19,  -162,  -162,
+     -23,   156,  -162,   -31,   150,   -32,   -30,  -162,  -162,  -162,
+    -162,   -73,    14,  -118,  -162,  -162,   113,  -162,  -162,   153,
+    -162,  -162,  -162,  -162,  -162,  -162,   163,   169,  -162,   -29,
+     131,  -162,   -24,  -162,  -162,  -162,  -162,  -162,   176,  -162,
+    -162,  -128,   -33,   172,   -21,  -162,    35,  -162,    36,  -162,
+    -162,  -162,  -161,  -162,   115,  -162,   190,  -162,    59,  -162,
+    -162,  -162,  -162,    33,   -85,  -146,  -126,  -162,   -11,    -5
   };
 
   /* YYDEFGOTO[NTERM-NUM].  */
   const short int
   IDLParser::yydefgoto_[] =
   {
-        -1,    12,    13,    14,    15,    16,    17,    18,   102,   103,
-     104,   105,    67,    68,    69,    70,   108,   109,   141,   142,
-     143,   144,   145,   181,   182,    71,    72,    73,    74,    75,
-      76,    77,    78,    79,    80,    81,    19,    95,    96,    82,
-     112,    20,    21,    22,    23,    83,    84,    45,    97,   167,
-      86,    24,   152,   241,   242,   243,   244,   255,    87,   156,
-      88,   175,    89,    90,   176,   208,   209,   210,   212,   236,
-     259,    91,   168,   169,   170,    25,    26
+        -1,    12,    13,    14,    15,    16,    46,    17,    33,    62,
+      18,   113,   114,   115,    65,    95,    96,    68,    69,    70,
+      71,   125,   126,   127,   128,   129,   167,   168,    72,    73,
+      74,    75,    76,    77,    78,    79,    80,    81,    82,    19,
+     108,   109,    97,    85,    20,    21,    22,    23,    98,    99,
+      45,   110,   160,    87,    24,   176,   246,   247,   248,   249,
+     259,   100,   179,   101,   183,   102,   103,   184,   217,   218,
+     219,   221,   242,   263,   104,   161,   162,   163,    25,    26
   };
 
   /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
      positive, shift that token.  If negative, reduce the rule which
      number is the opposite.  If YYTABLE_NINF_, syntax error.  */
-  const signed char IDLParser::yytable_ninf_ = -84;
+  const signed char IDLParser::yytable_ninf_ = -87;
   const short int
   IDLParser::yytable_[] =
   {
-        85,   106,   107,   110,    98,   101,   111,    85,   113,   116,
-     155,   178,    85,    49,    49,    50,    66,     1,    27,    53,
-     215,     2,     3,    92,     2,    93,     4,   187,     5,   213,
-     146,   239,    28,   204,   205,   240,   214,     6,    60,     7,
-     206,     8,   121,    62,    85,    36,    65,    65,   117,    85,
-     122,   155,   -83,   237,    44,   118,   219,   106,   107,   110,
-      66,   101,   111,    85,   113,   207,    29,    92,   147,    93,
-     151,     9,    10,    11,    85,   153,   157,    99,    30,    85,
-     155,   188,   189,   190,   191,    31,   204,   205,   200,   201,
-     202,   106,   107,   206,    32,    98,   111,    85,   158,    33,
-     159,    34,   160,   161,   162,    49,    35,    37,    38,    48,
-     247,   221,   222,   223,   224,   225,   226,   227,   228,   229,
-     230,    40,    39,   193,   194,    43,    41,   246,    42,    94,
-      46,   195,   196,    47,   220,   114,   115,   119,    65,   197,
-     198,   199,   200,   201,   202,   120,   123,   163,   164,   165,
-     124,   125,   130,    49,    50,    51,    52,   250,    53,     1,
-     127,   166,    54,     2,     3,    55,   128,   233,   131,    56,
-      85,    57,    58,   132,   133,    59,   136,    60,    61,     6,
-     134,     7,    62,     8,    63,    64,    65,   135,   137,   138,
-     140,   154,   171,    65,    98,   173,   180,   106,   107,   110,
-     174,   101,   111,    85,   113,    49,    50,    51,   183,   184,
-      53,   185,   118,   186,    54,     2,   218,    55,   192,   211,
-     231,    56,   232,    57,   234,   235,   238,   248,   100,    60,
-      61,     6,   249,   251,    62,     8,   258,    64,    65,    49,
-      50,    51,   252,   263,    53,   257,   262,   264,    54,   195,
-     196,    55,   139,   179,   254,    56,   261,    57,   148,   216,
-     200,   201,   202,    60,    61,   149,   150,   177,    62,   217,
-      63,    64,    65,    49,    50,    51,   172,   253,    53,   245,
-     126,   256,    54,   203,   265,    55,     0,   129,     0,    56,
-       0,    57,     0,     0,     0,     0,   100,    60,    61,    49,
-      50,    51,    62,     0,    53,    64,    65,     0,    54,     0,
-       0,    55,     0,     0,     0,    56,     0,    57,     0,     0,
-       0,   193,   194,    60,    61,     0,   260,     0,    62,   195,
-     196,    64,    65,     0,     0,   193,   194,   197,   198,   199,
-     200,   201,   202,   195,   196,     0,     0,     0,     0,   193,
-     194,   197,   198,   199,   200,   201,   202,   195,   196,     0,
-       0,     0,     0,   193,   194,     0,   198,   199,   200,   201,
-     202,   195,   196,     0,     0,     0,     0,   193,   194,     0,
-       0,   199,   200,   201,   202,   195,   196,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,   200,   201,   202
+        86,    66,    64,    67,    83,   131,    36,    86,    48,    84,
+      63,   111,    88,   178,    86,    66,   186,    67,    83,   211,
+     206,    94,    40,    84,    63,    28,    88,   213,   214,   105,
+     191,   192,   193,   194,   215,   106,   244,   -86,   121,    44,
+     245,    61,   148,   222,   196,   197,   122,   180,    27,   236,
+      30,   117,   198,   199,   213,   214,    31,    86,   118,   216,
+     189,   215,   178,   203,   204,   205,    86,   190,    32,    86,
+     224,   225,   226,   227,   228,   229,   230,   231,   232,   233,
+      94,    86,    66,   149,    67,    83,    86,    66,   105,    67,
+      84,    63,   178,    88,   106,    84,   208,    86,   171,    86,
+      29,   175,    34,   151,   145,   152,    35,   153,   154,   155,
+      48,   111,   252,    37,    38,     1,    39,    41,   254,     2,
+       3,   251,    48,    49,     4,    42,     5,    51,   203,   204,
+     205,    43,     2,    47,   239,     6,   107,     7,   170,     8,
+     196,   197,    89,    61,   112,   264,    57,   116,   198,   199,
+     119,    59,   156,   157,   158,    61,   200,   201,   202,   203,
+     204,   205,   123,   120,   124,   130,   159,   133,   132,     9,
+      10,    11,    48,    49,    50,    90,   134,    51,     1,   136,
+     137,    52,     2,     3,    53,   139,    86,   140,    54,   141,
+      55,    91,   142,   164,    92,   143,    57,    58,     6,   144,
+       7,    59,     8,    93,    60,    61,   146,   111,    61,   166,
+     169,   177,   181,   182,   187,    86,    66,   258,    67,    83,
+     188,    48,    49,    50,    84,    63,    51,    88,   195,   118,
+      52,     2,   209,    53,   210,   220,   235,    54,   234,    55,
+     237,   238,   240,   241,    56,    57,    58,     6,   253,   243,
+      59,     8,   261,    60,    61,    48,    49,    50,   255,   262,
+      51,   266,   256,   268,    52,   198,   199,    53,   267,   150,
+     147,    54,   265,    55,   185,   135,   203,   204,   205,    57,
+      58,   207,   257,   172,    59,   260,    93,    60,    61,    48,
+      49,    50,   138,   173,    51,   165,   212,   250,    52,   174,
+     269,    53,     0,     0,     0,    54,     0,    55,     0,     0,
+       0,     0,    56,    57,    58,    48,    49,    50,    59,     0,
+      51,    60,    61,     0,    52,     0,     0,    53,     0,     0,
+       0,    54,     0,    55,   196,   197,     0,     0,     0,    57,
+      58,     0,   198,   199,    59,   223,     0,    60,    61,     0,
+     200,   201,   202,   203,   204,   205,   196,   197,     0,     0,
+       0,   196,   197,     0,   198,   199,     0,     0,     0,   198,
+     199,     0,   200,   201,   202,   203,   204,   205,   201,   202,
+     203,   204,   205,   196,   197,     0,     0,     0,     0,     0,
+       0,   198,   199,     0,     0,     0,     0,     0,     0,     0,
+       0,   202,   203,   204,   205
   };
 
   /* YYCHECK.  */
   const short int
   IDLParser::yycheck_[] =
   {
-        40,    47,    47,    47,    44,    47,    47,    47,    47,    52,
-     116,   135,    52,    10,    10,    11,    40,    16,    46,    15,
-     180,    20,    21,    40,    20,    40,    25,   157,    27,    50,
-      26,    14,    10,    23,    24,    18,    57,    36,    34,    38,
-      30,    40,    26,    39,    84,    14,    43,    43,    19,    89,
-      34,   157,    47,   213,    49,    26,   186,   103,   103,   103,
-      84,   103,   103,   103,   103,    55,    46,    84,   114,    84,
-     114,    70,    71,    72,   114,   115,   119,    46,    10,   119,
-     186,   163,   164,   165,   166,    10,    23,    24,    63,    64,
-      65,   137,   137,    30,    10,   135,   137,   137,     3,    46,
-       5,    10,     7,     8,     9,    10,     0,    46,    46,    37,
-     234,   193,   194,   195,   196,   197,   198,   199,   200,   201,
-     202,    47,    46,    44,    45,    47,    46,   233,    46,    10,
-      47,    52,    53,    47,    55,    54,    43,    13,    43,    60,
-      61,    62,    63,    64,    65,    56,    10,    52,    53,    54,
-      46,    48,    10,    10,    11,    12,    13,   239,    15,    16,
-      46,    66,    19,    20,    21,    22,    46,   210,    46,    26,
-     210,    28,    29,    46,    48,    32,    48,    34,    35,    36,
-      50,    38,    39,    40,    41,    42,    43,    50,    56,    48,
-      10,    10,    26,    43,   234,    10,    58,   243,   243,   243,
-      54,   243,   243,   243,   243,    10,    11,    12,    46,    50,
-      15,    55,    26,    50,    19,    20,    47,    22,    57,    31,
-      55,    26,    50,    28,    54,    17,    59,    54,    33,    34,
-      35,    36,    57,    49,    39,    40,     8,    42,    43,    10,
-      11,    12,    48,    50,    15,    55,    46,    55,    19,    52,
-      53,    22,   103,   137,   243,    26,   254,    28,   114,   182,
-      63,    64,    65,    34,    35,   114,   114,   134,    39,   184,
-      41,    42,    43,    10,    11,    12,   123,   242,    15,   232,
-      84,   244,    19,   173,   263,    22,    -1,    89,    -1,    26,
-      -1,    28,    -1,    -1,    -1,    -1,    33,    34,    35,    10,
-      11,    12,    39,    -1,    15,    42,    43,    -1,    19,    -1,
-      -1,    22,    -1,    -1,    -1,    26,    -1,    28,    -1,    -1,
-      -1,    44,    45,    34,    35,    -1,    49,    -1,    39,    52,
-      53,    42,    43,    -1,    -1,    44,    45,    60,    61,    62,
-      63,    64,    65,    52,    53,    -1,    -1,    -1,    -1,    44,
-      45,    60,    61,    62,    63,    64,    65,    52,    53,    -1,
-      -1,    -1,    -1,    44,    45,    -1,    61,    62,    63,    64,
-      65,    52,    53,    -1,    -1,    -1,    -1,    44,    45,    -1,
-      -1,    62,    63,    64,    65,    52,    53,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    63,    64,    65
+        33,    33,    33,    33,    33,    90,    14,    40,    10,    33,
+      33,    44,    33,   131,    47,    47,   144,    47,    47,   180,
+     166,    40,    47,    47,    47,    10,    47,    23,    24,    40,
+     156,   157,   158,   159,    30,    40,    14,    47,    26,    49,
+      18,    43,   115,   189,    44,    45,    34,   132,    46,   210,
+      10,    19,    52,    53,    23,    24,    10,    90,    26,    55,
+      50,    30,   180,    63,    64,    65,    99,    57,    10,   102,
+     196,   197,   198,   199,   200,   201,   202,   203,   204,   205,
+      99,   114,   114,   116,   114,   114,   119,   119,    99,   119,
+     114,   114,   210,   114,    99,   119,   169,   130,   130,   132,
+      46,   130,    10,     3,   112,     5,     0,     7,     8,     9,
+      10,   144,   240,    46,    46,    16,    46,    46,   244,    20,
+      21,   239,    10,    11,    25,    46,    27,    15,    63,    64,
+      65,    47,    20,    47,   219,    36,    10,    38,    26,    40,
+      44,    45,    37,    43,    47,    49,    34,    43,    52,    53,
+      56,    39,    52,    53,    54,    43,    60,    61,    62,    63,
+      64,    65,    10,    56,    10,    54,    66,    46,    13,    70,
+      71,    72,    10,    11,    12,    13,    48,    15,    16,    46,
+      46,    19,    20,    21,    22,    10,   219,    46,    26,    46,
+      28,    29,    48,    26,    32,    50,    34,    35,    36,    50,
+      38,    39,    40,    41,    42,    43,    48,   240,    43,    58,
+      50,    10,    10,    54,    48,   248,   248,   248,   248,   248,
+      46,    10,    11,    12,   248,   248,    15,   248,    57,    26,
+      19,    20,    55,    22,    50,    31,    47,    26,    59,    28,
+      55,    50,    54,    17,    33,    34,    35,    36,    54,    57,
+      39,    40,    55,    42,    43,    10,    11,    12,    49,     8,
+      15,    46,    48,    55,    19,    52,    53,    22,    50,   119,
+     114,    26,   258,    28,   143,    99,    63,    64,    65,    34,
+      35,   168,   247,   130,    39,   249,    41,    42,    43,    10,
+      11,    12,   102,   130,    15,   123,   181,   238,    19,   130,
+     267,    22,    -1,    -1,    -1,    26,    -1,    28,    -1,    -1,
+      -1,    -1,    33,    34,    35,    10,    11,    12,    39,    -1,
+      15,    42,    43,    -1,    19,    -1,    -1,    22,    -1,    -1,
+      -1,    26,    -1,    28,    44,    45,    -1,    -1,    -1,    34,
+      35,    -1,    52,    53,    39,    55,    -1,    42,    43,    -1,
+      60,    61,    62,    63,    64,    65,    44,    45,    -1,    -1,
+      -1,    44,    45,    -1,    52,    53,    -1,    -1,    -1,    52,
+      53,    -1,    60,    61,    62,    63,    64,    65,    61,    62,
+      63,    64,    65,    44,    45,    -1,    -1,    -1,    -1,    -1,
+      -1,    52,    53,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    62,    63,    64,    65
   };
 
   /* STOS_[STATE-NUM] -- The (internal number of the) accessing
@@ -2378,32 +2429,32 @@ namespace eprosima {
   IDLParser::yystos_[] =
   {
          0,    16,    20,    21,    25,    27,    36,    38,    40,    70,
-      71,    72,    77,    78,    79,    80,    81,    82,    83,   112,
-     117,   118,   119,   120,   127,   151,   152,    46,    10,    46,
-      10,    10,    10,    46,    10,     0,    78,    46,    46,    46,
-      47,    46,    46,    47,    49,   123,    47,    47,    37,    10,
-      11,    12,    13,    15,    19,    22,    26,    28,    29,    32,
-      34,    35,    39,    41,    42,    43,    82,    88,    89,    90,
-      91,   101,   102,   103,   104,   105,   106,   107,   108,   109,
-     110,   111,   115,   121,   122,   125,   126,   134,   136,   138,
-     139,   147,   151,   152,    10,   113,   114,   124,   125,    78,
-      33,    83,    84,    85,    86,    87,    88,    89,    92,    93,
-     112,   115,   116,   127,    54,    43,   147,    19,    26,    13,
-      56,    26,    34,    10,    46,    48,   121,    46,    46,   139,
-      10,    46,    46,    48,    50,    50,    48,    56,    48,    84,
-      10,    94,    95,    96,    97,    98,    26,    88,   102,   109,
-     110,   112,   128,   125,    10,    96,   135,   147,     3,     5,
-       7,     8,     9,    52,    53,    54,    66,   125,   148,   149,
-     150,    26,   126,    10,    54,   137,   140,   113,   124,    87,
-      58,    99,   100,    46,    50,    55,    50,   135,   149,   149,
-     149,   149,    57,    44,    45,    52,    53,    60,    61,    62,
-      63,    64,    65,   137,    23,    24,    30,    55,   141,   142,
-     143,    31,   144,    50,    57,   148,    99,    94,    47,   135,
-      55,   149,   149,   149,   149,   149,   149,   149,   149,   149,
-     149,    55,    50,   147,    54,    17,   145,   148,    59,    14,
-      18,   129,   130,   131,   132,   141,    96,   124,    54,    57,
-     149,    49,    48,   129,    86,   133,   131,    55,     8,   146,
-      49,    95,    46,    50,    55,   146
+      71,    72,    77,    78,    79,    80,    81,    83,    86,   115,
+     120,   121,   122,   123,   130,   154,   155,    46,    10,    46,
+      10,    10,    10,    84,    10,     0,    78,    46,    46,    46,
+      47,    46,    46,    47,    49,   126,    82,    47,    10,    11,
+      12,    15,    19,    22,    26,    28,    33,    34,    35,    39,
+      42,    43,    85,    86,    89,    90,    91,    92,    93,    94,
+      95,    96,   104,   105,   106,   107,   108,   109,   110,   111,
+     112,   113,   114,   115,   118,   119,   128,   129,   130,    37,
+      13,    29,    32,    41,    83,    91,    92,   118,   124,   125,
+     137,   139,   141,   142,   150,   154,   155,    10,   116,   117,
+     127,   128,    47,    87,    88,    89,    43,    19,    26,    56,
+      56,    26,    34,    10,    10,    97,    98,    99,   100,   101,
+      54,   150,    13,    46,    48,   124,    46,    46,   142,    10,
+      46,    46,    48,    50,    50,    78,    48,    87,    97,   128,
+      90,     3,     5,     7,     8,     9,    52,    53,    54,    66,
+     128,   151,   152,   153,    26,   129,    58,   102,   103,    50,
+      26,    91,   105,   112,   113,   115,   131,    10,    99,   138,
+     150,    10,    54,   140,   143,   116,   127,    48,    46,    50,
+      57,   152,   152,   152,   152,    57,    44,    45,    52,    53,
+      60,    61,    62,    63,    64,    65,   151,   102,    97,    55,
+      50,   138,   140,    23,    24,    30,    55,   144,   145,   146,
+      31,   147,   151,    55,   152,   152,   152,   152,   152,   152,
+     152,   152,   152,   152,    59,    47,   138,    55,    50,   150,
+      54,    17,   148,    57,    14,    18,   132,   133,   134,   135,
+     144,    99,   127,    54,   152,    49,    48,   132,    89,   136,
+     134,    55,     8,   149,    49,    98,    46,    50,    55,   149
   };
 
 #if YYDEBUG
@@ -2428,22 +2479,22 @@ namespace eprosima {
   IDLParser::yyr1_[] =
   {
          0,    76,    77,    78,    78,    79,    79,    79,    79,    79,
-      79,    80,    80,    80,    81,    82,    82,    82,    82,    83,
-      84,    84,    85,    86,    86,    87,    87,    87,    88,    89,
-      89,    89,    89,    89,    89,    89,    90,    91,    92,    92,
-      93,    93,    93,    94,    94,    95,    95,    96,    97,    98,
-      99,    99,   100,   101,   101,   101,   102,   102,   103,   103,
-     104,   104,   105,   106,   106,   107,   107,   108,   109,   110,
-     111,   112,   113,   113,   114,   115,   115,   116,   116,   117,
-     117,   118,   119,   120,   120,   121,   121,   122,   122,   122,
-     122,   122,   123,   124,   124,   125,   125,   125,   126,   126,
-     127,   128,   128,   128,   128,   128,   129,   129,   130,   131,
-     131,   132,   132,   133,   134,   134,   135,   135,   136,   136,
-     137,   138,   139,   139,   140,   140,   141,   141,   142,   143,
-     143,   143,   144,   144,   145,   145,   146,   146,   147,   147,
-     147,   148,   149,   149,   149,   149,   149,   149,   149,   149,
-     149,   149,   149,   149,   149,   149,   149,   149,   150,   150,
-     150,   150,   150,   151,   152
+      79,    80,    80,    80,    82,    81,    84,    83,    83,    83,
+      83,    85,    86,    87,    87,    88,    89,    89,    90,    90,
+      90,    91,    92,    92,    92,    92,    92,    92,    92,    93,
+      94,    95,    95,    96,    96,    96,    97,    97,    98,    98,
+      99,   100,   101,   102,   102,   103,   104,   104,   104,   105,
+     105,   106,   106,   107,   107,   108,   109,   109,   110,   110,
+     111,   112,   113,   114,   115,   116,   116,   117,   118,   118,
+     119,   119,   120,   120,   121,   122,   123,   123,   124,   124,
+     125,   125,   125,   125,   125,   126,   127,   127,   128,   128,
+     128,   129,   129,   130,   131,   131,   131,   131,   131,   132,
+     132,   133,   134,   134,   135,   135,   136,   137,   137,   138,
+     138,   139,   139,   140,   141,   142,   142,   143,   143,   144,
+     144,   145,   146,   146,   146,   147,   147,   148,   148,   149,
+     149,   150,   150,   150,   151,   152,   152,   152,   152,   152,
+     152,   152,   152,   152,   152,   152,   152,   152,   152,   152,
+     152,   153,   153,   153,   153,   153,   154,   155
   };
 
   /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -2451,22 +2502,22 @@ namespace eprosima {
   IDLParser::yyr2_[] =
   {
          0,     2,     1,     1,     2,     2,     2,     2,     2,     2,
-       1,     1,     1,     1,     5,     2,     1,     1,     1,     5,
-       1,     2,     3,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     0,     6,     0,     3,     1,     1,
+       1,     2,     5,     1,     2,     3,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     1,     3,     1,     1,     1,     1,     2,
-       1,     2,     3,     1,     1,     2,     1,     1,     1,     1,
-       1,     2,     1,     1,     1,     2,     3,     2,     1,     1,
-       1,     5,     1,     3,     1,     4,     1,     6,     4,     1,
-       1,     4,     2,     2,     3,     0,     2,     2,     2,     2,
-       2,     2,     2,     1,     3,     1,     3,     1,     2,     3,
-       9,     1,     1,     1,     1,     1,     1,     2,     3,     1,
-       2,     3,     2,     2,     3,     4,     1,     3,     3,     4,
-       3,     1,     1,     1,     3,     2,     1,     3,     3,     1,
-       1,     1,     0,     4,     0,     4,     1,     3,     1,     1,
-       1,     1,     1,     1,     3,     3,     3,     3,     3,     3,
-       3,     3,     3,     3,     3,     2,     2,     2,     1,     1,
-       1,     1,     1,     2,     2
+       1,     1,     1,     1,     1,     1,     1,     3,     1,     1,
+       1,     1,     2,     1,     2,     3,     1,     1,     2,     1,
+       1,     1,     1,     1,     2,     1,     1,     1,     2,     3,
+       2,     1,     1,     1,     5,     1,     3,     1,     4,     1,
+       6,     4,     1,     1,     4,     2,     2,     3,     0,     2,
+       2,     2,     2,     2,     2,     2,     1,     3,     1,     3,
+       1,     2,     3,     9,     1,     1,     1,     1,     1,     1,
+       2,     3,     1,     2,     3,     2,     2,     3,     4,     1,
+       3,     3,     4,     3,     1,     1,     1,     3,     2,     1,
+       3,     3,     1,     1,     1,     0,     4,     0,     4,     1,
+       3,     1,     1,     1,     1,     1,     1,     3,     3,     3,
+       3,     3,     3,     3,     3,     3,     3,     3,     2,     2,
+       2,     1,     1,     1,     1,     1,     2,     2
   };
 
 #if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
@@ -2491,18 +2542,18 @@ namespace eprosima {
   "'*'", "'/'", "'%'", "'~'", "'\\''", "'\"'", "'\\\\'", "PRAGMA_INFO",
   "IDENT_INFO", "LINE_AND_FILE_INFO", "NOT", "POS", "NEG", "$accept",
   "specification", "definition_list", "definition", "sharp_declaratives",
-  "module", "type_dcl", "struct_type", "struct_member_list",
-  "struct_member", "type_spec", "simple_type_spec", "scoped_name",
-  "base_type_spec", "object_type", "any_type", "template_type_spec",
-  "constr_type_spec", "declarators", "declarator", "simple_declarator",
-  "complex_declarator", "array_declarator", "fixed_array_size_list",
-  "fixed_array_size", "floating_pt_type", "integer_type", "signed_int",
-  "signed_long_int", "signed_short_int", "unsigned_int",
-  "unsigned_long_int", "unsigned_short_int", "char_type", "boolean_type",
-  "octet_type", "enum_type", "enumerator_list", "enumerator",
-  "string_type", "sequence_type", "interface", "interface_dcl",
-  "forward_dcl", "interface_header", "interface_body", "export",
-  "inheritance_spec", "scoped_name_list", "scoped_name_str",
+  "module", "$@1", "type_dcl", "$@2", "type_declarator", "struct_type",
+  "struct_member_list", "struct_member", "type_spec", "simple_type_spec",
+  "scoped_name", "base_type_spec", "object_type", "any_type",
+  "template_type_spec", "constr_type_spec", "declarators", "declarator",
+  "simple_declarator", "complex_declarator", "array_declarator",
+  "fixed_array_size_list", "fixed_array_size", "floating_pt_type",
+  "integer_type", "signed_int", "signed_long_int", "signed_short_int",
+  "unsigned_int", "unsigned_long_int", "unsigned_short_int", "char_type",
+  "boolean_type", "octet_type", "enum_type", "enumerator_list",
+  "enumerator", "string_type", "sequence_type", "interface",
+  "interface_dcl", "forward_dcl", "interface_header", "interface_body",
+  "export", "inheritance_spec", "scoped_name_list", "scoped_name_str",
   "res_scoped_name", "union_type", "switch_type_spec", "switch_body",
   "case", "case_label_list", "case_label", "element_spec", "attr_dcl",
   "simple_declarators", "op_dcl", "op_dcl_cont", "op_attribute",
@@ -2519,52 +2570,53 @@ namespace eprosima {
   IDLParser::yyrhs_[] =
   {
         77,     0,    -1,    78,    -1,    79,    -1,    79,    78,    -1,
-      82,    46,    -1,   151,    46,    -1,   152,    46,    -1,   117,
+      83,    46,    -1,   154,    46,    -1,   155,    46,    -1,   120,
       46,    -1,    81,    46,    -1,    80,    -1,    70,    -1,    71,
-      -1,    72,    -1,    27,    10,    47,    78,    48,    -1,    38,
-      46,    -1,    83,    -1,   127,    -1,   112,    -1,    36,    10,
-      47,    84,    48,    -1,    85,    -1,    85,    84,    -1,    86,
-      94,    46,    -1,    87,    -1,    93,    -1,    89,    -1,    92,
-      -1,    88,    -1,   125,    -1,   101,    -1,   102,    -1,   109,
-      -1,   110,    -1,   111,    -1,    91,    -1,    90,    -1,    42,
-      -1,    12,    -1,   116,    -1,   115,    -1,    83,    -1,   127,
-      -1,   112,    -1,    95,    -1,    95,    50,    94,    -1,    96,
-      -1,    97,    -1,    10,    -1,    98,    -1,    10,    99,    -1,
-     100,    -1,   100,    99,    -1,    58,   148,    59,    -1,    22,
-      -1,    19,    -1,    26,    19,    -1,   103,    -1,   106,    -1,
-     104,    -1,   105,    -1,    26,    -1,    26,    26,    -1,    34,
-      -1,   107,    -1,   108,    -1,    39,    26,    -1,    39,    26,
-      26,    -1,    39,    34,    -1,    15,    -1,    11,    -1,    28,
-      -1,    20,    10,    47,   113,    48,    -1,   114,    -1,   114,
-      50,   113,    -1,    10,    -1,    35,    56,   148,    57,    -1,
-      35,    -1,    33,    56,    87,    50,   148,    57,    -1,    33,
-      56,    87,    57,    -1,   118,    -1,   119,    -1,   120,    47,
-     121,    48,    -1,    25,    10,    -1,    25,    10,    -1,    25,
-      10,   123,    -1,    -1,   122,   121,    -1,    82,    46,    -1,
-     151,    46,    -1,   152,    46,    -1,   134,    46,    -1,   136,
-      46,    -1,    49,   124,    -1,   125,    -1,   125,    50,   124,
-      -1,    10,    -1,    10,    43,   125,    -1,   126,    -1,    43,
-      10,    -1,    43,    10,   126,    -1,    40,    10,    37,    54,
-     128,    55,    47,   129,    48,    -1,   102,    -1,   109,    -1,
-     110,    -1,   112,    -1,    88,    -1,   130,    -1,   130,   129,
-      -1,   131,   133,    46,    -1,   132,    -1,   132,   131,    -1,
-      14,   149,    49,    -1,    18,    49,    -1,    86,    95,    -1,
-      13,   147,   135,    -1,    32,    13,   147,   135,    -1,    96,
-      -1,    96,    50,   135,    -1,   139,    10,   137,    -1,   138,
-     139,    10,   137,    -1,   140,   144,   145,    -1,    29,    -1,
-     147,    -1,    41,    -1,    54,   141,    55,    -1,    54,    55,
-      -1,   142,    -1,   142,    50,   141,    -1,   143,   147,    96,
-      -1,    23,    -1,    30,    -1,    24,    -1,    -1,    31,    54,
-     124,    55,    -1,    -1,    17,    54,   146,    55,    -1,     8,
-      -1,     8,    50,   146,    -1,    89,    -1,   115,    -1,    88,
-      -1,   149,    -1,   125,    -1,   150,    -1,    54,   149,    55,
-      -1,   149,    60,   149,    -1,   149,    61,   149,    -1,   149,
-      62,   149,    -1,   149,    44,   149,    -1,   149,    45,   149,
-      -1,   149,    52,   149,    -1,   149,    53,   149,    -1,   149,
-      63,   149,    -1,   149,    64,   149,    -1,   149,    65,   149,
-      -1,    53,   149,    -1,    52,   149,    -1,    66,   149,    -1,
-       3,    -1,     5,    -1,     8,    -1,     9,    -1,     7,    -1,
-      16,    46,    -1,    21,    46,    -1
+      -1,    72,    -1,    -1,    27,    10,    82,    47,    78,    48,
+      -1,    -1,    38,    84,    85,    -1,    86,    -1,   130,    -1,
+     115,    -1,    89,    97,    -1,    36,    10,    47,    87,    48,
+      -1,    88,    -1,    88,    87,    -1,    89,    97,    46,    -1,
+      90,    -1,    96,    -1,    92,    -1,    95,    -1,    91,    -1,
+     128,    -1,   104,    -1,   105,    -1,   112,    -1,   113,    -1,
+     114,    -1,    94,    -1,    93,    -1,    42,    -1,    12,    -1,
+     119,    -1,   118,    -1,    86,    -1,   130,    -1,   115,    -1,
+      98,    -1,    98,    50,    97,    -1,    99,    -1,   100,    -1,
+      10,    -1,   101,    -1,    10,   102,    -1,   103,    -1,   103,
+     102,    -1,    58,   151,    59,    -1,    22,    -1,    19,    -1,
+      26,    19,    -1,   106,    -1,   109,    -1,   107,    -1,   108,
+      -1,    26,    -1,    26,    26,    -1,    34,    -1,   110,    -1,
+     111,    -1,    39,    26,    -1,    39,    26,    26,    -1,    39,
+      34,    -1,    15,    -1,    11,    -1,    28,    -1,    20,    10,
+      47,   116,    48,    -1,   117,    -1,   117,    50,   116,    -1,
+      10,    -1,    35,    56,   151,    57,    -1,    35,    -1,    33,
+      56,    90,    50,   151,    57,    -1,    33,    56,    90,    57,
+      -1,   121,    -1,   122,    -1,   123,    47,   124,    48,    -1,
+      25,    10,    -1,    25,    10,    -1,    25,    10,   126,    -1,
+      -1,   125,   124,    -1,    83,    46,    -1,   154,    46,    -1,
+     155,    46,    -1,   137,    46,    -1,   139,    46,    -1,    49,
+     127,    -1,   128,    -1,   128,    50,   127,    -1,    10,    -1,
+      10,    43,   128,    -1,   129,    -1,    43,    10,    -1,    43,
+      10,   129,    -1,    40,    10,    37,    54,   131,    55,    47,
+     132,    48,    -1,   105,    -1,   112,    -1,   113,    -1,   115,
+      -1,    91,    -1,   133,    -1,   133,   132,    -1,   134,   136,
+      46,    -1,   135,    -1,   135,   134,    -1,    14,   152,    49,
+      -1,    18,    49,    -1,    89,    98,    -1,    13,   150,   138,
+      -1,    32,    13,   150,   138,    -1,    99,    -1,    99,    50,
+     138,    -1,   142,    10,   140,    -1,   141,   142,    10,   140,
+      -1,   143,   147,   148,    -1,    29,    -1,   150,    -1,    41,
+      -1,    54,   144,    55,    -1,    54,    55,    -1,   145,    -1,
+     145,    50,   144,    -1,   146,   150,    99,    -1,    23,    -1,
+      30,    -1,    24,    -1,    -1,    31,    54,   127,    55,    -1,
+      -1,    17,    54,   149,    55,    -1,     8,    -1,     8,    50,
+     149,    -1,    92,    -1,   118,    -1,    91,    -1,   152,    -1,
+     128,    -1,   153,    -1,    54,   152,    55,    -1,   152,    60,
+     152,    -1,   152,    61,   152,    -1,   152,    62,   152,    -1,
+     152,    44,   152,    -1,   152,    45,   152,    -1,   152,    52,
+     152,    -1,   152,    53,   152,    -1,   152,    63,   152,    -1,
+     152,    64,   152,    -1,   152,    65,   152,    -1,    53,   152,
+      -1,    52,   152,    -1,    66,   152,    -1,     3,    -1,     5,
+      -1,     8,    -1,     9,    -1,     7,    -1,    16,    46,    -1,
+      21,    46,    -1
   };
 
   /* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
@@ -2573,45 +2625,45 @@ namespace eprosima {
   IDLParser::yyprhs_[] =
   {
          0,     0,     3,     5,     7,    10,    13,    16,    19,    22,
-      25,    27,    29,    31,    33,    39,    42,    44,    46,    48,
-      54,    56,    59,    63,    65,    67,    69,    71,    73,    75,
-      77,    79,    81,    83,    85,    87,    89,    91,    93,    95,
-      97,    99,   101,   103,   105,   109,   111,   113,   115,   117,
-     120,   122,   125,   129,   131,   133,   136,   138,   140,   142,
-     144,   146,   149,   151,   153,   155,   158,   162,   165,   167,
-     169,   171,   177,   179,   183,   185,   190,   192,   199,   204,
-     206,   208,   213,   216,   219,   223,   224,   227,   230,   233,
-     236,   239,   242,   245,   247,   251,   253,   257,   259,   262,
-     266,   276,   278,   280,   282,   284,   286,   288,   291,   295,
-     297,   300,   304,   307,   310,   314,   319,   321,   325,   329,
-     334,   338,   340,   342,   344,   348,   351,   353,   357,   361,
-     363,   365,   367,   368,   373,   374,   379,   381,   385,   387,
-     389,   391,   393,   395,   397,   401,   405,   409,   413,   417,
-     421,   425,   429,   433,   437,   441,   444,   447,   450,   452,
-     454,   456,   458,   460,   463
+      25,    27,    29,    31,    33,    34,    41,    42,    46,    48,
+      50,    52,    55,    61,    63,    66,    70,    72,    74,    76,
+      78,    80,    82,    84,    86,    88,    90,    92,    94,    96,
+      98,   100,   102,   104,   106,   108,   110,   112,   116,   118,
+     120,   122,   124,   127,   129,   132,   136,   138,   140,   143,
+     145,   147,   149,   151,   153,   156,   158,   160,   162,   165,
+     169,   172,   174,   176,   178,   184,   186,   190,   192,   197,
+     199,   206,   211,   213,   215,   220,   223,   226,   230,   231,
+     234,   237,   240,   243,   246,   249,   252,   254,   258,   260,
+     264,   266,   269,   273,   283,   285,   287,   289,   291,   293,
+     295,   298,   302,   304,   307,   311,   314,   317,   321,   326,
+     328,   332,   336,   341,   345,   347,   349,   351,   355,   358,
+     360,   364,   368,   370,   372,   374,   375,   380,   381,   386,
+     388,   392,   394,   396,   398,   400,   402,   404,   408,   412,
+     416,   420,   424,   428,   432,   436,   440,   444,   448,   451,
+     454,   457,   459,   461,   463,   465,   467,   470
   };
 
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
   const unsigned short int
   IDLParser::yyrline_[] =
   {
-         0,   187,   187,   193,   197,   208,   212,   216,   220,   224,
-     230,   239,   241,   243,   247,   269,   271,   272,   273,   276,
-     303,   305,   322,   366,   367,   374,   375,   376,   379,   395,
-     396,   397,   398,   399,   400,   401,   403,   409,   414,   415,
-     418,   419,   420,   423,   428,   435,   436,   438,   445,   448,
-     456,   461,   466,   472,   474,   476,   480,   481,   484,   485,
-     487,   489,   492,   496,   497,   499,   501,   504,   507,   510,
-     513,   518,   539,   545,   548,   554,   559,   565,   571,   580,
-     581,   584,   613,   620,   623,   628,   629,   638,   639,   640,
-     641,   646,   649,   655,   659,   665,   670,   677,   680,   687,
-     697,   782,   783,   784,   785,   789,   792,   797,   803,   810,
-     812,   819,   846,   853,   864,   867,   872,   876,   881,   884,
-     888,   891,   895,   896,   900,   902,   906,   908,   911,   915,
-     917,   919,   924,   925,   930,   931,   935,   938,   943,   948,
-     953,   967,   978,   984,   986,   988,  1000,  1013,  1025,  1038,
-    1051,  1073,  1087,  1101,  1115,  1129,  1140,  1151,  1173,  1178,
-    1183,  1189,  1195,  1218,  1226
+         0,   187,   187,   193,   197,   208,   213,   217,   221,   224,
+     228,   237,   239,   241,   245,   245,   254,   254,   258,   259,
+     260,   263,   272,   300,   302,   319,   363,   364,   371,   372,
+     373,   376,   392,   393,   394,   395,   396,   397,   398,   400,
+     406,   411,   412,   415,   416,   417,   420,   425,   432,   433,
+     435,   442,   445,   453,   458,   463,   469,   471,   473,   477,
+     478,   481,   482,   484,   486,   489,   493,   494,   496,   498,
+     501,   504,   507,   510,   515,   536,   542,   545,   551,   556,
+     562,   568,   577,   578,   581,   607,   614,   620,   628,   629,
+     638,   644,   650,   656,   661,   664,   670,   674,   680,   685,
+     692,   695,   702,   712,   797,   798,   799,   800,   804,   807,
+     812,   818,   825,   827,   834,   861,   868,   879,   882,   887,
+     891,   896,   899,   903,   906,   910,   911,   915,   917,   921,
+     923,   926,   930,   932,   934,   939,   940,   945,   946,   950,
+     953,   958,   963,   968,   982,   993,   999,  1001,  1003,  1015,
+    1028,  1040,  1053,  1066,  1088,  1102,  1116,  1130,  1144,  1155,
+    1166,  1188,  1193,  1198,  1204,  1210,  1233,  1241
   };
 
   // Print the state stack on the debug stream.
@@ -2690,8 +2742,8 @@ namespace eprosima {
   }
 
   const int IDLParser::yyeof_ = 0;
-  const int IDLParser::yylast_ = 398;
-  const int IDLParser::yynnts_ = 77;
+  const int IDLParser::yylast_ = 404;
+  const int IDLParser::yynnts_ = 80;
   const int IDLParser::yyempty_ = -2;
   const int IDLParser::yyfinal_ = 35;
   const int IDLParser::yyterror_ = 1;
@@ -2705,11 +2757,11 @@ namespace eprosima {
 } // eprosima
 
 /* Line 1136 of lalr1.cc  */
-#line 2709 "IDLParser.cc"
+#line 2761 "IDLParser.cc"
 
 
 /* Line 1138 of lalr1.cc  */
-#line 1237 "idl.y"
+#line 1252 "idl.y"
 
 
 // directly include the nonterm defs here
