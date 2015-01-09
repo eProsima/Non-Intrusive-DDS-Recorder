@@ -72,7 +72,7 @@ fi
 version=$1
 
 # Get distro version
-. $EPROSIMADIR/scripts/common_pack_functions.sh getDistroVersion
+. ../../../thirdparty/dev-env/scripts/common_pack_functions.sh getDistroVersion
 
 # Create the temporaly directory.
 mkdir tmp

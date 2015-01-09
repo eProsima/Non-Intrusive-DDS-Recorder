@@ -17,51 +17,29 @@ package_targets=""
 
 function package
 {
-    # Get current version of GCC.
-    . $EPROSIMADIR/scripts/common_pack_functions.sh getGccVersion
+    cd thirdparty/fastcdr
+    # Get the current version of CDR
+    . ../dev-env/scripts/common_pack_functions.sh getVersionFromCPP cdrversion include/fastcdr/FastCdr_version.h
 
-    # Update and compile CDR library.
-    cd ../CDR
-    # Update CDR library.
-    svn update
+    # Compile and packaging FastCDR library for all archictectures
+    cd utils/scripts
+    ./package_fastcdr.sh
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
-    # Compile CDR library for target i86.
-    if [ -z $package_targets ] || [ "$package_targets" == "i86" ]; then
-        #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="i86Linux2.6gcc${gccversion}"
-        rm -rf output
-        rm -r lib/$EPROSIMA_TARGET
-        make
-        errorstatus=$?
-        if [ $errorstatus != 0 ]; then return; fi
-    fi
-    # Compile CDR library for target x64.
-    if [ -z $package_targets ] || [ "$package_targets" == "x64" ]; then
-        #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="x64Linux2.6gcc${gccversion}"
-        rm -rf output
-        rm -r lib/$EPROSIMA_TARGET
-        make
-        errorstatus=$?
-        if [ $errorstatus != 0 ]; then return; fi
-    fi
-    cd ../DDSRecorder
+    cd ../../../..
 
     # Get the current version of DDSRecorder
-    . $EPROSIMADIR/scripts/common_pack_functions.sh getVersionFromCPP recorderversion src/version.cpp
+    . thirdparty/dev-env/scripts/common_pack_functions.sh getVersionFromCPP recorderversion src/version.cpp
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
 
-    # Update and compile DDSRecorder application.
-    # Update DDSRecorder application
-    svn update
+    # Compile DDSRecorder application.
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
     # Compile DDSRecorder for target i86.
     if [ -z $package_targets ] || [ "$package_targets" == "i86" ]; then
         #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="i86Linux2.6gcc${gccversion}"
+        EPROSIMA_TARGET="i86Linux2.6gcc"
         # Compile DDSRecorder for target.
         rm -rf output
         make
@@ -70,7 +48,7 @@ function package
     fi
     if [ -z $package_targets ] || [ "$package_targets" == "x64" ]; then
         #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="x64Linux2.6gcc${gccversion}"
+        EPROSIMA_TARGET="x64Linux2.6gcc"
         # Compile DDSRecorder for target.
         rm -rf output
         make
@@ -104,7 +82,7 @@ function package
     #~Installer for target i86.
     if [ -z $package_targets ] || [ "$package_targets" == "i86" ]; then
         #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="i86Linux2.6gcc${gccversion}"
+        EPROSIMA_TARGET="i86Linux2.6gcc"
         ./setup_linux.sh $recorderversion
         errorstatus=$?
         if [ $errorstatus != 0 ]; then return; fi
@@ -112,19 +90,13 @@ function package
     #~Installer for target x64
     if [ -z $package_targets ] || [ "$package_targets" == "x64" ]; then
         #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="x64Linux2.6gcc${gccversion}"
+        EPROSIMA_TARGET="x64Linux2.6gcc"
         ./setup_linux.sh $recorderversion
         errorstatus=$?
         if [ $errorstatus != 0 ]; then return; fi
     fi
     cd ../../..
 }
-
-# Check that the environment.sh script was run.
-if [ "$EPROSIMADIR" == "" ]; then
-    echo "environment.sh must to be run."
-    exit -1
-fi
 
 # Get the optional parameter
 if [ $# -ge 1 ] && [ -n $1 ]; then
