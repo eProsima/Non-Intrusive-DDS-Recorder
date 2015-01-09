@@ -3,13 +3,18 @@
 
 #include "cdr/PrimitiveTypeCode.h"
 
-namespace eProsima
+namespace eprosima
 {
     class StringTypeCode : public PrimitiveTypeCode
     {
     public:
 
-        StringTypeCode() : PrimitiveTypeCode(TypeCode::KIND_STRING){}
+        StringTypeCode() : PrimitiveTypeCode(TypeCode::KIND_STRING), m_dump(0), m_maxLength(0){}
+
+        StringTypeCode(uint32_t maxL): PrimitiveTypeCode(TypeCode::KIND_STRING),m_dump(0),m_maxLength(maxL){};
+
+        StringTypeCode(const StringTypeCode& copy): PrimitiveTypeCode(TypeCode::KIND_STRING),
+        		m_dump(copy.m_dump), m_maxLength(copy.m_maxLength){};
 
         virtual ~StringTypeCode(){}
 

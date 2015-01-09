@@ -1,5 +1,5 @@
 #include "database/EntitiesDB.h"
-#include "eProsima_cpp/eProsimaLog.h"
+#include "log/eProsimaLog.h"
 
 #include <string.h>
 
@@ -23,7 +23,7 @@ static const char* const ENTITY_ADD = "INSERT INTO " ENTITIES_TABLE " VALUES(?, 
 static const char* const MESSAGES_ADD = "INSERT INTO " MESSAGES_TABLE " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, "\
                                          "?, ?, ?, ?, ?, ?, ?, ?)";
 
-using namespace eProsima;
+using namespace eprosima;
 using namespace std;
 
 eEntity::eEntity(unsigned int hostId, unsigned int appId,

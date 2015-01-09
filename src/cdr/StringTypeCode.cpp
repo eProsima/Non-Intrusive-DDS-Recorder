@@ -1,9 +1,9 @@
 #include "cdr/StringTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
-using namespace eProsima;
+using namespace eprosima;
 
 bool StringTypeCode::deserialize(Cdr &cdr)
 {
@@ -13,7 +13,7 @@ bool StringTypeCode::deserialize(Cdr &cdr)
         cdr >> m_maxLength;
         return true;
     }
-    catch(eProsima::Exception &ex) {}
+    catch(exception::Exception &ex) {}
 
     return false;
 }
@@ -21,11 +21,11 @@ bool StringTypeCode::deserialize(Cdr &cdr)
 bool StringTypeCode::print(IDLPrinter &printer, bool write) const
 {
 	if(write)
-		printer.getOut() << "string ";
+		printer.getOut() << "string<"<< m_maxLength << ">";
 	return true;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const StringTypeCode *typeCode)
+bool eprosima::operator<<(IDLPrinter &printer, const StringTypeCode *typeCode)
 {
     bool returnedValue = false;
 

@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-using namespace eProsima;
+using namespace eprosima;
 
 ContentTypeCode::ContentTypeCode(uint32_t kind) : TypeCode(kind),
     m_contentTypeCode(NULL)
@@ -11,6 +11,7 @@ ContentTypeCode::ContentTypeCode(uint32_t kind) : TypeCode(kind),
 
 ContentTypeCode::~ContentTypeCode()
 {
+	//printf("Deleting contentTypeCode\n");
     if(m_contentTypeCode != NULL)
         delete m_contentTypeCode;
 }
@@ -23,4 +24,9 @@ const TypeCode* ContentTypeCode::getContentTypeCode() const
 bool ContentTypeCode::deserializeContent(Cdr &cdr)
 {
     return (m_contentTypeCode = TypeCode::deserializeTypeCode(cdr)) != NULL;
+}
+
+void ContentTypeCode::setContentTypeCode(TypeCode* TC)
+{
+	m_contentTypeCode = TC;
 }

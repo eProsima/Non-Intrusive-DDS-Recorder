@@ -6,14 +6,14 @@
 #include "cdr/PrimitiveTypeCode.h"
 #include "cdr/SequenceTypeCode.h"
 #include "cdr/UnionTypeCode.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
 #include <stdio.h>
 
 const char* const CLASS_NAME = "TypeCode";
 
-using namespace eProsima;
+using namespace eprosima;
 
 TypeCode::TypeCode(uint32_t kind) : m_kind(kind)
 {
@@ -53,7 +53,7 @@ TypeCode* TypeCode::deserializeTypeCode(char *cdrTypeCode, uint32_t cdrTypeCodeL
                 }
             }
         }
-        catch(eProsima::Exception &ex) {}
+        catch(exception::Exception &ex) {}
     }
     else
     {
@@ -136,7 +136,7 @@ TypeCode* TypeCode::deserializeTypeCode(Cdr &cdr)
             }
         }
     }
-    catch(eProsima::Exception &ex) {}
+    catch(exception::Exception &ex) {}
 
     return returnedValue;
 }
@@ -146,7 +146,7 @@ uint32_t TypeCode::getKind() const
     return m_kind;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const TypeCode *typeCode)
+bool eprosima::operator<<(IDLPrinter &printer, const TypeCode *typeCode)
 {
     bool returnedValue = false;
 

@@ -5,15 +5,22 @@
 
 #include <vector>
 
-namespace eProsima
+
+namespace eprosima
 {
-    class Cdr;
+	namespace fastcdr{
+
+	class Cdr;
+	}
+	using namespace fastcdr;
 
     class ArrayTypeCode : public ContentTypeCode
     {
     public:
         //! @brief Default constructor.
         ArrayTypeCode();
+        //! @brief Dimension-constructor
+        ArrayTypeCode(std::vector<int32_t>&);
 
         //! @brief Default destructor.
         virtual ~ArrayTypeCode(){}
@@ -37,6 +44,8 @@ namespace eProsima
         bool deserialize(Cdr &cdr);
 
         bool print(IDLPrinter &printer, bool write) const;
+
+
 
     private:
 

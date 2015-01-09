@@ -2,13 +2,16 @@
 #define _CDR_MEMBEREDTYPECODE_H_
 
 #include "cdr/TypeCode.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
 #include <string>
 #include <vector>
 
-namespace eProsima
+using namespace eprosima::fastcdr;
+
+
+namespace eprosima
 {
     class Member
     {
@@ -19,6 +22,8 @@ namespace eProsima
          */
         Member(std::string &name);
 
+        Member();
+
         //! @brief Default destructor;
         virtual ~Member();
 
@@ -26,11 +31,21 @@ namespace eProsima
          * @brief This function returns the name of the member.
          */
         const std::string& getName() const;
+        /**
+         * Set the name of the MemberedTypeCode.
+         * @param name String to set.
+         */
+        void setName(std::string& name);
 
         /*!
          * @brief This function returns the typecode of the member.
          */
         const TypeCode* getTypeCode() const;
+        /**
+         * Set the TypeCode of the member.
+         * @param Pointer to the typecode.
+         */
+        void setTypeCode(TypeCode*);
 
         /*!
          * @brief This function deserializes the member's typecode.
@@ -52,6 +67,11 @@ namespace eProsima
          * @brief This function returns the name of the membered type.
          */
         std::string getName() const;
+        /**
+         * This functions sets the name of the MemberedTypeCode
+         * @param name
+         */
+        void setName(std::string& name);
 
         /*!
          * @brief This function returns the member count of the membered type.
@@ -63,7 +83,13 @@ namespace eProsima
          */
         const Member* getMember(uint32_t index) const;
 
+
+       bool isMemberWithName(const std::string& name);
+
+
     protected:
+
+        void addMemberPtr(Member* m);
 
         //! @brief Default constructor.
         MemberedTypeCode(uint32_t kind);
@@ -81,7 +107,7 @@ namespace eProsima
                 cdr >> m_name;
                 return true;
             }
-            catch(eProsima::Exception &ex)
+            catch(exception::Exception &ex)
             {
                 return false;
             }
@@ -99,7 +125,7 @@ namespace eProsima
 
         std::vector<Member*> m_members;
 
-    private:
+
 
         std::string m_name;
 

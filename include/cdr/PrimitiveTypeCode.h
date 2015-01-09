@@ -3,13 +3,13 @@
 
 #include "cdr/TypeCode.h"
 
-namespace eProsima
+namespace eprosima
 {
     class PrimitiveTypeCode : public TypeCode
     {
     public:
 
-        PrimitiveTypeCode(uint32_t kind) : TypeCode(kind){}
+        PrimitiveTypeCode(uint32_t kind) : TypeCode(kind),m_dump(0){}
 
         virtual ~PrimitiveTypeCode(){}
 

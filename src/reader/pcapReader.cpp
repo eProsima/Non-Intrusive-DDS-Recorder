@@ -1,6 +1,6 @@
 #include "reader/pcapReader.h"
 #include "reader/ipDefragmenter.h"
-#include "eProsima_cpp/eProsimaLog.h"
+#include "log/eProsimaLog.h"
 
 #include <string.h>
 #include <malloc.h>
@@ -60,7 +60,7 @@ struct udphdr
 #endif
 
 using namespace std;
-using namespace eProsima;
+using namespace eprosima;
 
 static const char* const CLASS_NAME = "pcapReader";
 

@@ -9,11 +9,17 @@
 
 #ifdef __cplusplus
 
-namespace eProsima
+namespace eprosima
+{
+	class UserTypeCodeProvider;
+}
+using namespace eprosima;
+namespace eprosima
 {
     class eProsimaLog;
     class TypeCodeDB;
     class EntitiesDB;
+
 
     class DDSRecorder
     {
@@ -37,6 +43,11 @@ namespace eProsima
                     struct DDS_Time_t &sourceTmp, unsigned int destHostId,
                     unsigned int destAppId, unsigned int destInstanceId, bool endianess,
                     const char *serializedData, unsigned int serializedDataLen);
+
+            void setUSerTypeCodeProvider(UserTypeCodeProvider* utcp)
+            {
+            	UTCprovider = utcp;
+            }
 
         private:
 
@@ -111,6 +122,8 @@ namespace eProsima
             EntitiesDB *m_entitiesDB;
 
             int m_tcMaxSize;
+
+            UserTypeCodeProvider* UTCprovider;
     };
 }
 

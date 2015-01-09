@@ -3,14 +3,22 @@
 
 #include "cdr/MemberedTypeCode.h"
 
-namespace eProsima
+namespace eprosima{ namespace fastcdr{
+
+ class Cdr;
+}}
+using namespace eprosima::fastcdr;
+
+namespace eprosima
 {
-    class Cdr;
+
 
     class EnumMember : public Member
     {
     public:
         EnumMember(std::string &name, uint32_t ordinal);
+
+        EnumMember(const EnumMember& copy);
 
         virtual ~EnumMember(){}
 
@@ -33,6 +41,8 @@ namespace eProsima
          * @brief Default constructor.
          */
         EnumTypeCode();
+
+        EnumTypeCode(const EnumTypeCode& copy_from_me);
 
         /*!
          * @brief Default destructor.
@@ -57,6 +67,8 @@ namespace eProsima
 		friend inline bool operator<<(IDLPrinter &printer, const EnumTypeCode &typeCode) {return typeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const EnumTypeCode *typeCode);
+
+        bool addMember(EnumMember* mem);
 
     private:
         

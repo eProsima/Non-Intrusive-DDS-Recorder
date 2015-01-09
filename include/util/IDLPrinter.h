@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <stdint.h>
 
-namespace eProsima
+namespace eprosima
 {
     class IDLPrinter
     {

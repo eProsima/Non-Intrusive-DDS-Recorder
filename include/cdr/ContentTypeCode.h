@@ -3,7 +3,7 @@
 
 #include "cdr/TypeCode.h"
 
-namespace eProsima
+namespace eprosima
 {
     class ContentTypeCode : public TypeCode
     {
@@ -13,6 +13,8 @@ namespace eProsima
          * @brief This function returns the typecode of the content.
          */
         const TypeCode* getContentTypeCode() const;
+
+        void setContentTypeCode(TypeCode*);
 
     protected:
 

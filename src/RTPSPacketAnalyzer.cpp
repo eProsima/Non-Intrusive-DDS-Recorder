@@ -1,5 +1,5 @@
 #include "RTPSPacketAnalyzer.h"
-#include "eProsima_cpp/eProsimaLog.h"
+#include "log/eProsimaLog.h"
 
 #include <stdio.h>
 
@@ -51,7 +51,7 @@ enum RtpsSubmessageId
     RTPS_DATA_ID = 0x15
 };
 
-using namespace eProsima;
+using namespace eprosima;
 using namespace std;
 
 static const char* const CLASS_NAME = "RTPSPacketAnalyzer";

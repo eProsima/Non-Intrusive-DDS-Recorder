@@ -1,12 +1,12 @@
 #include "reader/ipDefragmenter.h"
-#include "eProsima_cpp/eProsimaLog.h"
+#include "log/eProsimaLog.h"
 
 #include <malloc.h>
 #include <string.h>
 
 static const char* const CLASS_NAME = "ipDefragmenter";
 
-using namespace eProsima;
+using namespace eprosima;
 using namespace std;
 
 ipHold::ipHold(unsigned int offset, unsigned int length, bool filled, bool last) : m_offset(offset), m_length(length),

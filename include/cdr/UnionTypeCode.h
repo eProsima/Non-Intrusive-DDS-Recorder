@@ -4,9 +4,15 @@
 #include "cdr/MemberedTypeCode.h"
 #include <vector>
 
-namespace eProsima
+namespace eprosima{ namespace fastcdr{
+
+ class Cdr;
+}}
+using namespace eprosima::fastcdr;
+
+namespace eprosima
 {
-    class Cdr;
+
     class IDLPrinter;
 
     class UnionMember : public Member
@@ -14,11 +20,19 @@ namespace eProsima
     public:
         UnionMember(std::string &name, uint32_t labelCount, std::vector<int32_t> label);
 
+        UnionMember();
+
+        UnionMember(const UnionMember& copy);
+
         virtual ~UnionMember(){}
 
         uint32_t getLabelCount() const;
 
         int32_t getLabel(uint32_t pos) const;
+
+        void setLabels(std::vector<int32_t>& labels);
+
+        std::vector<int32_t> getLabels() const;
 
     private:
         uint32_t m_labelCount;
@@ -34,12 +48,18 @@ namespace eProsima
          */
         UnionTypeCode();
 
+        UnionTypeCode(const UnionTypeCode& copy_from_me);
+
         /*!
          * @brief Default destructor.
          */
         virtual ~UnionTypeCode();
 
+
+
         int32_t getDefaultIndex() const;
+
+        void setDefaultIndex(int32_t def);
 
         /*!
          * @brief This function deserializes a union that is contained in a CDR stream.
@@ -54,6 +74,12 @@ namespace eProsima
 		friend inline bool operator<<(IDLPrinter &printer, const UnionTypeCode &unionTypeCode) {return unionTypeCode.print(printer, true);}
 
         friend bool operator<<(IDLPrinter &printer, const UnionTypeCode *unionTypeCode);
+
+        bool addMember(UnionMember* member);
+
+        void setDiscriminatorTypeCode(TypeCode*);
+
+
 
     private:
         

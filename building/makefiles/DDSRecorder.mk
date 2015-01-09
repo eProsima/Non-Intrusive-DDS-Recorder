@@ -12,19 +12,19 @@ DDSRECORDER_TARGET_DEBUG= $(BASEDIR)/lib/$(EPROSIMA_TARGET)/DDSRecorderd
 DDSRECORDER_TARGET= $(BASEDIR)/lib/$(EPROSIMA_TARGET)/DDSRecorder
 
 DDSRECORDER_INCLUDE_DIRS= $(INCLUDE_DIRS) -I$(BASEDIR)/include \
-		       -I$(BASEDIR)/../CDR/include \
-		       -I$(EPROSIMADIR)/code
+		       -I$(BASEDIR)/thirdparty/fastcdr/include \
+		       -I$(BASEDIR)/thirdparty/eprosima-common-code
 
-DDSRECORDER_LIBS_DEBUG= $(LIBS_DEBUG) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) \
-			-Wl,-Bstatic -lcdrd \
+DDSRECORDER_LIBS_DEBUG= $(LIBS_DEBUG) -L$(BASEDIR)/thirdparty/fastcdr/lib/$(EPROSIMA_TARGET) \
+			-Wl,-Bstatic -lfastcdrd \
 			-Wl,-Bdynamic -ldl -lpcap -lsqlite3 -lboost_system
-DDSRECORDER_LIBS_RELEASE= $(LIBS) -L$(BASEDIR)/../CDR/lib/$(EPROSIMA_TARGET) \
-			  -Wl,-Bstatic -lcdr \
+DDSRECORDER_LIBS_RELEASE= $(LIBS) -L$(BASEDIR)/thirdparty/fastcdr/lib/$(EPROSIMA_TARGET) \
+			  -Wl,-Bstatic -lfastcdr \
 			  -Wl,-Bdynamic -ldl -lpcap -lsqlite3 -lboost_system
 
 DDSRECORDER_SRC_CFILES=
 
-DDSRECORDER_SRC_CPPFILES= $(EPROSIMADIR)/code/eProsima_cpp/eProsimaLog.cpp \
+DDSRECORDER_SRC_CPPFILES= $(BASEDIR)/src/log/eProsimaLog.cpp \
 		       $(BASEDIR)/src/reader/pcapReader.cpp \
 		       $(BASEDIR)/src/reader/ipDefragmenter.cpp \
 		       $(BASEDIR)/src/RTPSPacketAnalyzer.cpp \
@@ -42,9 +42,13 @@ DDSRECORDER_SRC_CPPFILES= $(EPROSIMADIR)/code/eProsima_cpp/eProsimaLog.cpp \
 		       $(BASEDIR)/src/cdr/StructTypeCode.cpp \
 		       $(BASEDIR)/src/cdr/TypeCode.cpp \
 		       $(BASEDIR)/src/cdr/UnionTypeCode.cpp \
+		       $(BASEDIR)/src/cdr/TypeCodeCopy.cpp \
 		       $(BASEDIR)/src/util/IDLPrinter.cpp \
-		       $(BASEDIR)/src/main.cpp
-
+		       $(BASEDIR)/src/main.cpp \
+		       $(BASEDIR)/src/idlparser/IDLParser.cc \
+		       $(BASEDIR)/src/idlparser/IDLScanner.cc \
+		       $(BASEDIR)/src/idlparser/UserTypeCodeProvider.cpp 
+			   
 # Project sources are copied to the current directory
 DDSRECORDER_SRCS= $(DDSRECORDER_SRC_CFILES) $(DDSRECORDER_SRC_CPPFILES)
 
@@ -80,6 +84,7 @@ $(DDSRECORDER_TARGET): $(DDSRECORDER_OBJS_RELEASE)
 
 vpath %.c $(DDSRECORDER_SOURCES_DIRS)
 vpath %.cpp $(DDSRECORDER_SOURCES_DIRS)
+vpath %.cc $(DDSRECORDER_SOURCES_DIRS)
 
 $(DDSRECORDER_OUTDIR_DEBUG)/%.o:%.c
 	@echo Calculating dependencies \(DEBUG mode\) $<
@@ -112,6 +117,18 @@ $(DDSRECORDER_OUTDIR_DEBUG)/%.cpp.o:%.cpp
 	@$(CPP) $(DDSRECORDER_CFLAGS_DEBUG) $(DDSRECORDER_INCLUDE_DIRS) $< -o $@
 
 $(DDSRECORDER_OUTDIR_RELEASE)/%.cpp.o:%.cpp
+	@echo Calculating dependencies \(RELEASE mode\) $<
+	@$(CPP) $(DDSRECORDER_CFLAGS) -MM $(DDSRECORDER_CFLAGS) $(DDSRECORDER_INCLUDE_DIRS) $< | sed "s/^.*:/$(DDSRECORDER_SED_OUTPUT_DIR_RELEASE)\/&/g" > $(@:%.o=%.d)
+	@echo Compiling \(RELEASE mode\) $<
+	@$(CPP) $(DDSRECORDER_CFLAGS) $(DDSRECORDER_INCLUDE_DIRS) $< -o $@
+	
+$(DDSRECORDER_OUTDIR_DEBUG)/%.cc.o:%.cc
+	@echo Calculating dependencies \(DEBUG mode\) $<
+	@$(CPP) $(DDSRECORDER_CFLAGS_DEBUG) -MM $(DDSRECORDER_INCLUDE_DIRS) $< | sed "s/^.*:/$(DDSRECORDER_SED_OUTPUT_DIR_DEBUG)\/&/g" > $(@:%.o=%.d)
+	@echo Compiling \(DEBUG mode\) $<
+	@$(CPP) $(DDSRECORDER_CFLAGS_DEBUG) $(DDSRECORDER_INCLUDE_DIRS) $< -o $@
+
+$(DDSRECORDER_OUTDIR_RELEASE)/%.cc.o:%.cc
 	@echo Calculating dependencies \(RELEASE mode\) $<
 	@$(CPP) $(DDSRECORDER_CFLAGS) -MM $(DDSRECORDER_CFLAGS) $(DDSRECORDER_INCLUDE_DIRS) $< | sed "s/^.*:/$(DDSRECORDER_SED_OUTPUT_DIR_RELEASE)\/&/g" > $(@:%.o=%.d)
 	@echo Compiling \(RELEASE mode\) $<

@@ -3,9 +3,12 @@
 
 #include <stdint.h>
 
-namespace eProsima
+#include "fastcdr/Cdr.h"
+using namespace eprosima::fastcdr;
+
+namespace eprosima
 {
-    class Cdr;
+
     class IDLPrinter;
 
     class TypeCode
@@ -79,6 +82,7 @@ namespace eProsima
             (kind == KIND_VALUE) ||
             (kind == KIND_SPARSE) ||
             (kind == KIND_ENUM));
+
         }
 
 		virtual bool print(IDLPrinter &printer, bool write) const = 0;

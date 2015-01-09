@@ -1,0 +1,107 @@
+/*
+struct MyTestStr0
+{
+	long type1,type11;
+	short type2;
+	unsigned long type3;
+	unsigned short type4;
+	long long type5;
+	unsigned long long type52;
+	float type6;
+	double type7;
+	long double type8;
+	string type9;
+	string<154> type10,type101;
+	sequence<long> type11,type111;
+	sequence<long,123+7> type12,type121;
+	boolean type13;
+	sequence<string<128>,2^2> type14,type141;
+	sequence<string<128> > type15,type151;
+};
+*/
+
+struct M1
+{
+	long aux1;
+};
+
+struct M2
+{
+	M1 mem1,mem2;
+};
+
+/*
+struct MyTestStr1
+{
+	MyTestStr0 str1;
+	long str2;
+};
+
+enum MyEnum2
+{
+	HOLA1, HOLA2, HOLA3
+};
+
+
+
+union MyUnion3 switch (boolean)
+{
+	case TRUE:	short type1;
+	default: float type2;
+};
+
+
+union MyUnion4 switch (char)
+{
+	case 'a':	short type1;
+	default: float type2;
+};
+
+struct MyStruct5
+{
+	long outside1;
+	struct MyStr_inside
+	{
+		long inside1;
+		long inside2;
+	} out2,out3;
+
+};
+
+union MyUnion6 switch (MyEnum2)
+{
+	case HOLA2:	short type1;
+	default: float type2;
+};
+
+
+module MyModule7
+{
+	struct MyStr_inside
+	{	
+		long str2;
+		long str3;
+	};
+
+};
+
+struct MyStr8
+{
+	MyModule7::MyStr_inside str3;
+};
+
+interface MyInterface9
+{
+	enum MyEnum_inside{ EE1,EE2,EE3};
+};
+
+struct MyStr9
+{
+	UnknownStr str1; //Error Here
+};
+
+*/
+
+
+
+

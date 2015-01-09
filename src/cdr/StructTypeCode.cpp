@@ -1,17 +1,42 @@
 #include "cdr/StructTypeCode.h"
 #include "util/IDLPrinter.h"
-#include "cpp/Cdr.h"
-#include "cpp/exceptions/Exception.h"
+#include "fastcdr/Cdr.h"
+#include "fastcdr/exceptions/Exception.h"
 
-using namespace eProsima;
+#include "cdr/TypeCodeCopy.h"
+using namespace eprosima;
+
+
+#include <iostream>
 
 StructMember::StructMember(std::string &name, uint16_t bits, uint8_t flags) : Member(name),
     m_bits(bits), m_flags(flags)
 {
 }
 
+StructMember::StructMember(const StructMember& copy):m_bits(0),m_flags(0)
+{
+	std::string name = copy.getName();
+	this->setName(name);
+	TypeCode* TC = TypeCodeCopy::copy(copy.getTypeCode());
+	this->setTypeCode(TC);
+}
+
 StructTypeCode::StructTypeCode() : MemberedTypeCode(TypeCode::KIND_STRUCT)
 {
+}
+
+StructTypeCode::StructTypeCode(const StructTypeCode& copy): MemberedTypeCode(TypeCode::KIND_STRUCT)
+{
+	for(std::vector<Member*>::const_iterator it = copy.m_members.begin();it!= copy.m_members.end();++it)
+	{
+		StructMember* sM = (StructMember*)(*it);
+		sM = new StructMember(*sM);
+		m_members.push_back(sM);
+	}
+	m_name = copy.m_name;
+	m_memberCount = copy.m_memberCount;
+
 }
 
 bool StructTypeCode::deserialize(Cdr &cdr)
@@ -26,7 +51,7 @@ bool StructTypeCode::deserialize(Cdr &cdr)
         returnedValue &= deserializeName(cdr);
         returnedValue &= deserializeMembers(cdr);
     }
-    catch(eProsima::Exception &ex)
+    catch(exception::Exception &ex)
     {
         returnedValue = false;
     }
@@ -48,7 +73,7 @@ Member* StructTypeCode::deserializeMemberInfo(std::string name, Cdr &cdr)
         cdr >> flags;
         returnedValue = new StructMember(name, bits, flags);
     }
-    catch(eProsima::Exception &ex) {}
+    catch(exception::Exception &ex) {}
 
     return returnedValue;
 }
@@ -100,7 +125,15 @@ bool StructTypeCode::print(IDLPrinter &printer, bool write) const
     return returnedValue;
 }
 
-bool eProsima::operator<<(IDLPrinter &printer, const StructTypeCode *typeCode)
+bool StructTypeCode::addMember(StructMember* m)
+{
+	if(isMemberWithName(m->getName()))
+		return false;
+	this->addMemberPtr((Member*)m);
+	return true;
+}
+
+bool eprosima::operator<<(IDLPrinter &printer, const StructTypeCode *typeCode)
 {
     bool returnedValue = false;
 

@@ -13,7 +13,7 @@
 #include <sys/time.h>
 #endif
 
-namespace eProsima
+namespace eprosima
 {
     class eProsimaLog;
 

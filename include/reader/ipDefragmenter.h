@@ -5,7 +5,7 @@
 
 #include <list>
 
-namespace eProsima
+namespace eprosima
 {
     class eProsimaLog;
 

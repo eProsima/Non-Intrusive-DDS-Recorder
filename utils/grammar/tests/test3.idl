@@ -1,0 +1,24 @@
+module mymodule
+{
+	struct MyStr
+	{
+		short aux1;
+	};
+	struct MyStr2
+	{
+		short aux2;
+		MyStr aux3;
+	};	
+};
+
+module mymodule
+{
+	struct MyStr
+	{
+		
+	};
+
+
+};
+
+

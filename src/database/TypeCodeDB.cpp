@@ -2,7 +2,7 @@
 #include "database/DynamicDataDB.h"
 #include "util/IDLPrinter.h"
 #include "cdr/StructTypeCode.h"
-#include "eProsima_cpp/eProsimaLog.h"
+#include "log/eProsimaLog.h"
 
 #include <string.h>
 
@@ -14,7 +14,7 @@
 
 #define TYPECODE_TABLE "_topics"
 
-using namespace eProsima;
+using namespace eprosima;
 using namespace std;
 
 static const char* const CLASS_NAME = "TypeCodeDB";

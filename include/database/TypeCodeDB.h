@@ -8,7 +8,7 @@
 
 #include <sqlite3.h>
 
-namespace eProsima
+namespace eprosima
 {
     class eProsimaLog;
     class DynamicDataDB;
