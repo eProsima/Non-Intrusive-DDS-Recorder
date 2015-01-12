@@ -74,7 +74,7 @@ public:
 	TypeCode* copyTypeCode(TypeCode* tc, bool first);
 	enum ProviderError
 	{
-		NO_ERROR,
+        PROVIDER_OK,
 		TYPECODE_NOTFOUND,
 		IDLPARSER_ERROR,
 		REPEATED_STRUCT_MEMBER_ERROR,

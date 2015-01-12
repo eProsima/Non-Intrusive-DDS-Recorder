@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 	{
 		UTCprovider = new UserTypeCodeProvider();
 		UTCprovider->parse_file(idlfile);
-		if(UTCprovider->m_errorCode != UserTypeCodeProvider::NO_ERROR)
+		if(UTCprovider->m_errorCode != UserTypeCodeProvider::PROVIDER_OK)
 		{
 			printf("Error parsing the IDL file\n");
 			delete(UTCprovider);

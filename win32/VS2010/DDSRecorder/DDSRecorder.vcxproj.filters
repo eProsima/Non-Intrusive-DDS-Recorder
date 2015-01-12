@@ -5,7 +5,7 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Source Files\eProsima">
+    <Filter Include="Source Files\log">
       <UniqueIdentifier>{684de751-df37-4947-a4f6-b9fc1058b93a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\reader">
@@ -14,11 +14,14 @@
     <Filter Include="Source Files\database">
       <UniqueIdentifier>{102847a8-a002-471f-9829-7e2a4bc6af10}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\idlparser">
+      <UniqueIdentifier>{102847a8-a002-471f-9829-7e2a4bc6af11}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Header Files\eProsima">
+    <Filter Include="Header Files\log">
       <UniqueIdentifier>{8f65a4a8-652f-4372-9f33-27452fae4497}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\reader">
@@ -26,6 +29,9 @@
     </Filter>
     <Filter Include="Header Files\database">
       <UniqueIdentifier>{c22630cb-823a-4f7b-bda3-ec076e49d679}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\idlparser">
+      <UniqueIdentifier>{c22630cb-823a-4f7b-bda3-ec076e49d680}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -54,8 +60,8 @@
     <ClCompile Include="..\..\..\src\RTPSPacketAnalyzer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(EPROSIMADIR)\code\eProsima_cpp\eProsimaLog.cpp">
-      <Filter>Source Files\eProsima</Filter>
+    <ClCompile Include="..\..\..\src\log\eProsimaLog.cpp">
+      <Filter>Source Files\log</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\reader\ipDefragmenter.cpp">
       <Filter>Source Files\reader</Filter>
@@ -105,6 +111,18 @@
     <ClCompile Include="..\..\..\src\cdr\UnionTypeCode.cpp">
       <Filter>Source Files\cdr</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cdr\TypeCodeCopy.cpp">
+      <Filter>Source Files\cdr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\idlparser\IDLParser.cc">
+      <Filter>Source Files\idlparser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\idlparser\IDLScanner.cc">
+      <Filter>Source Files\idlparser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\idlparser\UserTypeCodeProvider.cpp">
+      <Filter>Source Files\idlparser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\DDSRecorder.h">
@@ -113,8 +131,8 @@
     <ClInclude Include="..\..\..\include\RTPSPacketAnalyzer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(EPROSIMADIR)\code\eProsima_cpp\eProsimaLog.h">
-      <Filter>Header Files\eProsima</Filter>
+    <ClInclude Include="..\..\..\include\log\eProsimaLog.h">
+      <Filter>Header Files\log</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\reader\ipDefragmenter.h">
       <Filter>Header Files\reader</Filter>
@@ -162,6 +180,9 @@
       <Filter>Header Files\cdr</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\cdr\UnionTypeCode.h">
+      <Filter>Header Files\cdr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\cdr\TypeCodeCopy.h">
       <Filter>Header Files\cdr</Filter>
     </ClInclude>
   </ItemGroup>

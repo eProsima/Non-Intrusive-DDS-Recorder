@@ -24,11 +24,8 @@ if "%EPROSIMADIR%"=="" (
 cd "..\.."
 
 :: Update and compile CDR library.
-cd "..\CDR"
+cd "thirdparty\fastcdr"
 :: Update CDR library.
-svn update
-set errorstatus=%ERRORLEVEL%
-if not %errorstatus%==0 goto :exit
 rmdir /S /Q lib\i86Win32VS2010
 rmdir /S /Q lib\x64Win64VS2010
 :: Compile CDR library.
@@ -36,15 +33,13 @@ cd "utils\scripts"
 call build_cdr.bat
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
-cd "..\..\..\DDSRecorder"
+cd "..\..\..\.."
 
 :: Get the current vesion of DDSRecorder
-call %EPROSIMADIR%\scripts\common_pack_functions.bat :getVersionFromCPP VERSION src\version.cpp
+call thirdparty\dev-env\scripts\common_pack_functions.bat :getVersionFromCPP VERSION src\version.cpp
 if not %errorstatus%==0 goto :exit
 
-:: Update and compile DDSRecoder application.
-:: Update DDSRecorder application.
-svn update
+:: Compile DDSRecoder application.
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 rmdir /S /Q lib\i86Win32VS2010
@@ -59,15 +54,15 @@ cd "..\.."
 :: Create PDFS from documentation.
 cd "doc"
 :: Installation manual
-soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\Installation Manual.odt,%VERSION%)"
+soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\Installation Manual.odt,%VERSION%)"
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 :: User manual
-soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\User Manual.odt,%VERSION%)"
+soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\User Manual.odt,%VERSION%)"
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 :: Release notes
-soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\\Release Notes.odt,%VERSION%)"
+soffice.exe --headless "macro:///eProsima.documentation.changeVersion(%CD%\Release Notes.odt,%VERSION%)"
 set errorstatus=%ERRORLEVEL%
 if not %errorstatus%==0 goto :exit
 cd ".."

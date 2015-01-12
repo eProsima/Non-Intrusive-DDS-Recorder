@@ -35,7 +35,7 @@ UserTypeCodeProvider::UserTypeCodeProvider()
 : trace_scanning(false),
   trace_parsing(false),
   lexer(NULL),
-  m_errorCode(NO_ERROR)
+  m_errorCode(PROVIDER_OK)
 {
 }
 
@@ -53,7 +53,7 @@ bool UserTypeCodeProvider::parse_stream(std::istream& in, const std::string& sna
 	{
 		m_errorCode = IDLPARSER_ERROR;
 	}
-	if(m_errorCode != NO_ERROR)
+	if(m_errorCode != PROVIDER_OK)
 		return false;
 	return true;
 }
