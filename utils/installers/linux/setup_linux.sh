@@ -21,12 +21,6 @@ function installer
 	errorstatus=$?
 	if [ $errorstatus != 0 ]; then return; fi
 
-	# Copy logo
-	mkdir -p tmp/$project/doc/logo
-	cp "../../logo/eProsimaLogo.png" tmp/$project/doc/logo
-	errorstatus=$?
-	if [ $errorstatus != 0 ]; then return; fi
-
 	# Copy example.
 	mkdir -p tmp/$project/examples
 	mkdir -p tmp/$project/examples/HelloWorld
