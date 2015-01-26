@@ -245,7 +245,7 @@ void DDSRecorder::processDataR(const unsigned int npacket, const struct timeval 
 						appId, instanceId, readerId, writerId, writerSeqNum,
 						sourceTmp, destHostId, destAppId, destInstanceId, subtopic.guid.hostId,
 						subtopic.guid.appId, subtopic.guid.instanceId,
-						subtopic.guid.objectId, 1, subtopic.topic_name, subtopic.type_name, true);
+						subtopic.guid.objectId, 0, subtopic.topic_name, subtopic.type_name, true);
 		}
 		else
 		{
@@ -256,7 +256,7 @@ void DDSRecorder::processDataR(const unsigned int npacket, const struct timeval 
 						appId, instanceId, readerId, writerId, writerSeqNum,
 						sourceTmp, destHostId, destAppId, destInstanceId, subtopic.guid.hostId,
 						subtopic.guid.appId, subtopic.guid.instanceId,
-						subtopic.guid.objectId, 1, subtopic.topic_name, subtopic.type_name, false);
+						subtopic.guid.objectId, 0, subtopic.topic_name, subtopic.type_name, false);
 		}
 	}
 	else
