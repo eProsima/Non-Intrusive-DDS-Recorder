@@ -1,16 +1,10 @@
-/*************************************************************************
- * Copyright (c) 2014 eProsima. All rights reserved.
+/******************************************************************************************
+ * Copyright (c) 2015 eProsima. All rights reserved.
  *
- * This copy of eProsima RTPS is licensed to you under the terms described in the
- * EPROSIMARTPS_LIBRARY_LICENSE file included in this distribution.
+ * This copy of eProsima Non-Intrusive DDS Recorder is licensed to you
+ * under the terms described in the DDSRECORDER_LICENSE file included in this distribution.
  *
- *************************************************************************/
-
-/**
- * @file TypeCodeCopy.h
- *
- */
-
+ *****************************************************************************************/
 #ifndef TYPECODECOPY_H_
 #define TYPECODECOPY_H_
 namespace eprosima{

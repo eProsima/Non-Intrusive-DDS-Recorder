@@ -47,7 +47,7 @@ function installer
 	if [ $errorstatus != 0 ]; then return; fi
 
 	# Copy Readme
-	cp ../../../README.html tmp/$project
+	cp ../../../README.html tmp/$project/doc
 
 	# Copy DDSRecorder headers
 	mkdir -p tmp/$project/include

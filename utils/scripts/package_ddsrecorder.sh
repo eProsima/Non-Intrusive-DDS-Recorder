@@ -33,28 +33,28 @@ function package
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
 
-    # Compile DDSRecorder application.
-    errorstatus=$?
-    if [ $errorstatus != 0 ]; then return; fi
-    # Compile DDSRecorder for target i86.
-    if [ -z $package_targets ] || [ "$package_targets" == "i86" ]; then
-        #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="i86Linux2.6gcc"
-        # Compile DDSRecorder for target.
-        rm -rf output
-        make
-        errorstatus=$?
-        if [ $errorstatus != 0 ]; then return; fi
-    fi
-    if [ -z $package_targets ] || [ "$package_targets" == "x64" ]; then
-        #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="x64Linux2.6gcc"
-        # Compile DDSRecorder for target.
-        rm -rf output
-        make
-        errorstatus=$?
-        if [ $errorstatus != 0 ]; then return; fi
-    fi
+    ## Compile DDSRecorder application.
+    #errorstatus=$?
+    #if [ $errorstatus != 0 ]; then return; fi
+    ## Compile DDSRecorder for target i86.
+    #if [ -z $package_targets ] || [ "$package_targets" == "i86" ]; then
+    #    #Change EPROSIMA_TARGET
+    #    EPROSIMA_TARGET="i86Linux2.6gcc"
+    #    # Compile DDSRecorder for target.
+    #    rm -rf output
+    #    make
+    #    errorstatus=$?
+    #    if [ $errorstatus != 0 ]; then return; fi
+    #fi
+    #if [ -z $package_targets ] || [ "$package_targets" == "x64" ]; then
+    #    #Change EPROSIMA_TARGET
+    #    EPROSIMA_TARGET="x64Linux2.6gcc"
+    #    # Compile DDSRecorder for target.
+    #    rm -rf output
+    #    make
+    #    errorstatus=$?
+    #    if [ $errorstatus != 0 ]; then return; fi
+    #fi
 
     # Create PDFS from documentation.
     cd doc
@@ -73,7 +73,7 @@ function package
     cd ..
 
     # Create README
-    soffice --headless "macro:///eProsima.documentation.changeVersionToHTML($PWD/README.odt,$recorderversion)"
+    soffice --headless "macro:///eProsima.documentation.changeHyperlinksAndVersionToHTML($PWD/README.odt,$recorderversion,./doc/,./)"
     errorstatus=$?
     if [ $errorstatus != 0 ]; then return; fi
 

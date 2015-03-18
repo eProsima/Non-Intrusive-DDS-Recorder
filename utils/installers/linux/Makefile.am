@@ -27,3 +27,16 @@ ddsrecorder_SOURCES = src/log/eProsimaLog.cpp \
 ddsrecorder_LDFLAGS = -lfastcdr -lpcap -lsqlite3 -lboost_system
 
 AM_CPPFLAGS = -std=c++0x -DSQLITE_PREPARE_V2 -Iinclude
+
+ddsrecorder_licenciasdir = $(datadir)/doc/ddsrecorder
+ddsrecorder_licencias_DATA = DDSRECORDER_LICENSE.txt LGPLv3_LICENSE.txt
+
+install-data-hook:
+	mkdir -p $(DESTDIR)$(datadir)/doc/ddsrecorder; \
+	cp -r doc/* $(DESTDIR)$(datadir)/doc/ddsrecorder; \
+	mkdir -p $(DESTDIR)$(datadir)/ddsrecorder; \
+	cp -r examples $(DESTDIR)$(datadir)/ddsrecorder/;
+
+uninstall-hook:
+	rm -r $(DESTDIR)$(datadir)/doc/ddsrecorder; \
+	rm -r $(DESTDIR)$(datadir)/ddsrecorder

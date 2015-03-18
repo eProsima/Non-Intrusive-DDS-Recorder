@@ -1,3 +1,10 @@
+/******************************************************************************************
+ * Copyright (c) 2015 eProsima. All rights reserved.
+ *
+ * This copy of eProsima Non-Intrusive DDS Recorder is licensed to you
+ * under the terms described in the DDSRECORDER_LICENSE file included in this distribution.
+ *
+ *****************************************************************************************/
 #include "log/eProsimaLog.h"
 #include "eProsima_c/macros/snprintf.h"
 
