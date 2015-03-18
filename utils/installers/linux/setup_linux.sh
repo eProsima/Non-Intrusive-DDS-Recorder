@@ -1,11 +1,23 @@
 #!/bin/sh
 
-# This scripts creates a tar.gz file with all the linux installation in 64
+# This scripts creates a tar.gz file with all the linux installation.
+# @param The version of the project
+
+# To create the source tar file you have to install next packages:
+# autoconf, automake, libtool
 
 project="DDSRecorder"
 
 function installer
 {
+	# Copy licenses.
+	cp ../../../doc/licencias/DDSRECORDER_LICENSE.txt tmp/$project
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+	cp ../../../doc/licencias/LGPLv3_LICENSE.txt tmp/$project
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+
 	# Copy documentation.
 	mkdir -p tmp/$project/doc
 	# Installation Manual
@@ -34,25 +46,56 @@ function installer
 	errorstatus=$?
 	if [ $errorstatus != 0 ]; then return; fi
 
-	# Copy licenses.
-	cp ../../../doc/licencias/DDSRECORDER_LICENSE.txt tmp/$project
-	errorstatus=$?
-	if [ $errorstatus != 0 ]; then return; fi
-	cp ../../../doc/licencias/LGPLv3_LICENSE.txt tmp/$project
-	errorstatus=$?
-	if [ $errorstatus != 0 ]; then return; fi
-
 	# Copy Readme
 	cp ../../../README.html tmp/$project
 
-	# Copy binary
-	mkdir -p tmp/$project/bin
-	cp ../../../lib/$EPROSIMA_TARGET/DDSRecorder tmp/$project/bin
+	# Copy DDSRecorder headers
+	mkdir -p tmp/$project/include
+	cp -r ../../../include/* tmp/$project/include
 	errorstatus=$?
 	if [ $errorstatus != 0 ]; then return; fi
 
+	# Copy eProsima header files
+	mkdir -p tmp/$project/include/eProsima_c/macros
+	cp ../../../thirdparty/eprosima-common-code/eProsima_c/macros/snprintf.h tmp/$project/include/eProsima_c/macros
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+
+	# Copy DDSRecorder sources
+	mkdir -p tmp/$project/src
+	cp -r ../../../src/* tmp/$project/src
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+
+	# Copy autoconf configuration files.
+	cp configure.ac tmp/$project
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+	cp Makefile.am tmp/$project
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+
+	# Generate autoconf files
+	cd tmp/$project
+	sed -i "s/VERSION/${version}/g" configure.ac
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+	sed -i "s/VERSION_MAJOR/`echo ${version} | cut -d. -f1`/g" Makefile.am
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+	sed -i "s/VERSION_MINOR/`echo ${version} | cut -d. -f2`/g" Makefile.am
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+	sed -i "s/VERSION_RELEASE/`echo ${version} | cut -d. -f3`/g" Makefile.am
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+	autoreconf --force --install
+	errorstatus=$?
+	if [ $errorstatus != 0 ]; then return; fi
+	cd ../..
+
 	cd tmp
-	tar cvzf "../${project}_${version}_${distroversion}_${EPROSIMA_TARGET:0:3}.tar.gz" $project
+	tar cvzf "../${project}_${version}_${distroversion}.tar.gz" $project
 	errorstatus=$?
 	cd ..
 	if [ $errorstatus != 0 ]; then return; fi

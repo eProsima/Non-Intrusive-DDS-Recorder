@@ -79,22 +79,7 @@ function package
 
     # Create installers
     cd utils/installers/linux
-    #~Installer for target i86.
-    if [ -z $package_targets ] || [ "$package_targets" == "i86" ]; then
-        #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="i86Linux2.6gcc"
-        ./setup_linux.sh $recorderversion
-        errorstatus=$?
-        if [ $errorstatus != 0 ]; then return; fi
-    fi
-    #~Installer for target x64
-    if [ -z $package_targets ] || [ "$package_targets" == "x64" ]; then
-        #Change EPROSIMA_TARGET
-        EPROSIMA_TARGET="x64Linux2.6gcc"
-        ./setup_linux.sh $recorderversion
-        errorstatus=$?
-        if [ $errorstatus != 0 ]; then return; fi
-    fi
+    ./setup_linux.sh $recorderversion
     cd ../../..
 }
 
