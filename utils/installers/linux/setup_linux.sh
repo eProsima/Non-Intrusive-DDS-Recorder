@@ -95,7 +95,7 @@ function installer
 	cd ../..
 
 	cd tmp
-	tar cvzf "../${project}_${version}_${distroversion}.tar.gz" $project
+	tar cvzf "../eProsima_${project}-${version}-Linux.tar.gz" $project
 	errorstatus=$?
 	cd ..
 	if [ $errorstatus != 0 ]; then return; fi
