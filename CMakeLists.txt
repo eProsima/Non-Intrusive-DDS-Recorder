@@ -65,7 +65,7 @@ if(EPROSIMA_BUILD)
 endif()
 
 include(${PROJECT_SOURCE_DIR}/cmake/dev/eprosima_libraries.cmake)
-
+find_eprosima_package(eprosima-common-code)
 find_eprosima_package(fastcdr)
 
 #Compile library
