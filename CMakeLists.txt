@@ -73,23 +73,23 @@ add_subdirectory(src)
 
 #Packaging
 
-install_eprosima_libraries()
-install_boost(ALL thread system date_time chrono regex atomic)
+#install_eprosima_libraries()
+#install_boost(ALL thread system date_time chrono regex atomic)
 
-if(MSVC OR MSVC_IDE)
-	if(EPROSIMA_INSTALLER)
-		set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL}
-			libraries_i86Win32VS2013
-			libraries_x64Win64VS2013
-			libraries_i86Win32VS2015
-			libraries_x64Win64VS2015
-			)
-	else()
-		set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} libraries_${MSVC_ARCH})
-	endif()
-else()
-	set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} libraries)
-endif()
+#if(MSVC OR MSVC_IDE)
+#	if(EPROSIMA_INSTALLER)
+#		set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL}
+#			libraries_i86Win32VS2013
+#			libraries_x64Win64VS2013
+#			libraries_i86Win32VS2015
+#			libraries_x64Win64VS2015
+#			)
+#	else()
+#		set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} libraries_${MSVC_ARCH})
+#	endif()
+#else()
+#	set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} libraries)
+#endif()
 
-include(${PROJECT_SOURCE_DIR}/cmake/packaging/eProsimaPackaging.cmake)
+#include(${PROJECT_SOURCE_DIR}/cmake/packaging/eProsimaPackaging.cmake)
 

@@ -1,7 +1,7 @@
 include(${PROJECT_SOURCE_DIR}/cmake/dev/set_sources.cmake)
-include(${PROJECT_SOURCE_DIR}/cmake/dev/generate_msvc/libraries.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/dev/generate_msvc_libraries.cmake)
 
-set_sources(
+set( SOURCES
 	main.cpp
 	DDSRecorder.cpp
 	RTPSPacketAnalyzer.cpp
@@ -32,17 +32,12 @@ set_sources(
 #Set version
 
 
-configure_file(${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/config.h.in
-	${PROJECT_BINARY_DIR}/include/${PROJECT_NAME}/config.h)
 
 #Definitions
 add_definitions(-D${PROJECT_NAME}_SOURCE)
 if(WIN32)
 	add_definitions(-D_WIN32_WINNT=0x0501)
 endif()
-
-#Include Boost header files
-include_directories(${Boost_INCLUDE_DIR})
 
 #Create Libraries
 if(MSVC OR MSVC_IDE)
@@ -55,22 +50,13 @@ if(MSVC OR MSVC_IDE)
 		add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES})
 		add_library(${PROJECT_NAME}_static STATIC ${${PROJECT_NAME}_SOURCES})
 		set_target_properties(${PROJECT_NAME}_static PROPERTIES OUTPUT_NAME lib${PROJECT_NAME})
-else()
-	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		add_definitions(-D__DEBUG)
 	endif()
-	#Create libraries
-	add_library(${PROJECT_NAME} SHARED ${{PROJECT_NAME}_SOURCES})
-	#Define public headers
-	target_include_directories(${PROJECT_NAME} PUBLIC
-		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/${PROJECT_NAME}>
-		$<INSTALL_INTERFACE:include>
-		)
-	#Link Library to external libraries
-	target_link_libraries(${PROJECT_NAME}
-		${Boost_LIBRARIES}
-		)
-endif()
+else()
+	add_executable(dds_recorder ${SOURCES})	
+	target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
+		target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES})
+	install(TARGETS dds_recorder RUNTIME DESTINATION bin/)
+endif() 
 
 #Packaging
 
@@ -82,7 +68,7 @@ set_public_headers_directory(${PROJECT_SOURCE_DIR}/include ${PROJECT_NAME}
 #config.h headers
 set_public_header(${PROJECT_BINARY_DIR}/include ${PROJECT_NAME} config.h
 	DESTINATION ${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}
-	component headers
+	COMPONENT headers
 	)
 
 set(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C++ Headers" PARENT_SCOPE)
@@ -106,26 +92,6 @@ if(UNIX AND EPROSIMA_INSTALLER)
 		COMPONENT sources
 		)
 endif()
-
-#install libraries
-install(TARGETS ${PROJECT_NAME}
-	EXPORT ${PROJECT_NAME}Targets
-	RUNTIME DESTINATION ${BIN_INSTALL_DIR}
-	LIBRARY DESTINATION ${BIN_INSTALL_DIR}
-	ARCHIVE DESTINATION ${BIN_INSTALL_DIR}
-	COMPONENT libraries
-	)
-
-export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_BINARY_DIR}/cmake/config/${PROJECT_NAME}Targets.cmake)
-install(EXPPORT ${PROJECT_NAME}Targets
-	DESTINATION ${LIB_INSTALL_DIR}/${PROJECT_NAME}/cmake
-	COMPONENT cmake
-	)
-
-set(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "Libraries" PARENT_SCOPE)
-set(CPACK_COMPONENT_LIBRARIES_DESCRIPTION "ePRosima ${PROJECT_NAME} Libraries" PARENT_SCORE)
-
-
 
 
 
