@@ -1,6 +1,7 @@
 include(${PROJECT_SOURCE_DIR}/cmake/dev/set_sources.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/dev/generate_msvc_libraries.cmake)
 
+
 set( SOURCES
 	main.cpp
 	DDSRecorder.cpp
@@ -53,8 +54,8 @@ if(MSVC OR MSVC_IDE)
 	endif()
 else()
 	add_executable(dds_recorder ${SOURCES})	
-	target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
-		target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES})
+	target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/thirdparty/eprosima-common-code ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
+	target_link_libraries(dds_recorder fastcdr sqlite3 pcap ${Boost_LIBRARIES} -lpcap -lsqlite3)
 	install(TARGETS dds_recorder RUNTIME DESTINATION bin/)
 endif() 
 
