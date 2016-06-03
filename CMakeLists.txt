@@ -1,13 +1,70 @@
+###
+#
+#	CMAKE Build rules for DDSRecorder
+#
+####
 cmake_minimum_required(VERSION 2.8.12)
 
 #set CMAKE_BUILD_TYPE to Release as default
-
+if(DEFINED CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose Type of build, options are> None Debug Release RelWithDebInfo MinSizeRel."
+	   )
+else()
+	set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose Type of build, options are> None Debug Release RelWithDebInfo MinSizeRel."
+	   )
+endif()
 
 project("DDSRecorder")
 set(PROJECT_NAME "DDSRecorder")
+set(PROJECT_NAME_LARGE "DDSRecorder")
+set(PROJECT_NAME_STYLED "DDSRecorder")
+string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
+set(${PROJECT_NAME}_DESCRIPTION_SUMMARY "Non-intrusive RTPS protocol packet analyzer.")
+set(${PROJECT_NAME}_DESCRIPTION "eProsima ${PROJECT_NAME} non-intrusive RTPS protocol packet analyzer.")
 message(STATUS "Configuring ${PROJECT_NAME}")
 
 #Version information
+
+#If not set, copy over product version from configure.ac
+if(NOT PROJECT_MAJOR_VERSION)
+    file(STRINGS
+        ${PROJECT_SOURCE_DIR}/configure.ac
+        PROJECT_MAJOR_VERSION_TMP
+        REGEX "^m4_define\\(\\[?version_major\\]?, *\\[?[0-9]+\\]?\\)"
+        )
+    file(STRINGS
+        ${PROJECT_SOURCE_DIR}/configure.ac
+        PROJECT_MINOR_VERSION_TMP
+        REGEX "^m4_define\\(\\[?version_minor\\]?, *\\[?[0-9]+\\]?\\)"
+        )
+    file(STRINGS
+        ${PROJECT_SOURCE_DIR}/configure.ac
+        PROJECT_MICRO_VERSION_TMP
+        REGEX "^m4_define\\(\\[?version_micro\\]?, *\\[?[0-9]+\\]?\\)"
+        )
+
+    string(REGEX REPLACE "m4_define\\(\\[?version_major\\]?, *\\[?([0-9]+)\\]?\\)"
+        "\\1"
+        PROJECT_MAJOR_VERSION
+        ${PROJECT_MAJOR_VERSION_TMP}
+        )
+    string(REGEX REPLACE "m4_define\\(\\[?version_minor\\]?, *\\[?([0-9]+)\\]?\\)"
+        "\\1"
+        PROJECT_MINOR_VERSION
+        ${PROJECT_MINOR_VERSION_TMP}
+        )
+    string(REGEX REPLACE "m4_define\\(\\[?version_micro\\]?, *\\[?([0-9]+)\\]?\\)"
+        "\\1"
+        PROJECT_MICRO_VERSION
+        ${PROJECT_MICRO_VERSION_TMP}
+        )
+endif()
+
+set(PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_MICRO_VERSION})
+
+message(STATUS "Version: ${PROJECT_VERSION}")
+message(STATUS "To change de version modify the file configure.ac")
+
 
 
 #Generation of windows installer
@@ -58,7 +115,6 @@ endif()
 
 # eProsima build options
 option(EPROSIMA_BUILD "Activate internal building" OFF)
-option(MINION "Tells if this is a subproject of a superproject" OFF)
 
 if(EPROSIMA_INSTALLER)
 	set(EPROSIMA_BUILD ON)
@@ -87,25 +143,7 @@ add_subdirectory(src)
 
 #Packaging
 
-#install_eprosima_libraries()
-#install_boost(ALL thread system date_time chrono regex atomic)
-
-#if(MSVC OR MSVC_IDE)
-#	if(EPROSIMA_INSTALLER)
-#		set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL}
-#			libraries_i86Win32VS2013
-#			libraries_x64Win64VS2013
-#			libraries_i86Win32VS2015
-#			libraries_x64Win64VS2015
-#			)
-#	else()
-#		set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} libraries_${MSVC_ARCH})
-#	endif()
-#else()
-#	set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} libraries)
-#endif()
-
-#include(${PROJECT_SOURCE_DIR}/cmake/packaging/eProsimaPackaging.cmake)
+# Windows installer pending task
 
 #Documentation
 
@@ -164,8 +202,8 @@ install_eprosima_libraries()
 install_boost(ALL thread system date_time chrono regex atomic)
 
 # Install licenses
-install(FILES ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}_LIBRARY_LICENSE.txt
-    ${PROJECT_SOURCE_DIR}/MPLv2_LICENSE.txt
+install(FILES ${PROJECT_SOURCE_DIR}/doc/licencias/${PROJECT_NAME}_LIBRARY_LICENSE.txt
+    ${PROJECT_SOURCE_DIR}/doc/licencias/LGPLv3_LICENSE.txt
     DESTINATION ${LICENSE_INSTALL_DIR}
     COMPONENT licenses
     )
@@ -204,13 +242,5 @@ if(BUILD_DOCUMENTATION)
     set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} documentation)
 endif()
 
-if(MSVC OR MSVC_IDE)
-    if(EPROSIMA_INSTALLER)
-    else()
-
-    endif()
-else()
-    set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} libraries)
-endif()
 
 #include(${PROJECT_SOURCE_DIR}/cmake/packaging/eProsimaPackaging.cmake)
