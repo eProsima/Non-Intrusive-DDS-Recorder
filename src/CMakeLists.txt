@@ -40,17 +40,12 @@ if(WIN32)
 	add_definitions(-D_WIN32_WINNT=0x0501)
 endif()
 
-#Create Libraries
-if(MSVC OR MSVC_IDE)
-	add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES})
-	add_library(${PROJECT_NAME}_static STATIC ${${PROJECT_NAME}_SOURCES})
-	set_target_properties(${PROJECT_NAME}_static PROPERTIES OUTPUT_NAME lib${PROJECT_NAME})
-else()
+#Create executable
 	add_executable(dds_recorder ${SOURCES})	
 	target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/thirdparty/eprosima-common-code ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 	target_link_libraries(dds_recorder fastcdr sqlite3 pcap ${Boost_LIBRARIES} -lpcap -lsqlite3)
 	install(TARGETS dds_recorder RUNTIME DESTINATION bin/)
-endif() 
+
 
 #Packaging
 
