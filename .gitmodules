@@ -7,3 +7,6 @@
 [submodule "thirdparty/dev-env"]
 	path = thirdparty/dev-env
 	url = git@git.sambaserver.eprosima.com:eprosima-common/dev-env.git
+[submodule "thirdparty/Fast-RTPS"]
+	path = thirdparty/Fast-RTPS
+	url = http://github.com/eProsima/Fast-RTPS
