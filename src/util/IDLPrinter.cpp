@@ -28,7 +28,7 @@ IDLPrinter::IDLPrinter(IDLPrinter &printer) : m_typePrinters(std::move(printer.m
 IDLPrinter::IDLPrinter(IDLPrinter &&printer) : m_typePrinters(std::move(printer.m_typePrinters)),
 	m_priority(printer.m_priority), m_currentGlobalPriority(printer.m_currentGlobalPriority)
 {
-    m_out << printer.m_out;
+    m_out << printer.m_out.str();
 }
 
 IDLPrinter::~IDLPrinter()
@@ -47,7 +47,7 @@ IDLPrinter& IDLPrinter::operator=(IDLPrinter &&printer)
 	this->m_priority = printer.m_priority;
 	this->m_currentGlobalPriority = printer.m_currentGlobalPriority;
 	std::swap(this->m_typePrinters, printer.m_typePrinters); 
-    m_out << printer.m_out;
+    m_out << printer.m_out.str();
 	return *this;
 }
 
