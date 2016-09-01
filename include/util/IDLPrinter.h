@@ -8,6 +8,7 @@
 #ifndef _UTIL_IDLPRINTER_H_
 #define _UTIL_IDLPRINTER_H_
 
+#include <string>
 #include <sstream>
 #include <unordered_map>
 #include <stdint.h>

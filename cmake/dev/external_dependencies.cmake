@@ -17,7 +17,7 @@ macro (find_pcap)
         message(STATUS "pcap not found!")
     else()
         set(PCAP_FOUND TRUE)
-        message(STATUS "Found pcap!")
+        message(STATUS "Found pcap @ ${PCAP_INCLUDE_DIR}, libs ${PCAP_LIBRARY}")
     endif()
 endmacro(find_pcap)
 
@@ -30,7 +30,7 @@ macro (find_sqlite3)
     )
     find_library( SQLITE3_LIBRARY
         NAMES
-        libsqlite3
+        sqlite3
         PATHS
             "/usr/lib/"
     )
@@ -39,6 +39,6 @@ macro (find_sqlite3)
         message(STATUS "sqlite3 not found!")
     else()
         set(SQLITE3_FOUND TRUE)
-        message(STATUS "sqlite3 found!")
+        message(STATUS "Found sqlite3 @ ${SQLITE3_INCLUDE_DIR}, libs ${SQLITE3_LIBRARY}")
     endif()
 endmacro(find_sqlite3)

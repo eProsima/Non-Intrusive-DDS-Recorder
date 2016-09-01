@@ -1,6 +1,7 @@
 include(${PROJECT_SOURCE_DIR}/cmake/dev/set_sources.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/dev/generate_msvc_libraries.cmake)
 
+find_package(Threads REQUIRED)
 
 set( SOURCES
 	main.cpp
@@ -45,9 +46,9 @@ endif()
 	if(WIN32)
 		target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/thirdparty/eprosima-common-code ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${WINPCAP_ROOT}/include ${SQLITE3_ROOT})
 	else()
-		target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/thirdparty/eprosima-common-code ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
+        target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/thirdparty/eprosima-common-code ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${SQLITE3_INCLUDE_DIR} ${PCAP_INCLUDE_DIR})
 	endif()
-	target_link_libraries(dds_recorder fastcdr sqlite3 pcap ${Boost_LIBRARIES} -lpcap -lsqlite3)
+    target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${SQLITE3_LIBRARY} ${PCAP_LIBRARY})
 	install(TARGETS dds_recorder RUNTIME DESTINATION bin/)
 
 

@@ -14,19 +14,6 @@ else()
 	   )
 endif()
 
-#Remind the user the need to give the directories to sqlite and winpcap
-if(WIN32)
-	if(DEFINED SQLITE3_ROOT)
-		set(SQLITE3_ROOT ${SQLITE3_ROOT} CACHE STRING "Directory where the Sqlite3 libraries and headers are located")
-	else()
-		message(FATAL_ERROR "Sqlite3 is needed on this project. You need to set -DSQLITE_ROOT")
-	endif()
-	if(DEFINED WINPCAP_ROOT)
-		set(SQLITE3_ROOT ${SQLITE3_ROOT} CACHE STRING "Root directory of the WinPCAP developer pack")
-	else()
-		message(FATAL_ERROR "WinPCAP developer pack is needed on this project. You need to set -DWINPCAP_ROOT")
-	endif()
-endif()
 project("DDSRecorder")
 set(PROJECT_NAME "DDSRecorder")
 set(PROJECT_NAME_LARGE "DDSRecorder")
@@ -35,56 +22,6 @@ string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
 set(${PROJECT_NAME}_DESCRIPTION_SUMMARY "Non-intrusive RTPS protocol packet analyzer.")
 set(${PROJECT_NAME}_DESCRIPTION "eProsima ${PROJECT_NAME} non-intrusive RTPS protocol packet analyzer.")
 message(STATUS "Configuring ${PROJECT_NAME}")
-
-#Version information
-
-#If not set, copy over product version from configure.ac
-if(NOT PROJECT_MAJOR_VERSION)
-    file(STRINGS
-        ${PROJECT_SOURCE_DIR}/configure.ac
-        PROJECT_MAJOR_VERSION_TMP
-        REGEX "^m4_define\\(\\[?version_major\\]?, *\\[?[0-9]+\\]?\\)"
-        )
-    file(STRINGS
-        ${PROJECT_SOURCE_DIR}/configure.ac
-        PROJECT_MINOR_VERSION_TMP
-        REGEX "^m4_define\\(\\[?version_minor\\]?, *\\[?[0-9]+\\]?\\)"
-        )
-    file(STRINGS
-        ${PROJECT_SOURCE_DIR}/configure.ac
-        PROJECT_MICRO_VERSION_TMP
-        REGEX "^m4_define\\(\\[?version_micro\\]?, *\\[?[0-9]+\\]?\\)"
-        )
-
-    string(REGEX REPLACE "m4_define\\(\\[?version_major\\]?, *\\[?([0-9]+)\\]?\\)"
-        "\\1"
-        PROJECT_MAJOR_VERSION
-        ${PROJECT_MAJOR_VERSION_TMP}
-        )
-    string(REGEX REPLACE "m4_define\\(\\[?version_minor\\]?, *\\[?([0-9]+)\\]?\\)"
-        "\\1"
-        PROJECT_MINOR_VERSION
-        ${PROJECT_MINOR_VERSION_TMP}
-        )
-    string(REGEX REPLACE "m4_define\\(\\[?version_micro\\]?, *\\[?([0-9]+)\\]?\\)"
-        "\\1"
-        PROJECT_MICRO_VERSION
-        ${PROJECT_MICRO_VERSION_TMP}
-        )
-endif()
-
-set(PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_MICRO_VERSION})
-
-message(STATUS "Version: ${PROJECT_VERSION}")
-message(STATUS "To change de version modify the file configure.ac")
-
-
-
-#Generation of windows installer
-if(WIN32)
-	option(EPROSIMA_INSTALLER "Activate the creation of a build to create windows installers" OFF)
-	option(EPROSIMA_INSTALLER_MINION "Informs this is part of an installer" OFF)
-endif()
 
 #Warning level
 if(MSVC OR MSVC_IDE)
@@ -150,11 +87,23 @@ endif()
 
 include(${PROJECT_SOURCE_DIR}/cmake/dev/eprosima_libraries.cmake)
 find_eprosima_package(fastcdr)
-find_eprosima_package(fastrtps)
 include(${PROJECT_SOURCE_DIR}/cmake/dev/external_dependencies.cmake)
-find_pcap()
-find_sqlite3()
-
+#Remind the user the need to give the directories to sqlite and winpcap
+if(WIN32)
+    if(DEFINED SQLITE3_INCLUDE_DIR)
+        set(SQLITE3_INCLUDE_DIR ${SQLITE3_INCLUDE_DIR} CACHE STRING "Directory where the Sqlite3 libraries and headers are located")
+	else()
+        message(FATAL_ERROR "Sqlite3 is needed on this project. You need to set -DSQLITE3_INCLUDE_DIR")
+	endif()
+    if(DEFINED WINPCAP_INCLUDE_DIR)
+        set(WINPCAP_INCLUDE_DIR ${WINPCAP_INCLUDE_DIR} CACHE STRING "Root directory of the WinPCAP developer pack")
+	else()
+        message(FATAL_ERROR "WinPCAP developer pack is needed on this project. You need to set -DWINPCAP_INCLUDE_DIR")
+	endif()
+else()
+    find_pcap()
+    find_sqlite3()
+endif()
 #Compile library
 add_subdirectory(src)
 
