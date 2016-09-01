@@ -104,6 +104,9 @@ else()
     find_pcap()
     find_sqlite3()
 endif()
+
+add_compile_options(--std=c++0x)
+
 #Compile library
 add_subdirectory(src)
 
