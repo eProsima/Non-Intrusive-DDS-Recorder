@@ -150,13 +150,13 @@ endif()
 
 include(${PROJECT_SOURCE_DIR}/cmake/dev/eprosima_libraries.cmake)
 find_eprosima_package(fastcdr)
+find_eprosima_package(fastrtps)
+include(${PROJECT_SOURCE_DIR}/cmake/dev/external_dependencies.cmake)
+find_pcap()
+find_sqlite3()
 
 #Compile library
 add_subdirectory(src)
-
-#Packaging
-
-# Windows installer pending task
 
 #Documentation
 
