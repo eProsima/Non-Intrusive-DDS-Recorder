@@ -6,7 +6,7 @@
  *
  *****************************************************************************************/
 #include "log/eProsimaLog.h"
-#include "eProsima_c/macros/snprintf.h"
+#include "log/snprintf.h"
 
 #include <stdarg.h>
 

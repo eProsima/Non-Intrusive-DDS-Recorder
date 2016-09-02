@@ -43,7 +43,7 @@ endif()
 
 #Create executable
 	add_executable(dds_recorder ${SOURCES})	
-    target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/thirdparty/eprosima-common-code ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${SQLITE3_INCLUDE_DIR} ${PCAP_INCLUDE_DIR})
+    target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${SQLITE3_INCLUDE_DIR} ${PCAP_INCLUDE_DIR})
     target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${SQLITE3_LIBRARY} ${PCAP_LIBRARY})
 	install(TARGETS dds_recorder RUNTIME DESTINATION bin/)
 
