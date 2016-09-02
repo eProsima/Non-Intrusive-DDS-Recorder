@@ -39,7 +39,7 @@ set( SOURCES
 add_definitions(-D${PROJECT_NAME}_SOURCE)
 if(WIN32)
 	add_definitions(-D_WIN32_WINNT=0x0501)
-    add_definitions(-D_KEYCHECK_H)
+    add_definitions(-D_XKEYCHECK_H)
 endif()
 
 #Create executable
