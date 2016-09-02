@@ -4,9 +4,6 @@
 [submodule "thirdparty/dev-env"]
 	path = thirdparty/dev-env
 	url = git@git.sambaserver.eprosima.com:eprosima-common/dev-env.git
-[submodule "thirdparty/Fast-RTPS"]
-	path = thirdparty/fastrtps
-	url = http://github.com/eProsima/Fast-RTPS
 [submodule "thirdparty/Fast-CDR"]
 	path = thirdparty/fastcdr
 	url = http://github.com/eProsima/Fast-CDR.git
