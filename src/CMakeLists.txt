@@ -29,10 +29,13 @@ set( SOURCES
 	reader/ipDefragmenter.cpp
 	reader/pcapReader.cpp
 	util/IDLPrinter.cpp
-	sqlite3/sqlite3.c
-	sqlite3/shell.c
 	)
-
+if(WIN32)
+    set( SOURCES ${SOURCES}
+        sqlite3/sqlite3.c
+        sqlite3/shell.c
+    )
+endif()
 #Set version
 
 
@@ -50,7 +53,12 @@ endif()
 		target_compile_definitions(dds_recorder PUBLIC BOOST_ALL_DYN_LINK)
 	endif()
     target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${SQLITE3_INCLUDE_DIR} ${PCAP_INCLUDE_DIR})
-    target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY})
+    if(WIN32)
+        target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY})
+    else()
+        target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} ${SQLITE3_LIBRARY})
+    endif()
+
 	install(TARGETS dds_recorder RUNTIME DESTINATION bin/)
 
 
