@@ -48,18 +48,19 @@ if(WIN32)
 endif()
 
 #Create executable
-	add_executable(dds_recorder ${SOURCES})	
-	if(WIN32)
-		target_compile_definitions(dds_recorder PUBLIC BOOST_ALL_DYN_LINK)
-	endif()
-    target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${SQLITE3_INCLUDE_DIR} ${PCAP_INCLUDE_DIR})
-    if(WIN32)
-        target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY})
-    else()
-        target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} ${SQLITE3_LIBRARY})
-    endif()
+add_executable(dds_recorder ${SOURCES})	
+target_compile_definitions(dds_recorder PRIVATE SQLITE_PREPARE_V2)
+if(WIN32)
+    target_compile_definitions(dds_recorder PUBLIC BOOST_ALL_DYN_LINK)
+endif()
+target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${SQLITE3_INCLUDE_DIR} ${PCAP_INCLUDE_DIR})
+if(WIN32)
+    target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY})
+else()
+    target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} ${SQLITE3_LIBRARY})
+endif()
 
-	install(TARGETS dds_recorder RUNTIME DESTINATION bin/)
+install(TARGETS dds_recorder RUNTIME DESTINATION bin/)
 
 
 #Packaging
@@ -96,6 +97,3 @@ if(UNIX AND EPROSIMA_INSTALLER)
 		COMPONENT sources
 		)
 endif()
-
-
-
