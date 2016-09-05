@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <iostream>
+#include <cmath>
 
 #include "cdr/all_TypeCodes.h"
 using namespace eprosima;
