@@ -79,23 +79,24 @@ find_eprosima_package(fastcdr)
 include(${PROJECT_SOURCE_DIR}/cmake/dev/external_dependencies.cmake)
 #Remind the user the need to give the directories to sqlite and winpcap
 if(WIN32)
-    if(DEFINED SQLITE3_ROOT)
-        set(SQLITE3_INCLUDE_DIR ${SQLITE3_ROOT} CACHE STRING "Directory where the Sqlite3 libraries and headers are located")
-        set(SQLITE3_LIBRARY ${SQLITE3_ROOT}/sqlite3.dll CACHE STRING "Directory where the Sqlite3 libraries and headers are located")
-	else()
-        message(FATAL_ERROR "Sqlite3 is needed on this project. You need to set -DSQLITE3_ROOT")
-	endif()
     if(DEFINED WINPCAP_ROOT)
-        set(PCAP_INCLUDE_DIR ${WINPCAP_ROOT}/Include CACHE STRING "Include directory of the WinPCAP developer pack")
-        set(PCAP_LIBRARY ${WINPCAP_ROOT}/Lib/wpcap.lib ${WINPCAP_ROOT}/Lib/Packet.lib CACHE STRING "Library directory of the WinPCAP developer pack")
+        #set(PCAP_INCLUDE_DIR ${WINPCAP_ROOT}/Include CACHE STRING "Include directory of the WinPCAP developer pack")
+        #set(PCAP_LIBRARY ${WINPCAP_ROOT}/Lib/wpcap.lib ${WINPCAP_ROOT}/Lib/Packet.lib CACHE STRING "Library directory of the WinPCAP developer pack")
+        find_pcap()
+        if(NOT PCAP_FOUND)
+            message(FATAL_ERROR "Could not find required libraries in the system. Please install pcap and run cmake again")
+        endif()
 	else()
         message(FATAL_ERROR "WinPCAP developer pack is needed on this project. You need to set -DWINPCAP_ROOT")
 	endif()
 else()
     find_pcap()
     find_sqlite3()
-    if(NOT PCAP_FOUND OR NOT SQLITE3_FOUND)
-        message(FATAL_ERROR "Could not find required libraries in the system. Please install sqlite3 and pcap and run cmake again")
+    if(NOT PCAP_FOUND)
+        message(FATAL_ERROR "Could not find required libraries in the system. Please install pcap and run cmake again")
+    endif()
+    if(NOT SQLITE3_FOUND)
+        message(FATAL_ERROR "Could not find required libraries in the system. Please install sqlite3 and run cmake again")
     endif()
 endif()
 
@@ -161,11 +162,11 @@ install_eprosima_libraries()
 install_boost(ALL thread system date_time chrono regex atomic)
 
 # Install licenses
-install(FILES ${PROJECT_SOURCE_DIR}/doc/licencias/${PROJECT_NAME}_LIBRARY_LICENSE.txt
-    ${PROJECT_SOURCE_DIR}/doc/licencias/LGPLv3_LICENSE.txt
-    DESTINATION ${LICENSE_INSTALL_DIR}
-    COMPONENT licenses
-    )
+#install(FILES ${PROJECT_SOURCE_DIR}/doc/licencias/${PROJECT_NAME}_LIBRARY_LICENSE.txt
+#    ${PROJECT_SOURCE_DIR}/doc/licencias/LGPLv3_LICENSE.txt
+#    DESTINATION ${LICENSE_INSTALL_DIR}
+#    COMPONENT licenses
+#    )
 set(CPACK_COMPONENT_LICENSES_HIDDEN 1)
 
 # Install examples

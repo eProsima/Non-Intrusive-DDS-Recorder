@@ -3,15 +3,37 @@ macro (find_pcap)
         NAMES
         pcap.h
         PATHS
-            "/usr/include/"
+        "/usr/include/"
+        "${WINPCAP_ROOT}/Include"
     )
+if(WIN32)
+    if(WINPCAP_ROOT)
+        if(CMAKE_CL_64)
+            set(WINPCAP_LIBRARY_ROOT "${WINPCAP_ROOT}/Lib/x64")
+        else()
+            set(WINPCAP_LIBRARY_ROOT "${WINPCAP_ROOT}/Lib")
+        endif()
+        find_library( PCAP_PACKET_LIBRARY Packet
+            PATHS
+            "${WINPCAP_LIBRARY_ROOT}"
+            )
+        find_library( PCAP_WPCAP_LIBRARY wpcap
+            PATHS
+            "${WINPCAP_LIBRARY_ROOT}"
+            )
+        if(PCAP_PACKET_LIBRARY AND PCAP_WPCAP_LIBRARY)
+            set(PCAP_LIBRARY ${PCAP_PACKET_LIBRARY} ${PCAP_WPCAP_LIBRARY})
+        endif()
+    endif()
+else()
     find_library( PCAP_LIBRARY
         NAMES
         pcap
-        wpcap
         PATHS
-            "/usr/lib/"
+        "/usr/lib/"
+        "${WINPCAP_ROOT}"
     )
+endif()
     if(NOT PCAP_INCLUDE_DIR)
         set(PCAP_FOUND FALSE)
         message(STATUS "pcap not found!")

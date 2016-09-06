@@ -26,6 +26,7 @@ RequestExecutionLevel admin
 !include Sections.nsh
 !include MUI2.nsh
 !include EnvVarUpdate.nsh
+!include InstallRedistributables.nsh
 
 # Variables
 Var StartMenuGroup
@@ -107,6 +108,9 @@ Section -post SEC0001
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\uninstall.exe
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
+
+	# Comprobamos si tiene instalado los redistributables de Visual Studio
+    Call InstallRedistributables
 SectionEnd
 
 # Macro for selecting uninstaller sections
