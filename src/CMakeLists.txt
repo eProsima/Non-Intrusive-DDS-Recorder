@@ -30,15 +30,13 @@ set( SOURCES
 	reader/pcapReader.cpp
 	util/IDLPrinter.cpp
 	)
+
 if(WIN32)
     set( SOURCES ${SOURCES}
         sqlite3/sqlite3.c
         sqlite3/shell.c
     )
 endif()
-#Set version
-
-
 
 #Definitions
 add_definitions(-D${PROJECT_NAME}_SOURCE)
@@ -48,6 +46,12 @@ if(WIN32)
 endif()
 
 #Create executable
+
+if(THIRDPARTY)
+    set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR})
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
+
 add_executable(dds_recorder ${SOURCES})	
 target_compile_definitions(dds_recorder PRIVATE SQLITE_PREPARE_V2)
 if(WIN32)
@@ -60,40 +64,7 @@ else()
     target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} ${SQLITE3_LIBRARY})
 endif()
 
+
+#INSTALL STEP
+
 install(TARGETS dds_recorder RUNTIME DESTINATION bin/)
-
-
-#Packaging
-
-#Public Headers
-set_public_headers_directory(${PROJECT_SOURCE_DIR}/include ${PROJECT_NAME}
-	DESTINATION ${INCLUDE_INSTALL_DIR}
-	COMPONENT headers
-	)
-#config.h headers
-set_public_header(${PROJECT_BINARY_DIR}/include ${PROJECT_NAME} config.h
-	DESTINATION ${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}
-	COMPONENT headers
-	)
-
-set(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C++ Headers" PARENT_SCOPE)
-set(CPACK_COMPONENT_HEADERS_DESCRIPTION "eProsima ${PROJECT_NAME} C++ Headers" PARENT_SCOPE)
-
-#Install sources
-if(UNIX AND EPROSIMA_INSTALLER)
-	install(DIRECTORY ${PROJECT_SOURCE_DIR}/src
-		DESTINATION src
-		COMPONENT sources
-		FILES_MATCHING
-		PATTERN "*.c"
-		PATTERN "*.cpp"
-		PATTERN "*.h"
-		PATTERN "*.hpp"
-		)
-	install(DIRECTORY ${PROJECT_BINARY_DIR}/autotools/
-		DESTINATION .
-		USE_SOURCE_PERMISSIONS
-		OPTIONAL
-		COMPONENT sources
-		)
-endif()
