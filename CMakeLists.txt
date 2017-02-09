@@ -23,6 +23,11 @@ set(${PROJECT_NAME}_DESCRIPTION_SUMMARY "Non-intrusive RTPS protocol packet anal
 set(${PROJECT_NAME}_DESCRIPTION "eProsima ${PROJECT_NAME} non-intrusive RTPS protocol packet analyzer.")
 message(STATUS "Configuring ${PROJECT_NAME}")
 
+set(PROJECT_MAJOR_VERSION "1")
+set(PROJECT_MINOR_VERSION "0")
+set(PROJECT_MICRO_VERSION "0")
+set(PROJECT_VERSION ${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_MICRO_VERSION})
+
 #Test System Configuration
 include(${PROJECT_SOURCE_DIR}/cmake/dev/check_configuration.cmake)
 check_stdcxx()
@@ -52,6 +57,13 @@ else()
 	set(LICENSE_INSTALL_DIR ${DATA_INSTALL_DIR}/${PROJECT_NAME} CACHE PATH "Installation directory for licenses")
 endif()
 
+# eProsima build options
+option(EPROSIMA_BUILD "Activate internal building" OFF)
+
+if(EPROSIMA_INSTALLER)
+	set(EPROSIMA_BUILD ON)
+endif()
+
 #Load CMAKE mocules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
@@ -61,17 +73,15 @@ set(BOOST_LIBRARIES_DEFAULT thread system date_time chrono regex atomic)
 check_boost(${BOOST_LIBRARIES_DEFAULT})
 
 #Load external eProsima projects
-option(THIRDPARTY "Activate the use of internal thirdparties" OFF)
+option(THIRDPARTY "Activate the use of internal thirdparties" ON)
 
-
-include(${PROJECT_SOURCE_DIR}/cmake/dev/eprosima_libraries.cmake)
-
-if(THIRDPARTY)
-    find_eprosima_package(fastcdr)
+if(EPROSIMA_BUILD)
+	set(THIRDPARTY ON)
 endif()
 
+include(${PROJECT_SOURCE_DIR}/cmake/dev/eprosima_libraries.cmake)
+find_eprosima_package(fastcdr)
 include(${PROJECT_SOURCE_DIR}/cmake/dev/external_dependencies.cmake)
-
 #Remind the user the need to give the directories to sqlite and winpcap
 if(WIN32)
     if(DEFINED WINPCAP_ROOT)
@@ -97,32 +107,116 @@ endif()
 
 add_compile_options(--std=c++0x)
 
-#Compile 
+#Compile library
 add_subdirectory(src)
 
-###
-# INSTALL
-###
+###############################################################################
+# Documentation
+###############################################################################
+# Add an option to toggle the generation of the API documentation.
+option(BUILD_DOCUMENTATION "Use doxygen and libreoffice to create product documentation" OFF)
 
-# Install external eprosima libraries and boost
-if(THIRDPARTY)
-    # Install includes
-            install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${INCLUDE_INSTALL_DIR}/
-                DESTINATION ${INCLUDE_INSTALL_DIR}
-                COMPONENT headers
-                OPTIONAL
-                )
+if(EPROSIMA_INSTALLER)
+	set(BUILD_DOCUMENTATION ON)
+endif()
 
-            # Install libraries
-            install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${LIB_INSTALL_DIR}/
-                DESTINATION ${LIB_INSTALL_DIR}
-                USE_SOURCE_PERMISSIONS
-                COMPONENT libraries
-                )
+if(BUILD_DOCUMENTATION)
+	find_program(LIBREOFFICE_EXE soffice)
+	if(LIBREOFFICE_EXE)
+		message(STATUS "Found Libreoffice: ${LIBREOFFICE_EXE}")
+		message(STATUS "Recall you need to have installed eProsima macros for Libreoffice")
+	else()
+		message(FATAL_ERROR "Libreoffice is needed to build the documentation")
+	endif()
 
+	#Target to create documentation directories
+	add_custom_target(docdirs
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/doc
+		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/doc/pdf
+		COMMENT "Creating documentation directory" VERBATIM)
+	#Libreoffice
+	if(WIN32)
+		set(LIBREOFFICE_CONVERT_README_MACRO "macro//eProsima.documentation.changeHyperlinksAndVersionToHTML(${PROJECT_SOURCE_DIR}/doc/README.odt,${PROJECT_VERSION},./,/doc/)")
+		set(README_LOCATION "${PROJECT_BINARY_DIR}/")
+		set(README_INSTALL_LOCATION ".")
+	else()
+		set(LIBREOFFICE_CONVERT_README_MACRO "macro://eProsima.documentation.changeVersionToHTML(${PROJECT_SOURCE_DIR}/doc/README.odt,${PROJECT_VERSION})")
+		set(README_LOCATION "${PROJECT_BINARY_DIR}/doc/")
+		set(README_INSTALL_LOCATION "${DOC_INSTALL_DIR}")
+	endif()
+	add_custom_target(libreoffice
+        COMMAND "${LIBREOFFICE_EXE}" --headless
+        "macro:///eProsima.documentation.changeVersion(${PROJECT_SOURCE_DIR}/doc/pdf/Installation Manual.odt,${PROJECT_VERSION})"
+        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/pdf/Installation Manual.pdf" "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Installation Manual.pdf"
+        COMMAND "${LIBREOFFICE_EXE}" --headless
+        "macro:///eProsima.documentation.changeVersion(${PROJECT_SOURCE_DIR}/doc/pdf/User Manual.odt,${PROJECT_VERSION})"
+        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/pdf/User Manual.pdf" "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - User Manual.pdf"
+        COMMAND "${LIBREOFFICE_EXE}" --headless
+        "macro:///eProsima.documentation.changeVersion(${PROJECT_SOURCE_DIR}/doc/pdf/Release Notes.odt,${PROJECT_VERSION})"
+        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/pdf/Release Notes.pdf" "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Release Notes.pdf"
+        COMMAND "${LIBREOFFICE_EXE}" --headless ${LIBREOFFICE_CONVERT_README_MACRO} 
+        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/README.html" "${README_LOCATION}/README.html"
+        DEPENDS
+        "${PROJECT_SOURCE_DIR}/doc/pdf/${PROJECT_NAME} - Installation Manual.odt"
+        "${PROJECT_SOURCE_DIR}/doc/pdf/${PROJECT_NAME} - User Manual.odt"
+        "${PROJECT_SOURCE_DIR}/doc/pdf/${PROJECT_NAME} - Release Notes.odt"
+        "${PROJECT_SOURCE_DIR}/doc/README.odt"
+        COMMENT "Generating documentation with libreoffice" VERBATIM)
+
+    add_dependencies(libreoffice docdirs)
+
+    add_custom_target(doc ALL
+        COMMENT "Generated project documentation" VERBATIM)
+
+    add_dependencies(doc libreoffice)
 
 endif()
+# Packaging
+# Install external eprosima libraries
+install_eprosima_libraries()
 install_boost(ALL thread system date_time chrono regex atomic)
 
+# Install licenses
+#install(FILES ${PROJECT_SOURCE_DIR}/doc/licencias/${PROJECT_NAME}_LIBRARY_LICENSE.txt
+#    ${PROJECT_SOURCE_DIR}/doc/licencias/LGPLv3_LICENSE.txt
+#    DESTINATION ${LICENSE_INSTALL_DIR}
+#    COMPONENT licenses
+#    )
+set(CPACK_COMPONENT_LICENSES_HIDDEN 1)
 
-#include(${PROJECT_SOURCE_DIR}/cmake/packaging/eProsimaPackaging.cmake)
+# Install examples
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/examples
+    DESTINATION .
+    COMPONENT examples
+    )
+
+set(CPACK_COMPONENT_EXAMPLES_DISPLAY_NAME "Examples")
+set(CPACK_COMPONENT_EXAMPLES_DESCRIPTION "eProsima ${PROJECT_NAME} examples")
+
+set(CPACK_COMPONENTS_ALL headers licenses examples)
+
+if(BUILD_DOCUMENTATION)
+    # Instalation of pdf files
+    install(FILES 
+        "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Installation Manual.pdf"
+        "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - User Manual.pdf"
+        "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Release Notes.pdf"
+        DESTINATION ${DOC_INSTALL_DIR}/pdf
+        COMPONENT documentation
+        )
+
+    install(FILES 
+        "${README_LOCATION}/README.html"
+        DESTINATION ${README_INSTALL_LOCATION}
+        COMPONENT documentation
+        )
+
+    ### Documentation component
+    set(CPACK_COMPONENT_DOCUMENTATION_DISPLAY_NAME "Documentation")
+    set(CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION "eProsima ${PROJECT_NAME} documentation")
+
+    set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} documentation)
+endif()
+
+
+include(${PROJECT_SOURCE_DIR}/cmake/packaging/eProsimaPackaging.cmake)
