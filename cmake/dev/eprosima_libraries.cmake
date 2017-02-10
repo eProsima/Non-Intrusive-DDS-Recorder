@@ -128,7 +128,7 @@ macro(install_eprosima_libraries)
         # Install libraries
         install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${BIN_INSTALL_DIR}/
             DESTINATION ${BIN_INSTALL_DIR}
-            COMPONENT libraries_${MSVC_ARCH}
+            COMPONENT binaries
             CONFIGURATIONS Debug
             OPTIONAL
             FILES_MATCHING
@@ -138,7 +138,7 @@ macro(install_eprosima_libraries)
 
         install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${BIN_INSTALL_DIR}/
             DESTINATION ${BIN_INSTALL_DIR}
-            COMPONENT libraries_${MSVC_ARCH}
+            COMPONENT binaries
             CONFIGURATIONS ${BUILD_TYPE_INSTALLATION}
             OPTIONAL
             FILES_MATCHING
@@ -149,7 +149,7 @@ macro(install_eprosima_libraries)
 
         install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${LIB_INSTALL_DIR}/
             DESTINATION ${LIB_INSTALL_DIR}
-            COMPONENT libraries_${MSVC_ARCH}
+            COMPONENT libraries
             CONFIGURATIONS Debug
             OPTIONAL
             FILES_MATCHING
@@ -159,7 +159,7 @@ macro(install_eprosima_libraries)
 
         install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${LIB_INSTALL_DIR}/
             DESTINATION ${LIB_INSTALL_DIR}
-            COMPONENT libraries_${MSVC_ARCH}
+            COMPONENT libraries
             CONFIGURATIONS ${BUILD_TYPE_INSTALLATION}
             OPTIONAL
             FILES_MATCHING

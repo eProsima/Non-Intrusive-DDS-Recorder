@@ -1,0 +1,72 @@
+!include EnvVarUpdate.nsh
+
+Var Dialog
+Var FirstTime
+
+Var Label
+
+Var CheckboxPath
+Var CheckboxPath_State
+
+LangString PAGE_TITLE ${LANG_ENGLISH} "Environment variables setting"
+LangString PAGE_SUBTITLE ${LANG_ENGLISH} "Choose which environment variables you want to set."
+
+Function VariablesEntornoPage
+
+    !insertmacro MUI_HEADER_TEXT $(PAGE_TITLE) $(PAGE_SUBTITLE)
+
+    nsDialogs::Create 1018
+    Pop $Dialog
+
+    ${If} $Dialog == error
+        Abort
+    ${EndIf}
+       
+    ### Creación de los elementos gráficos    
+    ${NSD_CreateLabel} 0 0 100% 20u "Check the environment variables you want to set and uncheck the environment variables you don't want to set. Click Next to continue."
+    Pop $Label
+
+    ${NSD_CreateCheckbox} 10 20u 100% 12u "&Add to the PATH environment variable the location of @PROJECT_NAME_LARGE@ binaries."
+    Pop $CheckboxPath
+    ${If} $CheckboxPath_State == ${BST_CHECKED}
+        ${NSD_Check} $CheckboxPath
+    ${EndIf}
+
+    ### La primera vez que lanzamos el instalador, el checkbox de PATH
+    ### debe estar marcados. 
+    StrCmp $FirstTime "FirstTime" jumpfirsttime 0 ### Si son iguales las cadenas, GOTO +5, si no, GOTO 0
+        ${NSD_Check} $CheckboxPath
+        ${NSD_GetState} $CheckboxPath $CheckboxPath_State
+        StrCpy $FirstTime "FirstTime"
+
+    jumpfirsttime:
+
+    ### Fijamos los callbacks para cuando se haga click en los CheckBoxes
+    ${NSD_OnClick} $CheckboxPath ClickPath 
+	
+    nsDialogs::Show
+FunctionEnd
+
+### Callback invocado cuando se pulsa el CheckBox PATH
+### Guardamos el estado en la variable _state
+Function ClickPath
+    ${NSD_GetState} $CheckboxPath $CheckboxPath_State
+FunctionEnd
+
+Function InstallVarEnvs
+    ### Actualizamos las variables de entorno que se hayan marcado
+    ${If} $CheckboxPath_State == ${BST_CHECKED}
+       ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
+       WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@" "Location in PATH" 1
+    ${EndIf}
+FunctionEnd
+
+Var RegKeyCheck
+
+!macro UninstallVarEnvs
+  ReadRegStr $RegKeyCheck HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@" "Location in PATH"
+  ${If} $RegKeyCheck == 1
+    DeleteRegValue HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@" "Location in PATH"
+    ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\bin"
+  ${EndIf}
+!macroend

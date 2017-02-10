@@ -69,7 +69,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 #Check libraries
 include(${PROJECT_SOURCE_DIR}/cmake/dev/boost_libraries.cmake)
-set(BOOST_LIBRARIES_DEFAULT thread system date_time chrono regex atomic)
+set(BOOST_LIBRARIES_DEFAULT chrono date_time thread system)
 check_boost(${BOOST_LIBRARIES_DEFAULT})
 
 #Load external eProsima projects
@@ -136,11 +136,11 @@ if(BUILD_DOCUMENTATION)
 		COMMENT "Creating documentation directory" VERBATIM)
 	#Libreoffice
 	if(WIN32)
-		set(LIBREOFFICE_CONVERT_README_MACRO "macro//eProsima.documentation.changeHyperlinksAndVersionToHTML(${PROJECT_SOURCE_DIR}/doc/README.odt,${PROJECT_VERSION},./,/doc/)")
+		set(LIBREOFFICE_CONVERT_README_MACRO "macro:///eProsima.documentation.changeHyperlinksAndVersionToHTML(${PROJECT_SOURCE_DIR}/doc/README.odt,${PROJECT_VERSION},./,/doc/)")
 		set(README_LOCATION "${PROJECT_BINARY_DIR}/")
 		set(README_INSTALL_LOCATION ".")
 	else()
-		set(LIBREOFFICE_CONVERT_README_MACRO "macro://eProsima.documentation.changeVersionToHTML(${PROJECT_SOURCE_DIR}/doc/README.odt,${PROJECT_VERSION})")
+		set(LIBREOFFICE_CONVERT_README_MACRO "macro:///eProsima.documentation.changeVersionToHTML(${PROJECT_SOURCE_DIR}/doc/README.odt,${PROJECT_VERSION})")
 		set(README_LOCATION "${PROJECT_BINARY_DIR}/doc/")
 		set(README_INSTALL_LOCATION "${DOC_INSTALL_DIR}")
 	endif()
@@ -156,6 +156,7 @@ if(BUILD_DOCUMENTATION)
         COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/pdf/Release Notes.pdf" "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Release Notes.pdf"
         COMMAND "${LIBREOFFICE_EXE}" --headless ${LIBREOFFICE_CONVERT_README_MACRO} 
         COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/README.html" "${README_LOCATION}/README.html"
+        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/README_html_181c5124a393013a.png" "${README_LOCATION}/README_html_181c5124a393013a.png"
         DEPENDS
         "${PROJECT_SOURCE_DIR}/doc/pdf/${PROJECT_NAME} - Installation Manual.odt"
         "${PROJECT_SOURCE_DIR}/doc/pdf/${PROJECT_NAME} - User Manual.odt"
@@ -174,7 +175,7 @@ endif()
 # Packaging
 # Install external eprosima libraries
 install_eprosima_libraries()
-install_boost(ALL thread system date_time chrono regex atomic)
+install_boost(ALL ${BOOST_LIBRARIES_DEFAULT})
 
 # Install licenses
 #install(FILES ${PROJECT_SOURCE_DIR}/doc/licencias/${PROJECT_NAME}_LIBRARY_LICENSE.txt
@@ -193,7 +194,7 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/examples
 set(CPACK_COMPONENT_EXAMPLES_DISPLAY_NAME "Examples")
 set(CPACK_COMPONENT_EXAMPLES_DESCRIPTION "eProsima ${PROJECT_NAME} examples")
 
-set(CPACK_COMPONENTS_ALL headers licenses examples)
+set(CPACK_COMPONENTS_ALL licenses examples)
 
 if(BUILD_DOCUMENTATION)
     # Instalation of pdf files
@@ -207,6 +208,7 @@ if(BUILD_DOCUMENTATION)
 
     install(FILES 
         "${README_LOCATION}/README.html"
+        "${README_LOCATION}/README_html_181c5124a393013a.png"
         DESTINATION ${README_INSTALL_LOCATION}
         COMPONENT documentation
         )
@@ -218,5 +220,6 @@ if(BUILD_DOCUMENTATION)
     set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} documentation)
 endif()
 
+set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} binaries)
 
 include(${PROJECT_SOURCE_DIR}/cmake/packaging/eProsimaPackaging.cmake)
