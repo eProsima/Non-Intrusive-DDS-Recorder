@@ -10,10 +10,14 @@ macro(check_boost)
     set(Boost_USE_STATIC_LIBS OFF)
     set(Boost_USE_MULTITHREADED ON)
     set(Boost_USE_STATIC_RUNTIME OFF)
-    if(WIN32 AND EPROSIMA_BOOST)
+    if(WIN32)
         set(BOOST_LIBRARYDIR_ $ENV{BOOST_LIBRARYDIR})
         if(BOOST_LIBRARYDIR_)
-            file(TO_CMAKE_PATH "${BOOST_LIBRARYDIR_}/${MSVC_ARCH}" BOOST_LIBRARYDIR)
+            if(EPROSIMA_BOOST)
+                file(TO_CMAKE_PATH "${BOOST_LIBRARYDIR_}/${MSVC_ARCH}" BOOST_LIBRARYDIR)
+            else()
+                file(TO_CMAKE_PATH "${BOOST_LIBRARYDIR_}" BOOST_LIBRARYDIR)
+            endif()
         endif()
     endif()
     find_package(Boost REQUIRED COMPONENTS ${ARGN})
@@ -38,7 +42,7 @@ macro(install_boost FILETYPE)
         endif()
 
         foreach(arg_ ${ARGN})
-            if(EPROSIMA_BUILD AND NOT EPROSIMA_INSTALLER)
+            if(EPROSIMA_BUILD)
                 if(MSVC10)
                     set(BOOST_ARCH "vc100")
                 elseif(MSVC11)
@@ -61,7 +65,7 @@ macro(install_boost FILETYPE)
                 if(RUNTIME_FILES_)
                     install(DIRECTORY ${BOOST_LIBRARYDIR_NORMALIZE}/
                         DESTINATION ${BIN_INSTALL_DIR}${DIR_EXTENSION}
-                        COMPONENT libraries_${MSVC_ARCH}
+                        COMPONENT binaries
                         CONFIGURATIONS Debug
                         FILES_MATCHING
                         PATTERN "boost_${arg_}-${BOOST_ARCH}-mt-gd*.dll"
@@ -69,7 +73,7 @@ macro(install_boost FILETYPE)
 
                     install(DIRECTORY ${BOOST_LIBRARYDIR_NORMALIZE}/
                         DESTINATION ${BIN_INSTALL_DIR}${DIR_EXTENSION}
-                        COMPONENT libraries_${MSVC_ARCH}
+                        COMPONENT binaries
                         CONFIGURATIONS Release
                         FILES_MATCHING
                         PATTERN "boost_${arg_}-${BOOST_ARCH}-mt*.dll"
@@ -81,7 +85,7 @@ macro(install_boost FILETYPE)
                 if(LIBRARY_FILES_)
                     install(DIRECTORY ${BOOST_LIBRARYDIR_NORMALIZE}/
                         DESTINATION ${LIB_INSTALL_DIR}${DIR_EXTENSION}
-                        COMPONENT libraries_${MSVC_ARCH}
+                        COMPONENT libraries
                         CONFIGURATIONS Debug
                         FILES_MATCHING
                         PATTERN "boost_${arg_}-${BOOST_ARCH}-mt-gd*.lib"
@@ -89,7 +93,7 @@ macro(install_boost FILETYPE)
 
                     install(DIRECTORY ${BOOST_LIBRARYDIR_NORMALIZE}/
                         DESTINATION ${LIB_INSTALL_DIR}${DIR_EXTENSION}
-                        COMPONENT libraries_${MSVC_ARCH}
+                        COMPONENT libraries
                         CONFIGURATIONS Release
                         FILES_MATCHING
                         PATTERN "boost_${arg_}-${BOOST_ARCH}-mt*.lib"
