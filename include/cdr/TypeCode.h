@@ -46,7 +46,7 @@ namespace eprosima
         static const uint32_t KIND_WSTRING = 0x00000015;
         static const uint32_t KIND_VALUE = 0x00000016;
         static const uint32_t KIND_SPARSE = 0x00000017;
-    
+
         /*!
          * @brief Default destructor.
          */
@@ -111,6 +111,8 @@ namespace eprosima
         //! @brief Kind of the type.
         uint32_t m_kind;
     };
+
+    bool operator<<(IDLPrinter &printer, const TypeCode *typeCode);
 };
 
 #endif // _CDR_TYPECODE_H_

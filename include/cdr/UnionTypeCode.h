@@ -89,13 +89,15 @@ namespace eprosima
 
 
     private:
-        
+
         Member* deserializeMemberInfo(std::string name, Cdr &cdr);
 
         int32_t m_defaultIndex;
 
         TypeCode *m_discriminatorTypeCode;
     };
+
+    bool operator<<(IDLPrinter &printer, const UnionTypeCode *unionTypeCode);
 };
 
 #endif // _CDR_UNIONTYPECODE_H_
