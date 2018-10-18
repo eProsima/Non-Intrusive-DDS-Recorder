@@ -44,6 +44,8 @@ namespace eprosima
         uint16_t m_dump;
         uint32_t m_maxLength;
     };
+
+    bool operator<<(IDLPrinter &printer, const StringTypeCode *typeCode);
 };
 
 #endif // _CDR_STRINGTYPECODE_H_

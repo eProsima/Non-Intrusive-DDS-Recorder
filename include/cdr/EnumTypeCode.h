@@ -78,9 +78,11 @@ namespace eprosima
         bool addMember(EnumMember* mem);
 
     private:
-        
+
         Member* deserializeMemberInfo(std::string name, Cdr &cdr);
     };
+
+    bool operator<<(IDLPrinter &printer, const EnumTypeCode *typeCode);
 };
 
 #endif // _CDR_ENUMTYPECODE_H_

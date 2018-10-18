@@ -67,9 +67,11 @@ namespace eprosima
         bool addMember(StructMember* sm);
 
     private:
-        
+
         Member* deserializeMemberInfo(std::string name, Cdr &cdr);
     };
+
+    bool operator<<(IDLPrinter &printer, const StructTypeCode *structTypeCode);
 };
 
 #endif // _CDR_STRUCTTYPECODE_H_

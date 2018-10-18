@@ -38,6 +38,8 @@ namespace eprosima
 
         uint16_t m_dump;
     };
+
+    bool operator<<(IDLPrinter &printer, const PrimitiveTypeCode *typeCode);
 };
 
 #endif // _CDR_PRIMITIVETYPECODE_H_
