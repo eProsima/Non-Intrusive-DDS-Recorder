@@ -6,7 +6,7 @@
 mechanism allowing you to test, analyze or log your DDS distributed system without adding any new DDS participant or
 service, ensuring you are recording the real behavior and timing.
 
-# How it works
+## How it works
 
 *eProsima Non-Intrusive DDS Recorder* records the DDS traffic sniffing the DDS protocol (RTPS) through the switch debug
 port.
@@ -36,7 +36,7 @@ implementations in the release notes).
 Future releases of *eProsima Non-Intrusive DDS Recorder* will allow the use of an IDL file to generate the typecode of
 your types.
 
-# Usage
+# #Usage
 
 *eProsima Non-Intrusive DDS Recorder* is a command line application.
 The command line syntax is:
@@ -54,7 +54,7 @@ By default *eProsima Non-Intrusive DDS Recorder* creates the file `dump.db`.
 in the discovery phase.
 * *-help*: Print help information.
 
-# Available documentation
+## Available documentation
 
 * [**User Manual (PDF)**](https://www.eprosima.com/docs/non-intrusive-dds-recorder/1.0.0/pdf/User-Manual.pdf)
 * [**Installation Manual (PDF)**](https://www.eprosima.com/docs/non-intrusive-dds-recorder/1.0.0/pdf/Installation-Manual.pdf)
