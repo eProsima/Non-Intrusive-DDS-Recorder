@@ -36,7 +36,7 @@ implementations in the release notes).
 Future releases of *eProsima Non-Intrusive DDS Recorder* will allow the use of an IDL file to generate the typecode of
 your types.
 
-# #Usage
+## Usage
 
 *eProsima Non-Intrusive DDS Recorder* is a command line application.
 The command line syntax is:
