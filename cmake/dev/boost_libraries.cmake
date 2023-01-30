@@ -30,7 +30,9 @@ macro(install_boost)
     if(MSVC OR MSVC_IDE)
         foreach(arg_ ${ARGN})
             if(EPROSIMA_BUILD)
-                install(FILES ${boost_lib_release}
+                string(TOUPPER ${arg_} boost_lib_) 
+		string(REPLACE ".lib" ".dll" boost_lib_release_ ${Boost_${boost_lib_}_LIBRARY_RELEASE})
+		install(FILES ${boost_lib_release_}
                     DESTINATION ${BIN_INSTALL_DIR}
                     COMPONENT binaries
                     CONFIGURATIONS Release
