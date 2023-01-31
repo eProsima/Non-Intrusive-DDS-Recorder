@@ -7,11 +7,11 @@ cmake_minimum_required(VERSION 2.8.12)
 
 #set CMAKE_BUILD_TYPE to Release as default
 if(DEFINED CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose Type of build, options are> None Debug Release RelWithDebInfo MinSizeRel."
-	   )
+    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose Type of build, options are> None Debug Release RelWithDebInfo MinSizeRel."
+        )
 else()
-	set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose Type of build, options are> None Debug Release RelWithDebInfo MinSizeRel."
-	   )
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose Type of build, options are> None Debug Release RelWithDebInfo MinSizeRel."
+        )
 endif()
 
 project("DDSRecorder")
@@ -36,7 +36,7 @@ check_endianness()
 
 #Check MSVC Architecture
 if(MSVC OR MSVC_IDE)
-	check_msvc_arch()
+    check_msvc_arch()
 endif()
 
 #Installation paths
@@ -46,22 +46,22 @@ set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Installation directory for C++ Head
 set(LIB_INSTALL_DIR lib/ CACHE PATH "Installation directory for libraries")
 set(DATA_INSTALL_DIR share/ CACHE PATH "Installation directory for data")
 if(WIN32)
-	set(DOC_DIR "doc")
+    set(DOC_DIR "doc")
 else()
-	set(DOC_DIR "${DATA_INSTALL_DIR}/doc")
+    set(DOC_DIR "${DATA_INSTALL_DIR}/doc")
 endif()
 set(DOC_INSTALL_DIR ${DOC_DIR} CACHE PATH "Installation directory for documentation")
 if(WIN32)
-	set(LICENSE_INSTALL_DIR . CACHE PATH "Installation directory for licenses")
+    set(LICENSE_INSTALL_DIR . CACHE PATH "Installation directory for licenses")
 else()
-	set(LICENSE_INSTALL_DIR ${DATA_INSTALL_DIR}/${PROJECT_NAME} CACHE PATH "Installation directory for licenses")
+    set(LICENSE_INSTALL_DIR ${DATA_INSTALL_DIR}/${PROJECT_NAME} CACHE PATH "Installation directory for licenses")
 endif()
 
 # eProsima build options
 option(EPROSIMA_BUILD "Activate internal building" OFF)
 
 if(EPROSIMA_INSTALLER)
-	set(EPROSIMA_BUILD ON)
+    set(EPROSIMA_BUILD ON)
 endif()
 
 #Load CMAKE mocules
@@ -76,7 +76,7 @@ check_boost(${BOOST_LIBRARIES_DEFAULT})
 option(THIRDPARTY "Activate the use of internal thirdparties" ON)
 
 if(EPROSIMA_BUILD)
-	set(THIRDPARTY ON)
+    set(THIRDPARTY ON)
 endif()
 
 include(${PROJECT_SOURCE_DIR}/cmake/dev/eprosima_libraries.cmake)
@@ -91,9 +91,9 @@ if(WIN32)
         if(NOT PCAP_FOUND)
             message(FATAL_ERROR "Could not find required libraries in the system. Please install pcap and run cmake again")
         endif()
-	else()
+    else()
         message(FATAL_ERROR "WinPCAP developer pack is needed on this project. You need to set -DWINPCAP_ROOT")
-	endif()
+    endif()
 else()
     find_pcap()
     find_sqlite3()
@@ -117,50 +117,46 @@ add_subdirectory(src)
 option(BUILD_DOCUMENTATION "Use doxygen and libreoffice to create product documentation" OFF)
 
 if(EPROSIMA_INSTALLER)
-	set(BUILD_DOCUMENTATION ON)
+    set(BUILD_DOCUMENTATION ON)
 endif()
 
 if(BUILD_DOCUMENTATION)
-	find_program(LIBREOFFICE_EXE soffice)
-	if(LIBREOFFICE_EXE)
-		message(STATUS "Found Libreoffice: ${LIBREOFFICE_EXE}")
-		message(STATUS "Recall you need to have installed eProsima macros for Libreoffice")
-	else()
-		message(FATAL_ERROR "Libreoffice is needed to build the documentation")
-	endif()
+    find_program(LIBREOFFICE_EXE soffice)
+    if(LIBREOFFICE_EXE)
+        message(STATUS "Found Libreoffice: ${LIBREOFFICE_EXE}")
+        message(STATUS "Recall you need to have installed eProsima macros for Libreoffice")
+    else()
+        message(FATAL_ERROR "Libreoffice is needed to build the documentation")
+    endif()
 
-	#Target to create documentation directories
-	add_custom_target(docdirs
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/doc
-		COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/doc/pdf
-		COMMENT "Creating documentation directory" VERBATIM)
-	#Libreoffice
-	if(WIN32)
-		set(LIBREOFFICE_CONVERT_README_MACRO "macro:///eProsima.documentation.changeHyperlinksAndVersionToHTML(${PROJECT_SOURCE_DIR}/doc/README.odt,${PROJECT_VERSION},./,/doc/)")
-		set(README_LOCATION "${PROJECT_BINARY_DIR}/")
-		set(README_INSTALL_LOCATION ".")
-	else()
-		set(LIBREOFFICE_CONVERT_README_MACRO "macro:///eProsima.documentation.changeVersionToHTML(${PROJECT_SOURCE_DIR}/doc/README.odt,${PROJECT_VERSION})")
-		set(README_LOCATION "${PROJECT_BINARY_DIR}/doc/")
-		set(README_INSTALL_LOCATION "${DOC_INSTALL_DIR}")
-	endif()
-	add_custom_target(libreoffice
-        COMMAND "${LIBREOFFICE_EXE}" --headless
-        "macro:///eProsima.documentation.changeVersion(${PROJECT_SOURCE_DIR}/doc/pdf/Installation Manual.odt,${PROJECT_VERSION})"
-        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/pdf/Installation Manual.pdf" "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Installation Manual.pdf"
-        COMMAND "${LIBREOFFICE_EXE}" --headless
-        "macro:///eProsima.documentation.changeVersion(${PROJECT_SOURCE_DIR}/doc/pdf/User Manual.odt,${PROJECT_VERSION})"
-        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/pdf/User Manual.pdf" "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - User Manual.pdf"
-        COMMAND "${LIBREOFFICE_EXE}" --headless
-        "macro:///eProsima.documentation.changeVersion(${PROJECT_SOURCE_DIR}/doc/pdf/Release Notes.odt,${PROJECT_VERSION})"
-        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/pdf/Release Notes.pdf" "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Release Notes.pdf"
-        COMMAND "${LIBREOFFICE_EXE}" --headless ${LIBREOFFICE_CONVERT_README_MACRO} 
-        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/README.html" "${README_LOCATION}/README.html"
-        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_SOURCE_DIR}/doc/README_html_181c5124a393013a.png" "${README_LOCATION}/README_html_181c5124a393013a.png"
+    #Target to create documentation directories
+    add_custom_target(docdirs
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/doc
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/doc/pdf
+        COMMENT "Creating documentation directory" VERBATIM)
+    #Libreoffice
+    if(WIN32)
+        set(README_LOCATION "${PROJECT_BINARY_DIR}/")
+        set(README_INSTALL_LOCATION ".")
+    else()
+        set(README_LOCATION "${PROJECT_BINARY_DIR}/doc/")
+        set(README_INSTALL_LOCATION "${DOC_INSTALL_DIR}")
+    endif()
+    add_custom_target(libreoffice
+        COMMAND "${LIBREOFFICE_EXE}" --headless --convert-to pdf:writer_pdf_Export
+        --outdir "${PROJECT_BINARY_DIR}/doc/pdf"
+        "${PROJECT_SOURCE_DIR}/doc/pdf/Installation Manual.odt"
+        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_BINARY_DIR}/doc/pdf/Installation Manual.pdf" "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Installation Manual.pdf"
+        COMMAND "${LIBREOFFICE_EXE}" --headless --convert-to pdf:writer_pdf_Export
+        --outdir "${PROJECT_BINARY_DIR}/doc/pdf"
+        "${PROJECT_SOURCE_DIR}/doc/pdf/User Manual.odt"
+        COMMAND ${CMAKE_COMMAND} -E rename "${PROJECT_BINARY_DIR}/doc/pdf/User Manual.pdf" "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - User Manual.pdf"
+        COMMAND "${LIBREOFFICE_EXE}" --headless  --convert-to html:HTML:EmbedImages
+        --outdir "${README_LOCATION}"
+        "${PROJECT_SOURCE_DIR}/doc/README.odt"
         DEPENDS
         "${PROJECT_SOURCE_DIR}/doc/pdf/${PROJECT_NAME} - Installation Manual.odt"
         "${PROJECT_SOURCE_DIR}/doc/pdf/${PROJECT_NAME} - User Manual.odt"
-        "${PROJECT_SOURCE_DIR}/doc/pdf/${PROJECT_NAME} - Release Notes.odt"
         "${PROJECT_SOURCE_DIR}/doc/README.odt"
         COMMENT "Generating documentation with libreoffice" VERBATIM)
 
@@ -175,7 +171,7 @@ endif()
 # Packaging
 # Install external eprosima libraries
 install_eprosima_libraries()
-install_boost(ALL ${BOOST_LIBRARIES_DEFAULT})
+install_boost(${BOOST_LIBRARIES_DEFAULT})
 
 # Install licenses
 #install(FILES ${PROJECT_SOURCE_DIR}/doc/licencias/${PROJECT_NAME}_LIBRARY_LICENSE.txt
@@ -201,14 +197,12 @@ if(BUILD_DOCUMENTATION)
     install(FILES 
         "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Installation Manual.pdf"
         "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - User Manual.pdf"
-        "${PROJECT_BINARY_DIR}/doc/pdf/${PROJECT_NAME_LARGE} - Release Notes.pdf"
         DESTINATION ${DOC_INSTALL_DIR}/pdf
         COMPONENT documentation
         )
 
-    install(FILES 
+    install(FILES
         "${README_LOCATION}/README.html"
-        "${README_LOCATION}/README_html_181c5124a393013a.png"
         DESTINATION ${README_INSTALL_LOCATION}
         COMPONENT documentation
         )
@@ -218,6 +212,12 @@ if(BUILD_DOCUMENTATION)
     set(CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION "eProsima ${PROJECT_NAME} documentation")
 
     set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} documentation)
+endif()
+
+if(EPROSIMA_INSTALLER)
+    ## Download reditributables
+    file(DOWNLOAD "https://aka.ms/vs/16/release/vc_redist.x64.exe" "${PROJECT_BINARY_DIR}/vc_redist.x64.exe")
+    file(DOWNLOAD "https://aka.ms/vs/16/release/vc_redist.x86.exe" "${PROJECT_BINARY_DIR}/vc_redist.x86.exe")
 endif()
 
 set(CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} binaries)

@@ -21,8 +21,10 @@ if(WIN32)
 
     if(CMAKE_CL_64)
         set(INSTALLER_SUFFIX Win64)
+        set(BUILD_64 1)
     else()
         set(INSTALLER_SUFFIX Win32)
+        set(BUILD_64 0)
     endif()
 
     configure_file(${PROJECT_SOURCE_DIR}/cmake/packaging/windows/WindowsPackaging.cmake.in ${PROJECT_BINARY_DIR}/cmake/packaging/windows/WindowsPackaging.cmake @ONLY)
