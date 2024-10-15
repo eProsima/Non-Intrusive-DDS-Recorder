@@ -6,6 +6,12 @@
 mechanism allowing you to test, analyze or log your DDS distributed system without adding any new DDS participant or
 service, ensuring you are recording the real behavior and timing.
 
+## Commercial support
+
+Looking for commercial support? Write us to info@eprosima.com
+
+Find more about us at [eProsima’s webpage](https://eprosima.com/).
+
 ## How it works
 
 *eProsima Non-Intrusive DDS Recorder* records the DDS traffic sniffing the DDS protocol (RTPS) through the switch debug
