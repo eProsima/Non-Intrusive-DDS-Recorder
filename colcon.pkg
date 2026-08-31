@@ -1,0 +1,4 @@
+name: DDSRecorder
+type: cmake
+dependencies:
+    - fastdds
