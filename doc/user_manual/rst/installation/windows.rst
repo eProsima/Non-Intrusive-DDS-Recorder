@@ -10,25 +10,25 @@ This section describes how to install |eddsrecorder| on the supported Windows op
 Please make sure that the :ref:`installation_manual_requirements` are met before proceeding.
 
 ****************
-Windows 7 32-bit
+Windows 11 32-bit
 ****************
 
 Download the installation package for your system:
 
 .. code-block:: text
 
-    eProsima_DDSRecorder-1.0.0-Win32.exe
+    eProsima_DDSRecorder-1.1.0-Win32.exe
 
 Execute the installer and follow the onscreen instructions.
 
 ****************
-Windows 7 64-bit
+Windows 11 64-bit
 ****************
 
 Download the installation package for your system:
 
 .. code-block:: text
 
-    eProsima_DDSRecorder-1.0.0-Win64.exe
+    eProsima_DDSRecorder-1.1.0-Win64.exe
 
 Execute the installer and follow the onscreen instructions.
