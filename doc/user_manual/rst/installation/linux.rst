@@ -13,7 +13,7 @@ Download the installation package for your system:
 
 .. code-block:: text
 
-    eProsima_DDSRecorder-1.0.0-Linux.tar.gz
+    eProsima_DDSRecorder-1.1.0-Linux.tar.gz
 
 Extract its content.
 First install the |efastcdr| library needed by |eddsrecorder|.

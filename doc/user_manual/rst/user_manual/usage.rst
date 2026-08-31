@@ -103,7 +103,7 @@ Generating the applications and sniffing some network packets
 
 Most DDS implementations provide an IDL compiler to generate type support for user data types and an example
 publisher-subscriber application.
-In the case of |efastrtps|, this application is ``FastRTPSGen``.
+In the case of |efastdds|, this application is ``FastDDSGen``.
 Use it to generate a simple publisher/subscriber application, run it and save some network traffic using a network
 sniffer such as *Wireshark*, saving the results as a PCAP file.
 

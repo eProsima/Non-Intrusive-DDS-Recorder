@@ -2,14 +2,12 @@
 .. |DDSSpecification| replace:: `DDS specification <https://www.omg.org/spec/DDS/1.4/About-DDS/>`__
 
 .. |fastdds| replace:: *Fast DDS*
-.. |fastrtps| replace:: *Fast RTPS*
 .. |fastcdr| replace:: *Fast CDR*
 
 .. |ddsrecorder| replace:: *DDS Recorder*
 .. |ddsrecord| replace:: *Non-Intrusive DDS Recorder*
 
 .. |efastdds| replace:: *eProsima Fast DDS*
-.. |efastrtps| replace:: *eProsima Fast RTPS*
 .. |efastcdr| replace:: *eProsima Fast CDR*
 .. |eddsrecorder| replace:: *eProsima Non-Intrusive DDS Recorder*
 

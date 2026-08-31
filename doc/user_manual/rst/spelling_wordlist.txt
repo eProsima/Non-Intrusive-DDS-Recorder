@@ -16,7 +16,6 @@ eProsima
 executables
 fastcdr
 fastdds
-fastrtps
 Fedora
 gcc
 github

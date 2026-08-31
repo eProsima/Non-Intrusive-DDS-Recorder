@@ -9,7 +9,7 @@
 Version v1.1.0
 ##############
 
-This release updates |eddsrecorder| to build against |efastdds| v3.6.2.
+This release updates |eddsrecorder| to build against |efastcdr| v2.4.0.
 
 .. _notes_system_requirements:
 

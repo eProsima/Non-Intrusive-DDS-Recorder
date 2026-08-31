@@ -11,13 +11,13 @@ Once they are met, please refer to :ref:`installation_manual_windows` or :ref:`i
 the application itself.
 
 ***************************
-Windows 7 32-bit and 64-bit
+Windows 11 32-bit and 64-bit
 ***************************
 
-Visual C++ 2010 Redistributable package
-=======================================
+Latest Microsoft Visual C++ Redistributable package
+===================================================
 
-|eddsrecorder| requires the *Visual C++ 2010 Redistributable* package.
+|eddsrecorder| requires the latest *Microsoft Visual C++ Redistributable* package.
 The distributed installer checks whether the package is present in the system and, if it is not, prompts the user to
 install it.
 
