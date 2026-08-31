@@ -24,11 +24,23 @@ Non-Intrusive DDS Recorder nomenclature
         Representation of the definition of a data type that some DDS implementations send as part of the discovery
         information.
         |eddsrecorder| uses it to build the tables that store the user data of each topic.
+        When it is not present in the discovery traffic, an :term:`IDL` file must be supplied instead.
+
+    snaplen
+        **Snapshot length**.
+        Maximum number of bytes that a network sniffer stores for each packet.
+        A capture taken with a limited snaplen contains truncated packets, which |eddsrecorder| discards, so captures
+        must be taken with an unlimited snapshot length.
 
 DDS nomenclature
 ================
 
 .. glossary::
+
+    CDR
+        **Common Data Representation**.
+        Serialization format defined by the OMG that DDS uses to encode samples on the wire.
+        |eddsrecorder| deserializes the CDR payload of each sample to fill in the columns of the topic table.
 
     DataReader
         DDS element that subscribes to a specific Topic.
@@ -80,10 +92,32 @@ DDS nomenclature
         It can be supplied to |eddsrecorder| when the DDS implementation under study does not send TypeCode
         information.
 
+    QoS
+        **Quality of Service**.
+        Set of policies that configure the behavior of a DDS entity, such as its reliability or its durability.
+        QoS policies are announced during discovery but are not recorded by |eddsrecorder|.
+
     RTPS
         **Real-Time Publish-Subscribe**.
         Wire protocol defined by the OMG that DDS implementations use to communicate over the network.
         |eddsrecorder| dissects this protocol to reconstruct the DDS traffic.
+
+    Sample
+        A single data value published on a :term:`Topic`.
+        |eddsrecorder| stores one row per sample *transmission* observed in the capture, so a sample sent to several
+        destinations produces several rows.
+
+    SEDP
+        **Simple Endpoint Discovery Protocol**.
+        Phase of the RTPS discovery in which participants announce their :term:`DataWriter`\ s and
+        :term:`DataReader`\ s, together with the topic and data type each of them uses.
+        |eddsrecorder| builds its discovery tables from these messages.
+
+    SPDP
+        **Simple Participant Discovery Protocol**.
+        Phase of the RTPS discovery in which :term:`DomainParticipant`\ s announce their own existence, before
+        exchanging endpoint information through :term:`SEDP`.
+        These announcements are not recorded by |eddsrecorder|.
 
     Topic
         DDS isolation abstraction to encapsulate subscriptions and publications.
@@ -99,6 +133,14 @@ Networking nomenclature
 
     LAN
         **Local Area Network**
+
+    libpcap
+        Library used to read packet capture files.
+        |eddsrecorder| relies on it to iterate over the packets of the :term:`PCAP` file.
+
+    PCAP file rotation
+        Practice of splitting a long capture into several files.
+        |eddsrecorder| processes one file per run, so each file produces its own database.
 
     Switch debug port
         Port of a network switch configured to mirror the traffic of the other ports.

@@ -7,7 +7,8 @@
 Supported data types
 ####################
 
-This section describes the data types that |eddsrecorder| supports and how the data is stored.
+This section describes the IDL constructs that |eddsrecorder| supports and how each of them is mapped to the generated
+SQL schema.
 
 .. _user_manual_data_types_basic_types:
 
@@ -15,53 +16,88 @@ This section describes the data types that |eddsrecorder| supports and how the d
 Basic types
 ***********
 
-For each basic type field in a DDS Topic, |eddsrecorder| creates a field in the corresponding topic table using the
+For each basic type field in a DDS Topic, |eddsrecorder| creates a column in the corresponding topic table using the
 same name and a compatible SQLite type.
 
 .. list-table:: IDL to SQLite type mapping (basic types)
     :header-rows: 1
+    :widths: 30 30 40
 
     *   - IDL basic type
         - SQL field type
+        - Notes
 
     *   - ``octet``
         - ``TINYINT``
+        -
 
     *   - ``short``
         - ``SMALLINT``
+        -
 
     *   - ``unsigned short``
         - ``SMALLINT UNSIGNED``
+        -
 
     *   - ``long``
         - ``INT``
+        -
 
     *   - ``unsigned long``
         - ``INT UNSIGNED``
+        -
 
     *   - ``long long``
         - ``BIGINT``
+        -
 
     *   - ``unsigned long long``
         - ``BIGINT UNSIGNED``
+        -
 
     *   - ``char``
         - ``CHARACTER(1)``
+        -
 
     *   - ``string``
         - ``TEXT``
+        -
 
     *   - ``float``
         - ``FLOAT``
+        -
 
     *   - ``double``
         - ``DOUBLE``
+        -
 
     *   - ``boolean``
         - ``TINYINT``
+        - Stored as ``0`` or ``1``.
 
     *   - ``enumeration``
         - ``TEXT``
+        - Stored as the name of the |br|
+          enumerator, not its ordinal.
+
+.. note::
+
+    SQLite does not enforce column types, so the declared types above act as documentation of the original IDL type
+    rather than as a constraint.
+    The width of an integer column, for instance, tells you how to interpret the value, but SQLite will happily store
+    whatever |eddsrecorder| writes into it.
+
+.. _user_manual_data_types_unsupported:
+
+Unsupported basic types
+=======================
+
+The following IDL basic types have no mapping in this release.
+A topic whose data type uses one of them is reported on the console as an unrecognized kind and the topic is not
+recorded:
+
+* ``long double``
+* ``wchar`` and ``wstring``
 
 .. _user_manual_data_types_sequences_arrays:
 
@@ -74,24 +110,29 @@ Sequences and arrays
 .. note::
 
     Future releases will include support for sequences and arrays of user types.
+    Sequences and arrays of ``string`` are not recorded either: the column is created but the element values are not
+    stored.
 
+Because a SQL row cannot hold a variable number of values, these fields are stored out of line.
 For each sequence or array, |eddsrecorder| creates:
 
-* An integer field in the topic table named ``<Array/SequenceName>_id``.
-* An auxiliary table named ``<TopicName>_<Array/SequenceName>`` to store the array or sequence data.
-  The table schema is:
+* An integer column in the topic table named ``<Array/SequenceName>_id``, which links a sample to its elements.
+* An auxiliary table named ``<TopicName>_<Array/SequenceName>`` to store the elements themselves, with this schema:
 
-  * The ``<Array/SequenceName>_id`` integer field to identify the array or sequence.
-  * A set of integer fields named ``<index_n>`` for the array or sequence indexes.
-  * The fields for the data.
+  * ``<Array/SequenceName>_id``: integer column matching the one in the main table.
+  * One integer index column per dimension, named ``index_0``, ``index_1``, ... ``index_N``.
+    An array declared ``long m[4][3]`` therefore gets ``index_0`` and ``index_1``, while a sequence always gets a
+    single ``index_0``.
+  * ``value``: the element value, typed according to
+    :ref:`the basic type mapping <user_manual_data_types_basic_types>`.
 
 To view the topic samples data including an array or sequence field, an SQL query can be used:
 
 .. code-block:: sql
 
-    select * from <TopicName>
-        inner join <TopicName>_<Array/SequenceName>
-        on <TopicName>.<Array/SequenceName>_id = <TopicName>_<Array/SequenceName>.<Array/SequenceName>_id;
+    SELECT * FROM <TopicName>
+        INNER JOIN <TopicName>_<Array/SequenceName>
+        ON <TopicName>.<Array/SequenceName>_id = <TopicName>_<Array/SequenceName>.<Array/SequenceName>_id;
 
 Example
 =======
@@ -121,14 +162,17 @@ Consider a ``Foo`` topic with the following data type:
           ``index_0`` |br|
           ``value``
 
-To get the values of ``myArray`` for a given ``Foo`` sample the following query can be performed:
+Each ``Foo`` sample produces one row in ``Foo`` and ten rows in ``Foo_myArray``, with ``index_0`` running from ``0`` to
+``9``.
+To get the values of ``myArray`` for a given ``Foo`` sample, in order, the following query can be performed:
 
 .. code-block:: sql
 
-    select Foo_myArray.* from Foo
-        inner join Foo_myArray on Foo.myArray_id = Foo_myArray.myArray_id
-    where
-        Foo.message_id = <a_Valid_Id>;
+    SELECT Foo_myArray.index_0, Foo_myArray.value FROM Foo
+        INNER JOIN Foo_myArray ON Foo.myArray_id = Foo_myArray.myArray_id
+    WHERE
+        Foo.message_id = <a_Valid_Id>
+    ORDER BY Foo_myArray.index_0;
 
 .. _user_manual_data_types_internal_structures:
 
@@ -136,12 +180,18 @@ To get the values of ``myArray`` for a given ``Foo`` sample the following query 
 Internal Structures
 *******************
 
-In the case of internal structures, |eddsrecorder| creates a new field in the topic table for each field in the inner
-structure, prefixing the field name with the inner structure name:
+Nested structures are flattened into the topic table.
+|eddsrecorder| creates a column for each field of the inner structure, prefixing the field name with the inner
+structure member name:
 
 .. code-block:: text
 
     <InnerStructureName>_<FieldName>
+
+The prefixes accumulate, so a member nested two levels deep yields
+``<OuterMemberName>_<InnerMemberName>_<FieldName>``.
+A variable length field inside a nested structure follows the same rule: its auxiliary table is named
+``<TopicName>_<InnerStructureName>_<FieldName>``.
 
 Example
 =======
@@ -189,20 +239,22 @@ Consider the following IDL:
 Unions
 ******
 
-|eddsrecorder| creates a new field in the topic table for each field in the union, prefixing the field name with the
-union name:
+A union is flattened much like a nested structure: |eddsrecorder| creates a column for each member of the union,
+prefixing the member name with the union member name:
 
 .. code-block:: text
 
     <UnionName>_<FieldName>
 
-It also creates a discriminator field for the union:
+It also creates a discriminator column:
 
 .. code-block:: text
 
     <UnionName>_discriminator
 
-The discriminator specifies the union field used for a sample.
+The discriminator holds the value that selected the active member for that sample, so it is the column to read to know
+which of the other columns is meaningful.
+The columns belonging to the members that were not selected are set to ``NULL``.
 
 Example
 =======
@@ -248,3 +300,11 @@ Consider the following IDL:
 
     *   - ``myU_message``
         - ``TEXT``
+
+A sample carrying ``counter`` is stored with ``myU_discriminator`` set to ``1``, ``myU_counter`` set to the value, and
+``myU_message`` set to ``NULL``.
+Selecting only the samples that used a given branch is therefore a matter of filtering on the discriminator:
+
+.. code-block:: sql
+
+    SELECT message_id, myU_counter FROM MyTopic WHERE myU_discriminator = 1;

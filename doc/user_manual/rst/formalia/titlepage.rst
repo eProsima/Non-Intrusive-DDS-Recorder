@@ -62,6 +62,20 @@ The application provides the following features:
     capture file.
     Future releases will include a built-in sniffer to process the network packets in real time.
 
+A recording session therefore has three steps: capture the traffic with a sniffer, run the application on the
+resulting file, and query the database it produces.
+
+.. code-block:: bash
+
+    # 1. Capture the DDS traffic, keeping whole packets
+    sudo tcpdump -i eth0 -s 0 -w capture.pcap udp
+
+    # 2. Translate the capture into a SQLite database
+    DDSRecorder -db session.db capture.pcap
+
+    # 3. Query the result
+    sqlite3 session.db "SELECT topic_name, type_name FROM _topics;"
+
 #################################
 Contributing to the documentation
 #################################
@@ -78,7 +92,13 @@ Structure of the documentation
 
 This documentation is organized into the sections below.
 
-* :ref:`Installation Manual <installation_manual_requirements>`
-* :ref:`User Manual <user_manual_introduction>`
-* :ref:`Release Notes <notes>`
-* :ref:`Glossary <glossary>`
+* :ref:`Installation Manual <installation_manual_requirements>`: requirements and installation instructions for
+  Windows and Linux.
+* :ref:`User Manual <user_manual_introduction>`: how the tool works, when to use it, how to obtain a usable capture,
+  the command line reference, the structure of the generated database, the supported data types, a collection of SQL
+  recipes to analyze a recorded session, and the limitations of the current release.
+* :ref:`Release Notes <notes>`: supported platforms, databases, DDS implementations and capture formats.
+* :ref:`Glossary <glossary>`: the nomenclature used throughout this documentation.
+
+New users are advised to start with :ref:`user_manual_introduction`, which explains what the application records and
+links to the rest of the User Manual in reading order.
