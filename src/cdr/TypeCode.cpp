@@ -46,7 +46,6 @@ TypeCode* TypeCode::deserializeTypeCode(
         {
             cdr >> kind;
 
-            // TODO Check that the DDS middleware is RTI.
             if (kind & 0x80000000)
             {
                 // Remove the extra bit.
@@ -90,7 +89,6 @@ TypeCode* TypeCode::deserializeTypeCode(
     {
         cdr >> kind;
 
-        // TODO Check that the DDS middleware is RTI.
         if (kind & 0x80000000)
         {
             // Remove the extra bit.

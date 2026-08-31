@@ -186,7 +186,7 @@ This table contains the data and metadata related to the samples that have been 
 A note on IDL file naming policy
 ********************************
 
-Some implementations, like *RTI DDS*, send information about the data type structures as part of the discovery process.
+Some implementations send information about the data type structures as part of the discovery process.
 This is not considered the norm, therefore if you use |ddsrecord| with a library that does not support this feature it
 is mandatory to provide an IDL file with the type definitions through the ``-idl`` argument.
 Two points must be taken into account when providing this file:

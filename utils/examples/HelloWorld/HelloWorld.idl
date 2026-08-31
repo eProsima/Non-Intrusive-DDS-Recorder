@@ -1,5 +1,0 @@
-struct HelloWorld
-{
-    long counter;
-    string message;
-};
