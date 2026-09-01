@@ -40,6 +40,7 @@
    /rst/user_manual/usage
    /rst/user_manual/database_structure
    /rst/user_manual/data_types
+   /rst/user_manual/monitor_schema
    /rst/user_manual/querying_database
    /rst/user_manual/limitations
 

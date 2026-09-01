@@ -7,6 +7,13 @@
 Generated Database Structure
 ############################
 
+.. note::
+
+    This section describes the default schema.
+    |eddsrecorder| can also write the *DDS Record & Replay* schema, which stores each sample as an
+    raw :term:`CDR` payload and needs no data type at all; see
+    :ref:`user_manual_monitor_schema`.
+
 |eddsrecorder| writes two kinds of tables into the generated :term:`SQLite` file.
 Tables whose name starts with an underscore are created by the application itself and always have the same schema;
 every other table is derived from a DDS Topic found in the capture and its columns depend on the topic data type.

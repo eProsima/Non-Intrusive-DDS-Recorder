@@ -10,6 +10,8 @@
 #include "fastcdr/exceptions/Exception.h"
 #include "log/eProsimaLog.h"
 #include "database/TypeCodeDB.h"
+#include "database/MonitorDB.h"
+#include "util/IDLPrinter.h"
 #include "database/EntitiesDB.h"
 #include "database/DynamicDataDB.h"
 #include "cdr/TypeCode.h"
@@ -39,14 +41,30 @@ using namespace std;
 
 static const char* const CLASS_NAME = "DDSRecorder";
 
+/*
+ * Renders a TypeCode as IDL, the same way TypeCodeDB does when it fills the typecode column of
+ * the default schema. Used by the monitor schema to describe a type it never has to decode.
+ */
+static string printIDL(
+        const TypeCode* typeCode)
+{
+    IDLPrinter txtStream;
+
+    txtStream << typeCode;
+
+    return txtStream.str();
+}
+
 DDSRecorder::DDSRecorder(
         eProsimaLog& log,
         string& database,
-        int tcMaxSize)
+        int tcMaxSize,
+        bool monitor_mode)
     : m_log(log)
     , m_databaseH(NULL)
     , m_typecodeDB(NULL)
     , m_entitiesDB(NULL)
+    , monitor_db_(NULL)
     , m_tcMaxSize(tcMaxSize)
     , UTCprovider(NULL)
 {
@@ -54,20 +72,36 @@ DDSRecorder::DDSRecorder(
 
     if (sqlite3_open(database.c_str(), &m_databaseH) == SQLITE_OK)
     {
-        m_typecodeDB = new TypeCodeDB(m_log, m_databaseH, tcMaxSize);
-
-        if (m_typecodeDB != NULL)
+        /*
+         * The two schemas are exclusive: in monitor mode the discovery tables and the per-topic
+         * tables of the default schema are not created at all.
+         */
+        if (monitor_mode)
         {
-            m_entitiesDB = new EntitiesDB(m_log, m_databaseH);
+            monitor_db_ = new MonitorDB(m_log, m_databaseH);
 
-            if (m_entitiesDB == NULL)
+            if (monitor_db_ == NULL)
             {
-                logError(m_log, "Cannot create object EntitiesDB");
+                logError(m_log, "Cannot create object MonitorDB");
             }
         }
         else
         {
-            logError(m_log, "Cannot create object TypeCodeDB");
+            m_typecodeDB = new TypeCodeDB(m_log, m_databaseH, tcMaxSize);
+
+            if (m_typecodeDB != NULL)
+            {
+                m_entitiesDB = new EntitiesDB(m_log, m_databaseH);
+
+                if (m_entitiesDB == NULL)
+                {
+                    logError(m_log, "Cannot create object EntitiesDB");
+                }
+            }
+            else
+            {
+                logError(m_log, "Cannot create object TypeCodeDB");
+            }
         }
     }
     else
@@ -87,6 +121,10 @@ DDSRecorder::~DDSRecorder()
     if (m_entitiesDB != NULL)
     {
         delete m_entitiesDB;
+    }
+    if (monitor_db_ != NULL)
+    {
+        delete monitor_db_;
     }
     if (m_databaseH != NULL)
     {
@@ -218,6 +256,21 @@ void DDSRecorder::processDataW(
                 logError(m_log, "Cannot find the typeCode in the user provided IDL file.");
             }
         }
+        if (nullptr != monitor_db_)
+        {
+            /*
+             * The monitor schema needs no data type to store a sample, so the TypeCode is used
+             * only to describe the type for the user. It may have come from the discovery
+             * traffic or from the file given with '-idl'; when neither provided one, the type is
+             * recorded without a description. The block below frees it.
+             */
+            monitor_db_->add_topic(pubtopic.topic_name, pubtopic.type_name,
+                    (typeCode != NULL) ? printIDL(typeCode) : string());
+            monitor_db_->add_endpoint(pubtopic.guid.hostId, pubtopic.guid.appId,
+                    pubtopic.guid.instanceId, pubtopic.guid.objectId,
+                    pubtopic.topic_name, pubtopic.type_name);
+        }
+
         if (typeCode != NULL)
         {
             // Add typecode.
@@ -307,6 +360,21 @@ void DDSRecorder::processDataR(
             }
         }
 
+        if (monitor_db_ != NULL)
+        {
+            /*
+             * The monitor schema needs no data type to store a sample, so the TypeCode is used
+             * only to describe the type for the user. It may have come from the discovery
+             * traffic or from the file given with '-idl'; when neither provided one, the type is
+             * recorded without a description. The block below frees it.
+             */
+            monitor_db_->add_topic(subtopic.topic_name, subtopic.type_name,
+                    (typeCode != NULL) ? printIDL(typeCode) : string());
+            monitor_db_->add_endpoint(subtopic.guid.hostId, subtopic.guid.appId,
+                    subtopic.guid.instanceId, subtopic.guid.objectId,
+                    subtopic.topic_name, subtopic.type_name);
+        }
+
         if (typeCode != NULL)
         {
             // Add typecode.
@@ -375,6 +443,17 @@ void DDSRecorder::processDataNormal(
     eTypeCode * typecode = NULL;
     DynamicDataDB * dynamicDB = NULL;
     bool error = false;
+
+    if (monitor_db_ != NULL)
+    {
+        /*
+         * The payload is stored as it travelled, so unlike the default schema below this needs
+         * neither a resolved TypeCode nor a PLAIN_CDR encoding.
+         */
+        monitor_db_->add_message(wts, hostId, appId, instanceId, readerId, writerId,
+                writerSeqNum, sourceTmp, serializedData, serializedDataLen);
+        return;
+    }
 
     // Check the writer or reader has associated a typecode.
     if ((entity = m_entitiesDB->findEntity(hostId, appId,

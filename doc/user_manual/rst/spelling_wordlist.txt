@@ -51,6 +51,7 @@ Redistributable
 retransmitted
 RTPS
 runtime
+schemas
 SEDP
 serverless
 snaplen
