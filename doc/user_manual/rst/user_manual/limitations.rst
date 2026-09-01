@@ -31,12 +31,22 @@ Network layers
         - Not recorded
 
     *   - Link
-        - Ethernet II frames, and the |br|
-          Windows Null/Loopback |br|
-          encapsulation.
+        - Ethernet II (``EN10MB``), |br|
+          loopback (``NULL`` and |br|
+          ``LOOP``), Linux cooked |br|
+          capture (``LINUX_SLL`` and |br|
+          ``LINUX_SLL2``), used by the |br|
+          ``any`` interface, and raw IP |br|
+          (``RAW``). |br|
+          See |br|
+          :ref:`user_manual_limitations_link_layers`.
         - Any other link layer, |br|
           including VLAN tagged |br|
-          frames.
+          frames. |br|
+          The link layer is reported |br|
+          when the file is opened, so |br|
+          an unsupported capture is |br|
+          not silently empty.
 
     *   - Network
         - IPv4, including fragmented |br|
@@ -61,6 +71,57 @@ Network layers
           and ``GAP`` are ignored, so |br|
           the reliability protocol is |br|
           not reconstructed.
+
+.. _user_manual_limitations_link_layers:
+
+Supported link layers
+=====================
+
+|eddsrecorder| reads the link layer of the capture file and locates the IPv4 datagram accordingly, so a capture taken
+on a loopback interface or on the Linux ``any`` pseudo-interface is processed the same way as one taken on an Ethernet
+interface.
+
+.. list-table::
+    :header-rows: 1
+    :widths: 26 22 52
+
+    *   - Link layer
+        - pcap name
+        - Where it comes from
+
+    *   - Ethernet II
+        - ``EN10MB``
+        - Any Ethernet or Wi-Fi interface, and the Linux |br|
+          loopback interface ``lo``, which uses a synthetic |br|
+          Ethernet header.
+
+    *   - BSD loopback
+        - ``NULL``
+        - Loopback interfaces on macOS and the BSDs, and |br|
+          loopback capture on Windows.
+
+    *   - OpenBSD loopback
+        - ``LOOP``
+        - Loopback interfaces on OpenBSD.
+
+    *   - Linux cooked capture v1
+        - ``LINUX_SLL``
+        - The Linux ``any`` pseudo-interface, which captures |br|
+          on every interface at once.
+
+    *   - Linux cooked capture v2
+        - ``LINUX_SLL2``
+        - The Linux ``any`` pseudo-interface with recent |br|
+          versions of *Wireshark* and ``tcpdump``.
+
+    *   - Raw IP
+        - ``RAW``
+        - Tunnel interfaces, and captures produced by tools |br|
+          that store the IP datagram with no link header.
+
+Only IPv4 is extracted from these link layers.
+A capture whose link layer is not in this list is reported when the file is opened, naming the link layer that was
+found, and no packet is processed.
 
 DDS entities
 ============
@@ -111,6 +172,23 @@ The database is empty and no RTPS packets were found
 * The capture contains no RTPS traffic at all.
   Confirm it with the ``rtps`` display filter in Wireshark, as described in
   :ref:`user_manual_capturing_traffic_checking`.
+* **The link layer of the capture is not supported.**
+  |eddsrecorder| reports this when it opens the file:
+
+  .. code-block:: text
+
+      ERROR<pcapReader::checkLinkType>: Unsupported link layer IEEE802_11 (105) in file capture.pcap.
+      Supported link layers are EN10MB (Ethernet), NULL and LOOP (loopback), LINUX_SLL and LINUX_SLL2
+      (Linux cooked capture, used by the 'any' interface) and RAW (raw IP)
+
+  The link layer cannot be converted after the fact, so the capture has to be retaken on an interface with a
+  supported link layer, or on the Linux ``any`` pseudo-interface.
+  See :ref:`user_manual_limitations_link_layers`.
+
+  .. warning::
+
+      ``editcap -T`` only relabels the declared encapsulation, it does not rewrite the frames.
+      A file converted that way is accepted but contains no recognizable traffic.
 * The traffic uses a transport that is not dissected, such as RTPS over TCP or over IPv6.
 * The capture was taken on an interface that does not see the DDS traffic.
   See :ref:`user_manual_capturing_traffic_where`.

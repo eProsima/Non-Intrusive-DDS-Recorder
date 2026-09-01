@@ -83,6 +83,30 @@ namespace eprosima
              */
             void processPacket(const struct pcap_pkthdr *hdr, const u_char *data);
 
+            /**
+             * \brief This function checks the link layer of the opened file is supported.
+             *
+             * The result is only used to report the problem to the user once, when the file
+             * is opened, instead of silently discarding every packet.
+             *
+             * \return True value is returned if the link layer can be processed.
+             * In other case false is returned.
+             */
+            bool checkLinkType();
+
+            /**
+             * \brief This function locates the IPv4 header inside a captured packet.
+             *
+             * The link layer of the capture file determines the size of the header that
+             * precedes the IPv4 datagram, and whether the packet carries IPv4 at all.
+             *
+             * \param data The captured packet, as it was returned by the pcap library.
+             * \param caplen Number of bytes available in \c data.
+             * \return Pointer to the first byte of the IPv4 header. NULL is returned when
+             * the packet does not carry IPv4 or the link layer is not supported.
+             */
+            const u_char* getIpHeader(const u_char *data, unsigned int caplen);
+
             /// Name of the file that was opened.
             std::string m_filename;
 
@@ -91,6 +115,9 @@ namespace eprosima
 
             /// Pointer to the Pcap structure that contains information of capture file.
             pcap_t *m_pcap;
+
+            /// Link layer of the capture file, as returned by pcap_datalink().
+            int m_linkType;
 
             /// Count the number of RTPS packet that were processed.
             unsigned int m_npackets;

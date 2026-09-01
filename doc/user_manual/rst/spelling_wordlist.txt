@@ -3,6 +3,7 @@ CentOS
 CMake
 Colcon
 Connext
+datagram
 datagrams
 DataReader
 DataReaders
@@ -20,6 +21,7 @@ executables
 fastcdr
 fastdds
 Fedora
+Fi
 gcc
 github
 Guid
@@ -34,6 +36,7 @@ IPv
 libpcap
 Loopback
 loopback
+macOS
 metadata
 middleware
 multicast
@@ -41,6 +44,8 @@ nomenclature
 OMG
 OpenDDS
 PCAP
+pcap
+pcapng
 QoS
 Redistributable
 retransmitted
@@ -69,5 +74,6 @@ UDP
 Unencrypted
 unicast
 utils
+Wi
 Wireshark
 yaml
