@@ -11,6 +11,7 @@
 
 #include <string.h>
 #include <malloc.h>
+#include <stdint.h>
 
 #ifdef _WIN32
 #include <winsock.h>
@@ -66,6 +67,36 @@ struct udphdr
 
 #endif // ifdef _WIN32
 
+/*
+ * Link layer identifiers that may be missing in older pcap headers.
+ * Their numeric values are fixed by the pcap file format.
+ */
+#ifndef DLT_LINUX_SLL
+#define DLT_LINUX_SLL 113
+#endif
+#ifndef DLT_LINUX_SLL2
+#define DLT_LINUX_SLL2 276
+#endif
+
+/* Length of the link layer headers that precede the IPv4 datagram. */
+#define NULL_HEADER_LEN 4
+#define SLL_HEADER_LEN 16
+#define SLL2_HEADER_LEN 20
+
+/* Offset of the field holding the encapsulated protocol, an EtherType value. */
+#define SLL_PROTOCOL_OFFSET 14
+#define SLL2_PROTOCOL_OFFSET 0
+
+/*
+ * Address family of IPv4 as stored in a DLT_NULL or DLT_LOOP header. This is the
+ * AF_INET value of the host that took the capture, which is 2 on every platform
+ * that writes these link layers, and not necessarily the AF_INET of this host.
+ */
+#define LINK_AF_INET 2
+
+/* Minimum length of an IPv4 header, without options. */
+#define IP_MIN_HEADER_LEN 20
+
 using namespace std;
 using namespace eprosima;
 
@@ -77,6 +108,7 @@ pcapReader::pcapReader(
     : m_filename(filename)
     , m_log(log)
     , m_pcap(NULL)
+    , m_linkType(-1)
     , m_npackets(0)
     , m_nrtpspackets(0)
     , m_callback(NULL)
@@ -88,12 +120,159 @@ pcapReader::pcapReader(
 
     if (m_pcap != NULL)
     {
+        m_linkType = pcap_datalink(m_pcap);
+        checkLinkType();
         m_ipDefragmenter = new ipDefragmenter(log);
     }
     else
     {
         logError(m_log, "Cannot open file %s in read mode: %s", m_filename.c_str(), m_pcapErrorBuf);
     }
+}
+
+bool pcapReader::checkLinkType()
+{
+    const char* const METHOD_NAME = "checkLinkType";
+    bool returnedValue = false;
+
+    switch (m_linkType)
+    {
+        case DLT_EN10MB:
+        case DLT_NULL:
+        case DLT_LOOP:
+        case DLT_LINUX_SLL:
+        case DLT_LINUX_SLL2:
+        case DLT_RAW:
+            returnedValue = true;
+            break;
+
+        default:
+        {
+            const char* name = pcap_datalink_val_to_name(m_linkType);
+            logError(m_log,
+                    "Unsupported link layer %s (%d) in file %s. Supported link layers are "
+                    "EN10MB (Ethernet), NULL and LOOP (loopback), LINUX_SLL and LINUX_SLL2 "
+                    "(Linux cooked capture, used by the 'any' interface) and RAW (raw IP)",
+                    (name != NULL) ? name : "UNKNOWN", m_linkType, m_filename.c_str());
+            break;
+        }
+    }
+
+    return returnedValue;
+}
+
+const u_char* pcapReader::getIpHeader(
+        const u_char* data,
+        unsigned int caplen)
+{
+    unsigned int headerLen = 0;
+
+    switch (m_linkType)
+    {
+        case DLT_EN10MB:
+        {
+            if (caplen < sizeof(struct ether_header))
+            {
+                return NULL;
+            }
+
+            if (ntohs(((const struct ether_header*)data)->ether_type) != ETHERTYPE_IP)
+            {
+                return NULL;
+            }
+
+            headerLen = sizeof(struct ether_header);
+            break;
+        }
+
+        case DLT_NULL:
+        case DLT_LOOP:
+        {
+            uint32_t family = 0;
+
+            if (caplen < NULL_HEADER_LEN)
+            {
+                return NULL;
+            }
+
+            memcpy(&family, data, sizeof(family));
+
+            /*
+             * DLT_LOOP always stores the address family in network byte order, while
+             * DLT_NULL stores it in the byte order of the capturing host. In the latter
+             * case a value that does not fit in a single byte was written by a host of
+             * the opposite byte order, so it has to be swapped.
+             */
+            if (m_linkType == DLT_LOOP || family > 0xFF)
+            {
+                family = ntohl(family);
+            }
+
+            if (family != LINK_AF_INET)
+            {
+                return NULL;
+            }
+
+            headerLen = NULL_HEADER_LEN;
+            break;
+        }
+
+        case DLT_LINUX_SLL:
+        case DLT_LINUX_SLL2:
+        {
+            uint16_t protocol = 0;
+            unsigned int protocolOffset = SLL_PROTOCOL_OFFSET;
+
+            headerLen = SLL_HEADER_LEN;
+
+            if (m_linkType == DLT_LINUX_SLL2)
+            {
+                headerLen = SLL2_HEADER_LEN;
+                protocolOffset = SLL2_PROTOCOL_OFFSET;
+            }
+
+            if (caplen < headerLen)
+            {
+                return NULL;
+            }
+
+            memcpy(&protocol, data + protocolOffset, sizeof(protocol));
+
+            if (ntohs(protocol) != ETHERTYPE_IP)
+            {
+                return NULL;
+            }
+
+            break;
+        }
+
+        case DLT_RAW:
+        {
+            /* The packet is the IPv4 datagram itself, there is no link layer header. */
+            headerLen = 0;
+            break;
+        }
+
+        default:
+            /* The link layer was already reported when the file was opened. */
+            return NULL;
+    }
+
+    if (caplen < headerLen + IP_MIN_HEADER_LEN)
+    {
+        return NULL;
+    }
+
+    /*
+     * DLT_RAW carries no protocol field, and the address family of a loopback header
+     * may not match the datagram, so the IP version is checked in every case.
+     */
+    if ((data[headerLen] >> 4) != 4)
+    {
+        return NULL;
+    }
+
+    return data + headerLen;
 }
 
 pcapReader::~pcapReader()
@@ -177,7 +356,6 @@ void pcapReader::processPacket(
         const u_char* data)
 {
     const char* const METHOD_NAME = "processPacket";
-    struct ether_header* eptr = NULL;
     struct ip* ipc = NULL;
     struct udphdr* udpc = NULL;
     u_char* rtpsPayload = NULL;
@@ -190,19 +368,13 @@ void pcapReader::processPacket(
 
         if (hdr->caplen == hdr->len)
         {
-            eptr = (struct ether_header*)data;
+            /*
+             * Locate the IPv4 header according to the link layer of the capture file.
+             * Packets that do not carry IPv4 are silently skipped.
+             */
+            ipc = (struct ip*)getIpHeader(data, hdr->caplen);
 
-            //Support Windows Null/Loopback
-            static char null_loopback_hdr[4] = { 2, 0, 0, 0 };
-            if (0 == memcmp(data, null_loopback_hdr, 4))
-            {
-                ipc = (struct ip*)(data + 4);
-            }
-            else if (ntohs(eptr->ether_type) == ETHERTYPE_IP) // IP type.
-            {
-                ipc = (struct ip*)(data + sizeof(struct ether_header));
-            }
-            else
+            if (ipc == NULL)
             {
                 return;
             }
