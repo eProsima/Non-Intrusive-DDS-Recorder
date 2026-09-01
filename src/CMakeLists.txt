@@ -21,6 +21,7 @@ set( SOURCES
 	cdr/UnionTypeCode.cpp
 	database/DynamicDataDB.cpp
 	database/EntitiesDB.cpp
+	database/MonitorDB.cpp
 	database/TypeCodeDB.cpp
 	idlparser/IDLParser.cc
 	idlparser/IDLScanner.cc
