@@ -36,10 +36,11 @@ What the capture needs
           have discovered each other contains user samples that |br|
           |eddsrecorder| cannot interpret.
 
-    *   - Ethernet or loopback |br|
-          link layer
-        - Ethernet II frames and Windows Null/Loopback captures are |br|
-          understood. Other link layers are skipped.
+    *   - A supported link layer
+        - Ethernet, loopback, Linux cooked capture (the ``any`` |br|
+          interface) and raw IP are understood. |br|
+          Any other link layer is reported when the file is opened. |br|
+          See :ref:`user_manual_limitations_link_layers`.
 
     *   - IPv4 and UDP
         - RTPS over UDP/IPv4 is dissected. Traffic over IPv6 or TCP is not |br|
@@ -70,7 +71,25 @@ To record every participant of a DDS network, capture on a **mirror port** of th
     A capture point that sees the multicast traffic but not the unicast traffic produces a database with populated
     ``_topics`` and ``_endpoints`` tables and empty topic tables.
 
-If all the applications run on the same host, capture on the loopback interface instead.
+If all the applications run on the same host, capture on the loopback interface instead: ``lo`` on Linux, ``lo0`` on
+macOS and the BSDs, and the loopback adapter provided by *Npcap* on Windows.
+
+When the participants are spread over several interfaces of the same host, or you are not sure which interface carries
+the traffic, capture on the Linux ``any`` pseudo-interface, which records every interface at once:
+
+.. code-block:: bash
+
+    sudo tcpdump -i any -s 0 -w capture.pcap udp
+
+|eddsrecorder| understands the *Linux cooked capture* link layer that ``any`` produces, in both its v1 and v2 forms, as
+well as the loopback link layers of every supported platform.
+:ref:`user_manual_limitations_link_layers` lists them all.
+
+.. note::
+
+    A capture taken on ``any`` contains the same packet more than once when it crosses two captured interfaces, and
+    loopback traffic is normally seen twice, once on transmission and once on reception.
+    Both show up as repeated samples in the database; :ref:`user_manual_querying_database` shows how to detect them.
 
 .. _user_manual_capturing_traffic_wireshark:
 

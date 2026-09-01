@@ -134,6 +134,11 @@ Networking nomenclature
     LAN
         **Local Area Network**
 
+    Linux cooked capture
+        Link layer that the Linux ``any`` pseudo-interface uses instead of Ethernet, because the packets it delivers
+        may come from interfaces with different link layers.
+        It exists in two versions, ``LINUX_SLL`` and ``LINUX_SLL2``, both understood by |eddsrecorder|.
+
     libpcap
         Library used to read packet capture files.
         |eddsrecorder| relies on it to iterate over the packets of the :term:`PCAP` file.
