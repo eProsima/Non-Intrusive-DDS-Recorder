@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: bash
 
-    DDSRecorder <pcapFile> [-db <database>] [-tcMaxSize <size>] [-idl <file>] [-help]
+    DDSRecorder <pcapFile> [-db <database>] [-tcMaxSize <size>] [-idl <file>] [-monitor] [-help]
 
 .. _user_manual_usage_application_arguments:
 
@@ -66,8 +66,25 @@ Command-Line Parameters
           in the captured system. |br|
           Only needed when their TypeCodes are |br|
           not sent during the discovery phase. |br|
+          With ``-monitor`` it is never required, |br|
+          and only fills in the ``Types.idl`` |br|
+          column of the recording. |br|
           See |br|
           :ref:`user_manual_usage_idl_naming_policy`.
+
+    *   - Monitor schema
+        - ``-monitor``
+        -
+        -
+        - Write the recording using the |br|
+          *DDS Record & Replay* schema instead |br|
+          of the default one, storing each |br|
+          sample as raw CDR instead of |br|
+          decoding it. |br|
+          No data type is needed, so topics |br|
+          whose type is never announced are |br|
+          recorded too. |br|
+          See :ref:`user_manual_monitor_schema`.
 
     *   - Help
         - ``-help``

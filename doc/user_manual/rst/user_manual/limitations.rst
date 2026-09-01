@@ -152,6 +152,14 @@ In summary, the current release does not record:
 * Sequences and arrays whose elements are user types.
 * Sequences and arrays of ``string``.
 
+.. note::
+
+    None of the limits in this subsection apply to the ``-monitor`` schema.
+    It stores the sample as a raw :term:`CDR` payload, so it needs no data type, accepts any
+    encapsulation, and records the topics listed above as readily as any other.
+    What it does not offer is per-member SQL access to the values.
+    See :ref:`user_manual_monitor_schema`.
+
 Security
 ========
 

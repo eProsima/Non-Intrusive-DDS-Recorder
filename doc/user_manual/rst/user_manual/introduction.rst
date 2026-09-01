@@ -91,5 +91,7 @@ Where to go next
 * :ref:`user_manual_usage` — command line reference and a complete worked example.
 * :ref:`user_manual_database_structure` — the tables and columns that are generated.
 * :ref:`user_manual_data_types` — how each IDL construct is mapped to SQL.
+* :ref:`user_manual_monitor_schema` — the alternative ``-monitor`` output, compatible with
+  *DDS Record & Replay*.
 * :ref:`user_manual_querying_database` — SQL recipes to analyze a recorded session.
 * :ref:`user_manual_limitations` — supported scenarios and troubleshooting.
