@@ -64,3 +64,47 @@ macro (find_sqlite3)
         message(STATUS "Found sqlite3 @ ${SQLITE3_INCLUDE_DIR}, libs ${SQLITE3_LIBRARY}")
     endif()
 endmacro(find_sqlite3)
+
+macro (find_lz4)
+    find_path( LZ4_INCLUDE_DIR
+        NAMES
+        lz4frame.h
+        PATHS
+            "/usr/include/"
+    )
+    find_library( LZ4_LIBRARY
+        NAMES
+        lz4
+        PATHS
+            "/usr/lib/"
+    )
+    if(NOT LZ4_INCLUDE_DIR)
+        set(LZ4_FOUND FALSE)
+        message(STATUS "lz4 not found!")
+    else()
+        set(LZ4_FOUND TRUE)
+        message(STATUS "Found lz4 @ ${LZ4_INCLUDE_DIR}, libs ${LZ4_LIBRARY}")
+    endif()
+endmacro(find_lz4)
+
+macro (find_zstd)
+    find_path( ZSTD_INCLUDE_DIR
+        NAMES
+        zstd.h
+        PATHS
+            "/usr/include/"
+    )
+    find_library( ZSTD_LIBRARY
+        NAMES
+        zstd
+        PATHS
+            "/usr/lib/"
+    )
+    if(NOT ZSTD_INCLUDE_DIR)
+        set(ZSTD_FOUND FALSE)
+        message(STATUS "zstd not found!")
+    else()
+        set(ZSTD_FOUND TRUE)
+        message(STATUS "Found zstd @ ${ZSTD_INCLUDE_DIR}, libs ${ZSTD_LIBRARY}")
+    endif()
+endmacro(find_zstd)

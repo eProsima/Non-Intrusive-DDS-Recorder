@@ -22,6 +22,7 @@ class CaptureDB;
 class MonitorDB;
 class TopicsDB;
 class TypeStore;
+class McapRecorder;
 
 
 class DDSRecorder
@@ -38,12 +39,16 @@ public:
      * written either way, so this only ever adds to the recording.
      * \param type_store The data types read from the file given with '-idl'. Not owned, and has
      * to outlive the recorder. May be NULL.
+     * \param mcap_file When not empty the recording is written as an MCAP file with this name
+     * and no database is created at all, which makes \c dabase and \c queryable_mode
+     * irrelevant. See McapRecorder.
      */
     DDSRecorder(
             eProsimaLog& log,
             std::string& dabase,
             bool queryable_mode,
-            const TypeStore * type_store);
+            const TypeStore * type_store,
+            const std::string& mcap_file = std::string());
 
     ~DDSRecorder();
 
@@ -226,6 +231,9 @@ private:
 
     /// Data types read from the file given with '-idl'. Not owned, and may be NULL.
     const TypeStore * type_store_{nullptr};
+
+    /// Writer of the MCAP output. NULL unless '-mcap' was given.
+    McapRecorder * mcap_recorder_{nullptr};
 
     /**
      * Whether a transaction is open. Every write of a recording happens inside one: SQLite would
