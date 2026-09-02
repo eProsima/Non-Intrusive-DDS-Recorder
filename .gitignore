@@ -8,3 +8,15 @@ output/
 lib/
 
 build
+install
+
+### Documentation ###
+# Assets downloaded at build time by doc/user_manual/conf.py
+doc/user_manual/rst/_static/css/eprosima-furo.css
+doc/user_manual/rst/_static/eprosima-logo-white.png
+doc/user_manual/rst/_templates/sidebar/
+# Sphinx build output
+doc/user_manual/_build/
+
+### Python ###
+__pycache__
