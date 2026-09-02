@@ -241,8 +241,7 @@ For instance, the recorded samples can be listed in capture order with:
     55|1|HelloWorld 1
     59|2|HelloWorld 2
 
-The first two rows carry the same ``counter``: the sample was sent twice, once to the multicast address used during
-discovery and once directly to the subscriber.
+The first two rows carry the same ``counter``: the sample was sent twice.
 :ref:`user_manual_querying_database` shows how to detect and filter such repetitions.
 
 .. _user_manual_usage_idl_naming_policy:

@@ -52,4 +52,8 @@ It is a lightweight database and external configuration is not needed.
 If you are interested in supporting other databases, please
 `contact us <mailto:info@eprosima.com?subject=DDS%20Recorder%20DB%20Request>`__.
 
+#################
+Previous versions
+#################
+
 .. include:: v1.0.0.rst

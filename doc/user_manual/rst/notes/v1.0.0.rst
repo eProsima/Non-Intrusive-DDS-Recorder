@@ -1,8 +1,6 @@
-:orphan:
-
-##############
+**************
 Version v1.0.0
-##############
+**************
 
 This is the first release of *eProsima Non-Intrusive DDS Recorder*.
 It provides a command line application that translates the RTPS traffic contained in a :term:`PCAP` capture file into a
