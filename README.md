@@ -62,6 +62,6 @@ in the discovery phase.
 
 ## Available documentation
 
-* [**User Manual (PDF)**](https://www.eprosima.com/docs/non-intrusive-dds-recorder/1.0.0/pdf/User-Manual.pdf)
-* [**Installation Manual (PDF)**](https://www.eprosima.com/docs/non-intrusive-dds-recorder/1.0.0/pdf/Installation-Manual.pdf)
-* [**Release Notes (PDF)**](https://www.eprosima.com/docs/non-intrusive-dds-recorder/1.0.0/pdf/Release-Notes.pdf)
+* [**User Manual**](https://non-intrusive-dds-recorder.readthedocs.io/en/latest/rst/user_manual/introduction.html#user-manual-introduction)
+* [**Installation Manual**](https://non-intrusive-dds-recorder.readthedocs.io/en/latest/rst/installation/requirements.html#installation-manual-requirements)
+* [**Release Notes**](https://non-intrusive-dds-recorder.readthedocs.io/en/latest/rst/notes/notes.html#notes)
