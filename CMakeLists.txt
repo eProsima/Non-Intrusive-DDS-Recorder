@@ -101,7 +101,52 @@ else()
     endif()
 endif()
 
-add_compile_options(--std=c++0x)
+###############################################################################
+# MCAP output support
+###############################################################################
+# The '-mcap' output needs the vendored MCAP library, which compresses its chunks and includes
+# the lz4 and zstd headers unconditionally, so both development packages are required to build
+# it. This option decides whether that dependency is taken:
+#
+#   AUTO (default)  Use the MCAP output when lz4 and zstd are available, and silently do
+#                   without it when they are not. The build never fails over MCAP.
+#   ON              Require them. Configuration fails if either is missing.
+#   OFF             Never build the MCAP output. lz4 and zstd are not even looked for.
+set(MCAP_SUPPORT "AUTO" CACHE STRING
+    "Build the MCAP output: AUTO (if lz4/zstd are found), ON (require them) or OFF")
+set_property(CACHE MCAP_SUPPORT PROPERTY STRINGS AUTO ON OFF)
+
+if(NOT MCAP_SUPPORT MATCHES "^(AUTO|ON|OFF)$")
+    message(FATAL_ERROR
+        "MCAP_SUPPORT must be AUTO, ON or OFF, not \"${MCAP_SUPPORT}\"")
+endif()
+
+set(MCAP_SUPPORT_ENABLED OFF)
+
+if(NOT MCAP_SUPPORT STREQUAL "OFF")
+    find_lz4()
+    find_zstd()
+
+    if(LZ4_FOUND AND ZSTD_FOUND)
+        set(MCAP_SUPPORT_ENABLED ON)
+    elseif(MCAP_SUPPORT STREQUAL "ON")
+        message(FATAL_ERROR
+            "MCAP_SUPPORT is ON but the lz4 and zstd development files were not found. "
+            "Install them (liblz4-dev and libzstd-dev on Debian based distributions) and run "
+            "cmake again, or pass -DMCAP_SUPPORT=OFF to build without the MCAP output")
+    endif()
+endif()
+
+if(MCAP_SUPPORT_ENABLED)
+    message(STATUS "MCAP output enabled")
+else()
+    if(MCAP_SUPPORT STREQUAL "OFF")
+        message(STATUS "MCAP output disabled (MCAP_SUPPORT=OFF)")
+    else()
+        message(STATUS "MCAP output disabled: lz4 and zstd development files were not found")
+    endif()
+endif()
+
 
 #Compile library
 add_subdirectory(src)

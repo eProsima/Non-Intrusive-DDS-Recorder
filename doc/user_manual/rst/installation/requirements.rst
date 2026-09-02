@@ -54,11 +54,24 @@ Install them using the package manager of the corresponding Linux distribution.
           (*chrono*, *date_time*, *thread* and *system*).
         - ``libboost-all-dev``
 
-On Debian based distributions the three of them can be installed with a single command:
+    *   - `LZ4 <https://lz4.org/>`_ and |br|
+          `Zstandard <https://facebook.github.io/zstd/>`_
+        - Compress the chunks of an |br|
+          :term:`MCAP` recording. |br|
+          **Only needed for the MCAP** |br|
+          **output**; see |br|
+          :ref:`user_manual_mcap_output_build`.
+        - ``liblz4-dev``, |br|
+          ``libzstd-dev``
+
+On Debian based distributions all of them can be installed with a single command:
 
 .. code-block:: bash
 
-    sudo apt install libpcap-dev libsqlite3-dev libboost-all-dev
+    sudo apt install libpcap-dev libsqlite3-dev libboost-all-dev liblz4-dev libzstd-dev
+
+Leaving out the last two only costs the :term:`MCAP` output: a build that cannot find them keeps
+working and simply has no ``-mcap`` argument.
 
 |eddsrecorder| also uses the |efastcdr| library to deserialize the :term:`CDR` representation of the recorded samples.
 |efastcdr| is distributed together with the application, and :ref:`installation_manual_linux` explains how to install

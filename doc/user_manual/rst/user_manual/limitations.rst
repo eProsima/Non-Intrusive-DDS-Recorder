@@ -154,11 +154,12 @@ In summary, the current release does not record:
 
 .. note::
 
-    None of the limits in this subsection apply to the ``-monitor`` schema.
+    None of the limits in this subsection apply to the ``-monitor`` schema or to the ``-mcap``
+    output.
     It stores the sample as a raw :term:`CDR` payload, so it needs no data type, accepts any
     encapsulation, and records the topics listed above as readily as any other.
-    What it does not offer is per-member SQL access to the values.
-    See :ref:`user_manual_monitor_schema`.
+    What they do not offer is per-member SQL access to the values.
+    See :ref:`user_manual_monitor_schema` and :ref:`user_manual_mcap_output`.
 
 Security
 ========

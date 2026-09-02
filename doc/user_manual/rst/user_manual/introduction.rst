@@ -93,5 +93,6 @@ Where to go next
 * :ref:`user_manual_data_types` — how each IDL construct is mapped to SQL.
 * :ref:`user_manual_monitor_schema` — the alternative ``-monitor`` output, compatible with
   *DDS Record & Replay*.
+* :ref:`user_manual_mcap_output` — the ``-mcap`` output, an MCAP file instead of a database.
 * :ref:`user_manual_querying_database` — SQL recipes to analyze a recorded session.
 * :ref:`user_manual_limitations` — supported scenarios and troubleshooting.

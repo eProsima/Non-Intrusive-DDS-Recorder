@@ -134,6 +134,13 @@ Networking nomenclature
     LAN
         **Local Area Network**
 
+    MCAP
+        Container file format for heterogeneous timestamped message streams, defined at
+        `mcap.dev <https://mcap.dev/>`_.
+        It stores the messages of several topics in one file, each topic described by a schema, and
+        is the format *eProsima DDS Record & Replay* writes itself.
+        |eddsrecorder| produces it with the ``-mcap`` argument.
+
     Linux cooked capture
         Link layer that the Linux ``any`` pseudo-interface uses instead of Ethernet, because the packets it delivers
         may come from interfaces with different link layers.

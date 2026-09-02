@@ -22,6 +22,7 @@ fastcdr
 fastdds
 Fedora
 Fi
+Foxglove
 gcc
 github
 Guid
@@ -37,6 +38,7 @@ libpcap
 Loopback
 loopback
 macOS
+MCAP
 metadata
 middleware
 multicast
@@ -78,3 +80,4 @@ utils
 Wi
 Wireshark
 yaml
+Zstandard

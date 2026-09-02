@@ -25,6 +25,7 @@ class eProsimaLog;
 class TypeCodeDB;
 class EntitiesDB;
 class MonitorDB;
+class McapRecorder;
 
 
 class DDSRecorder
@@ -39,12 +40,16 @@ public:
      * \param tcMaxSize TypeCode maximum allowed size.
      * \param monitor_mode When true the recording uses the *DDS Record & Replay* schema
      * instead of the default one. See MonitorDB.
+     * \param mcap_file When not empty the recording is written as an MCAP file with this name
+     * and no database is created at all, which makes \c dabase and \c monitor_mode irrelevant.
+     * See McapRecorder.
      */
     DDSRecorder(
             eProsimaLog& log,
             std::string& dabase,
             int tcMaxSize,
-            bool monitor_mode = false);
+            bool monitor_mode = false,
+            const std::string& mcap_file = std::string());
 
     ~DDSRecorder();
 
@@ -215,6 +220,9 @@ private:
 
     /// Writer of the *DDS Record & Replay* schema. NULL unless '-monitor' was given.
     MonitorDB * monitor_db_;
+
+    /// Writer of the MCAP output. NULL unless '-mcap' was given.
+    McapRecorder * mcap_recorder_;
 
     int m_tcMaxSize;
 
