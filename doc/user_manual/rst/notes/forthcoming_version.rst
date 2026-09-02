@@ -55,3 +55,12 @@ Sequences and arrays of user defined structures are now supported, and their ele
 the structure flattened into columns.
 Member names are emitted as quoted SQL identifiers, so a member named after an SQLite keyword no longer prevents a
 topic from being recorded.
+
+The recording can also be written as an :term:`MCAP` file, with the new ``-mcap`` argument in place of ``-db``.
+This is the format *eProsima DDS Record & Replay* writes, so the result can be read by the tools that consume its
+recordings.
+See :ref:`user_manual_mcap_output`.
+
+LZ4 and Zstandard are new build dependencies, but only for the MCAP output, which the new ``MCAP_SUPPORT`` CMake
+option makes optional: it defaults to ``AUTO``, building the MCAP output when those libraries are available and
+leaving it out when they are not.

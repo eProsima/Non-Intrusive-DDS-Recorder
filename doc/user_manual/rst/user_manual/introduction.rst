@@ -100,5 +100,6 @@ Where to go next
 * :ref:`user_manual_monitor_schema` — the default schema, compatible with *DDS Record & Replay*.
 * :ref:`user_manual_database_structure` — the ``-queryable`` schema, a table per DDS Topic.
 * :ref:`user_manual_data_types` — how each IDL construct is mapped to SQL under ``-queryable``.
+* :ref:`user_manual_mcap_output` — the ``-mcap`` output, an MCAP file instead of a database.
 * :ref:`user_manual_querying_database` — SQL recipes to analyze a ``-queryable`` recording.
 * :ref:`user_manual_limitations` — supported scenarios and troubleshooting.

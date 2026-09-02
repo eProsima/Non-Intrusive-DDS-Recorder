@@ -5,6 +5,7 @@
  * under the terms described in the DDSRECORDER_LICENSE file included in this distribution.
  *
  *****************************************************************************************/
+
 #include "DDSRecorder.h"
 #include "fastcdr/Cdr.h"
 #include "fastcdr/exceptions/Exception.h"
@@ -12,6 +13,7 @@
 #include "database/MonitorDB.h"
 #include "database/CaptureDB.h"
 #include "database/TopicsDB.h"
+#include "writer/McapRecorder.h"
 #include "TypeStore.h"
 
 #ifdef EPROSIMA_LINUX
@@ -110,12 +112,26 @@ DDSRecorder::DDSRecorder(
         eProsimaLog& log,
         string& database,
         bool queryable_mode,
-        const TypeStore * type_store)
+        const TypeStore * type_store,
+        const string& mcap_file)
     : m_log(log)
     , m_databaseH(NULL)
     , type_store_(type_store)
 {
     const char* const METHOD_NAME = "DDSRecorder";
+
+    // The MCAP output replaces the database entirely, so no database file is opened at all.
+    if (!mcap_file.empty())
+    {
+        mcap_recorder_ = new McapRecorder(m_log, mcap_file);
+
+        if (nullptr == mcap_recorder_ || !mcap_recorder_->is_open())
+        {
+            logError(m_log, "Cannot create object McapRecorder");
+        }
+
+        return;
+    }
 
     if (sqlite3_open(database.c_str(), &m_databaseH) == SQLITE_OK)
     {
@@ -191,6 +207,12 @@ DDSRecorder::~DDSRecorder()
     {
         execute("COMMIT");
         in_transaction_ = false;
+    }
+
+    if (mcap_recorder_ != NULL)
+    {
+        // Closes the file, writing its metadata records and summary.
+        delete mcap_recorder_;
     }
 
     if (m_databaseH != NULL)
@@ -384,6 +406,16 @@ void DDSRecorder::processDataW(
                     pubtopic.topic_name, pubtopic.type_name);
         }
 
+        if (nullptr != mcap_recorder_)
+        {
+            // Same reasoning as the monitor schema above: the IDL only describes the type.
+            mcap_recorder_->add_topic(pubtopic.topic_name, pubtopic.type_name,
+                    (type_store_ != nullptr) ? type_store_->idl_for(pubtopic.type_name) : string());
+            mcap_recorder_->add_endpoint(pubtopic.guid.hostId, pubtopic.guid.appId,
+                    pubtopic.guid.instanceId, pubtopic.guid.objectId,
+                    pubtopic.topic_name, pubtopic.type_name);
+        }
+
         if (topics_db_ != NULL)
         {
             topics_db_->add_topic(pubtopic.topic_name, pubtopic.type_name);
@@ -461,6 +493,16 @@ void DDSRecorder::processDataR(
                     subtopic.topic_name, subtopic.type_name);
         }
 
+        if (nullptr != mcap_recorder_)
+        {
+            // Same reasoning as the monitor schema above: the IDL only describes the type.
+            mcap_recorder_->add_topic(subtopic.topic_name, subtopic.type_name,
+                    (type_store_ != nullptr) ? type_store_->idl_for(subtopic.type_name) : string());
+            mcap_recorder_->add_endpoint(subtopic.guid.hostId, subtopic.guid.appId,
+                    subtopic.guid.instanceId, subtopic.guid.objectId,
+                    subtopic.topic_name, subtopic.type_name);
+        }
+
         if (topics_db_ != NULL)
         {
             topics_db_->add_topic(subtopic.topic_name, subtopic.type_name);
@@ -500,6 +542,17 @@ void DDSRecorder::processDataNormal(
         unsigned int serializedDataLen)
 {
     MonitorDB::StoredMessage stored;
+
+    if (mcap_recorder_ != NULL)
+    {
+        /*
+         * As with the monitor schema, the payload is stored as it was sent, so this needs
+         * neither a resolved data type nor a PLAIN_CDR encoding.
+         */
+        mcap_recorder_->add_message(wts, hostId, appId, instanceId, readerId, writerId,
+                writerSeqNum, sourceTmp, serializedData, serializedDataLen);
+        return;
+    }
 
     monitor_db_->add_message(wts, hostId, appId, instanceId, readerId, writerId,
             writerSeqNum, sourceTmp, serializedData, serializedDataLen, &stored);

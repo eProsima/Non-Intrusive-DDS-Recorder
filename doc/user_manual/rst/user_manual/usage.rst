@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: bash
 
-    ni_ddsrecorder <pcapFile> [-db <database>] [-idl <file>] [-queryable] [-help]
+    ni_ddsrecorder <pcapFile> [-db <database>] [-mcap <file>] [-idl <file>] [-queryable] [-help]
 
 .. _user_manual_usage_application_arguments:
 
@@ -76,6 +76,18 @@ Command-Line Parameters
           See |br|
           :ref:`user_manual_database_structure`.
 
+    *   - MCAP output
+        - ``-mcap``
+        - String
+        -
+        - Write the recording as an :term:`MCAP` |br|
+          file with this name instead of a |br|
+          database. Mutually exclusive with |br|
+          ``-db``. Each sample is stored as its |br|
+          raw CDR payload, so no data type is |br|
+          needed. |br|
+          See :ref:`user_manual_mcap_output`.
+
     *   - Help
         - ``-help``
         -
@@ -91,6 +103,11 @@ Command-Line Parameters
     level tables the capture reveals and the schema has no column for.
     :ref:`user_manual_monitor_schema` describes the former, and
     :ref:`user_manual_database_structure` describes what ``-queryable`` adds.
+
+.. warning::
+
+    ``-db`` and ``-mcap`` name the same thing, the output, so they cannot be combined.
+    Passing both is refused before anything is written.
 
 .. warning::
 

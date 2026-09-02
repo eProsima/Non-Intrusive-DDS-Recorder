@@ -27,10 +27,11 @@ set(SOURCES
     log/eProsimaLog.cpp
     reader/ipDefragmenter.cpp
     reader/pcapReader.cpp
+    writer/McapRecorder.cpp
 )
 
 if(WIN32)
-    set( SOURCES ${SOURCES}
+    set(SOURCES ${SOURCES}
         sqlite3/sqlite3.c
         sqlite3/shell.c
     )
@@ -51,15 +52,27 @@ if(THIRDPARTY)
 endif()
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_compile_definitions(${PROJECT_NAME} PRIVATE SQLITE_PREPARE_V2)
+target_compile_definitions(${PROJECT_NAME} PRIVATE SQLITE_PREPARE_V2
+    DDSRECORDER_VERSION_STRING="${PROJECT_VERSION}")
+# writer/McapRecorder.cpp is always compiled; without this definition it provides the same
+# class with a disabled implementation, so no other source needs a conditional.
+if(MCAP_SUPPORT_ENABLED)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE MCAP_SUPPORT)
+endif()
 if(WIN32)
     target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_ALL_DYN_LINK)
 endif()
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${SQLITE3_INCLUDE_DIR} ${PCAP_INCLUDE_DIR})
+if(MCAP_SUPPORT_ENABLED)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/mcap ${LZ4_INCLUDE_DIR} ${ZSTD_INCLUDE_DIR})
+endif()
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} fastdds fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} Ws2_32)
 else()
     target_link_libraries(${PROJECT_NAME} fastdds fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} ${SQLITE3_LIBRARY})
+endif()
+if(MCAP_SUPPORT_ENABLED)
+    target_link_libraries(${PROJECT_NAME} ${LZ4_LIBRARY} ${ZSTD_LIBRARY})
 endif()
 
 
