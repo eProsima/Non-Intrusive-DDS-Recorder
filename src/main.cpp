@@ -9,6 +9,7 @@
 #include "RTPSPacketAnalyzer.h"
 #include "DDSRecorder.h"
 #include "log/eProsimaLog.h"
+#include "writer/McapRecorder.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -28,13 +29,22 @@ void printHelp()
     printf("                               [-tcMaxSize <size>]\n");
     printf("                               [-idl <idlfile>]\n");
     printf("                               [-monitor]\n");
+    if (McapRecorder::is_supported())
+    {
+        printf("                               [-mcap <mcapfile>]\n");
+    }
     printf("                               [-help]\n");
     printf("Options:\n");
     printf("    <pcapFile>: The sniffer file to process (PCAP format required)\n");
     printf("    -db <database>: Database file to store the DDS traffic (Default: dump.db)\n");
     printf("    -tcMaxSize <size>: TypeCode maximum allowed size (Default: 2048)\n");
     printf("    -idl <idlfile>: An IDL file containing the description of the used types.\n");
-    printf("    -monitor: Use the DDS Record & Replay database schema.\n");
+    printf("    -monitor: Use the DDS Record & Replay database schema. No IDL file is required.\n");
+    if (McapRecorder::is_supported())
+    {
+        printf("    -mcap <mcapfile>: Write an MCAP file instead of a database. Cannot be used\n");
+        printf("              together with -db. No IDL file is required.\n");
+    }
     printf("    -help: Print help information.\n");
 }
 
@@ -72,6 +82,8 @@ int main(
     string idlfile;
     int tcMaxSize = TYPECODE_MAX_SERIALIZED_LENGTH;
     bool monitor_mode = false;
+    string mcap_file;
+    bool db_given = false;
     eProsimaLog * log = NULL;
     pcapReader * reader = NULL;
     RTPSPacketAnalyzer * analyzer = NULL;
@@ -92,6 +104,7 @@ int main(
             if (i + 1 < argc)
             {
                 db = argv[++i];
+                db_given = true;
             }
             else
             {
@@ -102,6 +115,18 @@ int main(
         else if (strcmp(argv[i], "-monitor") == 0)
         {
             monitor_mode = true;
+        }
+        else if (strcmp(argv[i], "-mcap") == 0)
+        {
+            if (i + 1 < argc)
+            {
+                mcap_file = argv[++i];
+            }
+            else
+            {
+                printHelp();
+                return returnedValue;
+            }
         }
         else if (strcmp(argv[i], "-idl") == 0)
         {
@@ -139,6 +164,20 @@ int main(
 
     /*NDDS_Config_Logger_set_verbosity(NDDS_Config_Logger_get_instance(),
             NDDS_CONFIG_LOG_VERBOSITY_STATUS_ALL);*/
+    if (!mcap_file.empty() && !McapRecorder::is_supported())
+    {
+        printf("Error: -mcap is not available: this build has no MCAP support.\n"
+                "       Rebuild with -DMCAP_SUPPORT=ON.\n");
+        return returnedValue;
+    }
+
+    /* The MCAP output replaces the database, so asking for both is a contradiction. */
+    if (db_given && !mcap_file.empty())
+    {
+        printf("Error: -db and -mcap cannot be used together. Choose one output.\n");
+        return returnedValue;
+    }
+
     if (!idlfile.empty())
     {
         UTCprovider = new UserTypeCodeProvider();
@@ -168,7 +207,7 @@ int main(
 
                     if (analyzer != NULL)
                     {
-                        rtpsdumper = new DDSRecorder(*log, db, tcMaxSize, monitor_mode);
+                        rtpsdumper = new DDSRecorder(*log, db, tcMaxSize, monitor_mode, mcap_file);
                         rtpsdumper->setUSerTypeCodeProvider(UTCprovider);
 
                         if (rtpsdumper != NULL)

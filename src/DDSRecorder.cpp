@@ -5,16 +5,20 @@
  * under the terms described in the DDSRECORDER_LICENSE file included in this distribution.
  *
  *****************************************************************************************/
-#include "DDSRecorder.h"
+
 #include "fastcdr/Cdr.h"
 #include "fastcdr/exceptions/Exception.h"
-#include "log/eProsimaLog.h"
-#include "database/TypeCodeDB.h"
-#include "database/MonitorDB.h"
-#include "util/IDLPrinter.h"
-#include "database/EntitiesDB.h"
-#include "database/DynamicDataDB.h"
-#include "cdr/TypeCode.h"
+
+#include <DDSRecorder.h>
+
+#include <cdr/TypeCode.h>
+#include <database/DynamicDataDB.h>
+#include <database/EntitiesDB.h>
+#include <database/MonitorDB.h>
+#include <database/TypeCodeDB.h>
+#include <log/eProsimaLog.h>
+#include <writer/McapRecorder.h>
+#include <util/IDLPrinter.h>
 
 #include "./idlparser/UserTypeCodeProvider.h"
 
@@ -59,16 +63,31 @@ DDSRecorder::DDSRecorder(
         eProsimaLog& log,
         string& database,
         int tcMaxSize,
-        bool monitor_mode)
+        bool monitor_mode,
+        const string& mcap_file)
     : m_log(log)
     , m_databaseH(NULL)
     , m_typecodeDB(NULL)
     , m_entitiesDB(NULL)
     , monitor_db_(NULL)
+    , mcap_recorder_(NULL)
     , m_tcMaxSize(tcMaxSize)
     , UTCprovider(NULL)
 {
     const char* const METHOD_NAME = "DDSRecorder";
+
+    // The MCAP output replaces the database entirely, so no database file is opened at all.
+    if (!mcap_file.empty())
+    {
+        mcap_recorder_ = new McapRecorder(m_log, mcap_file);
+
+        if (nullptr == mcap_recorder_ || !mcap_recorder_->is_open())
+        {
+            logError(m_log, "Cannot create object McapRecorder");
+        }
+
+        return;
+    }
 
     if (sqlite3_open(database.c_str(), &m_databaseH) == SQLITE_OK)
     {
@@ -125,6 +144,11 @@ DDSRecorder::~DDSRecorder()
     if (monitor_db_ != NULL)
     {
         delete monitor_db_;
+    }
+    if (mcap_recorder_ != NULL)
+    {
+        // Closes the file, writing its metadata records and summary.
+        delete mcap_recorder_;
     }
     if (m_databaseH != NULL)
     {
@@ -271,6 +295,16 @@ void DDSRecorder::processDataW(
                     pubtopic.topic_name, pubtopic.type_name);
         }
 
+        if (nullptr != mcap_recorder_)
+        {
+            // Same reasoning as the monitor schema above: the TypeCode only describes the type.
+            mcap_recorder_->add_topic(pubtopic.topic_name, pubtopic.type_name,
+                    (typeCode != NULL) ? printIDL(typeCode) : string());
+            mcap_recorder_->add_endpoint(pubtopic.guid.hostId, pubtopic.guid.appId,
+                    pubtopic.guid.instanceId, pubtopic.guid.objectId,
+                    pubtopic.topic_name, pubtopic.type_name);
+        }
+
         if (typeCode != NULL)
         {
             // Add typecode.
@@ -375,6 +409,16 @@ void DDSRecorder::processDataR(
                     subtopic.topic_name, subtopic.type_name);
         }
 
+        if (nullptr != mcap_recorder_)
+        {
+            // Same reasoning as the monitor schema above: the TypeCode only describes the type.
+            mcap_recorder_->add_topic(subtopic.topic_name, subtopic.type_name,
+                    (typeCode != NULL) ? printIDL(typeCode) : string());
+            mcap_recorder_->add_endpoint(subtopic.guid.hostId, subtopic.guid.appId,
+                    subtopic.guid.instanceId, subtopic.guid.objectId,
+                    subtopic.topic_name, subtopic.type_name);
+        }
+
         if (typeCode != NULL)
         {
             // Add typecode.
@@ -443,6 +487,17 @@ void DDSRecorder::processDataNormal(
     eTypeCode * typecode = NULL;
     DynamicDataDB * dynamicDB = NULL;
     bool error = false;
+
+    if (mcap_recorder_ != NULL)
+    {
+        /*
+         * As with the monitor schema, the payload is stored as it was sent, so this needs
+         * neither a resolved TypeCode nor a PLAIN_CDR encoding.
+         */
+        mcap_recorder_->add_message(wts, hostId, appId, instanceId, readerId, writerId,
+                writerSeqNum, sourceTmp, serializedData, serializedDataLen);
+        return;
+    }
 
     if (monitor_db_ != NULL)
     {

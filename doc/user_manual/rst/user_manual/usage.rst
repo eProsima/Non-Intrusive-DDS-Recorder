@@ -11,7 +11,8 @@ Usage
 
 .. code-block:: bash
 
-    DDSRecorder <pcapFile> [-db <database>] [-tcMaxSize <size>] [-idl <file>] [-monitor] [-help]
+    DDSRecorder <pcapFile> [-db <database>] [-mcap <file>] [-tcMaxSize <size>] [-idl <file>]
+                           [-monitor] [-help]
 
 .. _user_manual_usage_application_arguments:
 
@@ -86,11 +87,28 @@ Command-Line Parameters
           recorded too. |br|
           See :ref:`user_manual_monitor_schema`.
 
+    *   - MCAP output
+        - ``-mcap``
+        - String
+        -
+        - Write the recording as an :term:`MCAP` |br|
+          file with this name instead of a |br|
+          database. Mutually exclusive with |br|
+          ``-db``. Each sample is stored as its |br|
+          raw CDR payload, so no data type is |br|
+          needed. |br|
+          See :ref:`user_manual_mcap_output`.
+
     *   - Help
         - ``-help``
         -
         -
         - Print the usage information and exit.
+
+.. warning::
+
+    ``-db`` and ``-mcap`` name the same thing, the output, so they cannot be combined.
+    Passing both is refused before anything is written.
 
 .. warning::
 
