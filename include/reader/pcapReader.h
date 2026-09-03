@@ -14,128 +14,145 @@
 
 #include <string>
 
-namespace eprosima
+namespace eprosima {
+class eProsimaLog;
+class ipDefragmenter;
+
+typedef void (*processRTPSPacketCallback)(
+        void * user,
+        const unsigned int npacket,
+        const struct timeval & wts,
+        std::string& ip_src,
+        std::string& ip_dst,
+        const char * rtpsPayload,
+        const unsigned short rtpsPayloadLen);
+
+class pcapReader
 {
-    class eProsimaLog;
-    class ipDefragmenter;
+public:
 
-    typedef void (*processRTPSPacketCallback)(void *user, const unsigned int npacket, const struct timeval &wts,
-            std::string &ip_src, std::string &ip_dst,
-            const char *rtpsPayload, const unsigned short rtpsPayloadLen);
+    /**
+     * \brief Contructor.
+     *
+     * This constructor open the pcap file that will be readed.
+     *
+     * \param filename Name of the pcap file.
+     * \param log Log object used to log errors.
+     */
+    pcapReader(
+            std::string& filename,
+            eProsimaLog& log);
 
-    class pcapReader
-    {
-        public:
+    /**
+     * \brief Destructor.
+     * This function closes the pcap file.
+     */
+    ~pcapReader();
 
-            /**
-             * \brief Contructor.
-             *
-             * This constructor open the pcap file that will be readed.
-             *
-             * \param filename Name of the pcap file.
-             * \param log Log object used to log errors.
-             */
-            pcapReader(std::string &filename, eProsimaLog &log);
+    /**
+     * \brief This function returns if the pcap file was opened successfully.
+     *
+     * \return True value is returned if the pcap file was opened successfully.
+     * In other case false is returned.
+     */
+    bool isOpen();
 
-            /**
-             * \brief Destructor.
-             * This function closes the pcap file.
-             */
-            ~pcapReader();
+    /**
+     * \brief This function processes each RTPS packet in the pcap file.
+     *
+     * \param user User pointer that will be returned in callback.
+     * \param callback For each RTPS packet this callback will be called. Cannot be NULL.
+     * \return the number of RTPS packets that was processed.
+     */
+    unsigned int processRTPSPackets(
+            void * user,
+            processRTPSPacketCallback callback);
 
-            /**
-             * \brief This function returns if the pcap file was opened successfully.
-             *
-             * \return True value is returned if the pcap file was opened successfully.
-             * In other case false is returned.
-             */
-            bool isOpen();
+private:
 
-            /**
-             * \brief This function processes each RTPS packet in the pcap file.
-             *
-             * \param user User pointer that will be returned in callback.
-             * \param callback For each RTPS packet this callback will be called. Cannot be NULL.
-             * \return the number of RTPS packets that was processed.
-             */
-            unsigned int processRTPSPackets(void *user, processRTPSPacketCallback callback);
+    /**
+     * \brief This callback is called by pcap library in each net packet that it processed.
+     *
+     * \param user User pointer that is returned again by pcap library. In this case
+     * it is the pcapReader object pointer.
+     * \param hdr Header structure returned by pcap library.
+     * \param data The datagram (packet) that will be parsed.
+     */
+    static void processPacketCallback(
+            u_char * user,
+            const struct pcap_pkthdr * hdr,
+            const u_char * data);
 
-        private:
+    /**
+     * \brief This funcion is called by processPacketCallback static function.
+     *
+     * For each RTPS packet that is found, this function will call the callback
+     * that user set.
+     *
+     * \param hdr Header structure returned by pcap library.
+     * \param data The datagram (packet) that will be parsed.
+     */
+    void processPacket(
+            const struct pcap_pkthdr * hdr,
+            const u_char * data);
 
-            /**
-             * \brief This callback is called by pcap library in each net packet that it processed.
-             *
-             * \param user User pointer that is returned again by pcap library. In this case
-             * it is the pcapReader object pointer.
-             * \param hdr Header structure returned by pcap library.
-             * \param data The datagram (packet) that will be parsed.
-             */
-            static void processPacketCallback(u_char *user, const struct pcap_pkthdr *hdr, const u_char *data);
+    /**
+     * \brief This function checks the link layer of the opened file is supported.
+     *
+     * The result is only used to report the problem to the user once, when the file
+     * is opened, instead of silently discarding every packet.
+     *
+     * \return True value is returned if the link layer can be processed.
+     * In other case false is returned.
+     */
+    bool checkLinkType();
 
-            /**
-             * \brief This funcion is called by processPacketCallback static function.
-             *
-             * For each RTPS packet that is found, this function will call the callback
-             * that user set.
-             *
-             * \param hdr Header structure returned by pcap library.
-             * \param data The datagram (packet) that will be parsed.
-             */
-            void processPacket(const struct pcap_pkthdr *hdr, const u_char *data);
+    /**
+     * \brief This function locates the IPv4 header inside a captured packet.
+     *
+     * The link layer of the capture file determines the size of the header that
+     * precedes the IPv4 datagram, and whether the packet carries IPv4 at all.
+     *
+     * \param data The captured packet, as it was returned by the pcap library.
+     * \param caplen Number of bytes available in \c data.
+     * \return Pointer to the first byte of the IPv4 header. NULL is returned when
+     * the packet does not carry IPv4 or the link layer is not supported.
+     */
+    const u_char* getIpHeader(
+            const u_char * data,
+            unsigned int caplen);
 
-            /**
-             * \brief This function checks the link layer of the opened file is supported.
-             *
-             * The result is only used to report the problem to the user once, when the file
-             * is opened, instead of silently discarding every packet.
-             *
-             * \return True value is returned if the link layer can be processed.
-             * In other case false is returned.
-             */
-            bool checkLinkType();
+    /// Name of the file that was opened.
+    std::string m_filename;
 
-            /**
-             * \brief This function locates the IPv4 header inside a captured packet.
-             *
-             * The link layer of the capture file determines the size of the header that
-             * precedes the IPv4 datagram, and whether the packet carries IPv4 at all.
-             *
-             * \param data The captured packet, as it was returned by the pcap library.
-             * \param caplen Number of bytes available in \c data.
-             * \return Pointer to the first byte of the IPv4 header. NULL is returned when
-             * the packet does not carry IPv4 or the link layer is not supported.
-             */
-            const u_char* getIpHeader(const u_char *data, unsigned int caplen);
+    /// Log object used to log errors.
+    eProsimaLog& m_log;
 
-            /// Name of the file that was opened.
-            std::string m_filename;
+    /// Pointer to the Pcap structure that contains information of capture file.
+    pcap_t * m_pcap{nullptr};
 
-            /// Log object used to log errors.
-            eProsimaLog &m_log;
+    /// Link layer of the capture file, as returned by pcap_datalink().
+    int link_type_{-1};
 
-            /// Pointer to the Pcap structure that contains information of capture file.
-            pcap_t *m_pcap;
+    bool link_type_supported_ {false};
 
-            /// Link layer of the capture file, as returned by pcap_datalink().
-            int m_linkType;
+    /// Count the number of RTPS packet that were processed.
+    unsigned int m_npackets{0};
+    unsigned int m_nrtpspackets{0};
 
-            /// Count the number of RTPS packet that were processed.
-            unsigned int m_npackets;
-            unsigned int m_nrtpspackets;
+    /// Stores the callback that it must be called.
+    processRTPSPacketCallback m_callback{nullptr};
 
-            /// Stores the callback that it must be called.
-            processRTPSPacketCallback m_callback;
-            
-            /// Stores the user pointer that it will be returned.
-            void *m_user;
+    /// Stores the user pointer that it will be returned.
+    void * m_user{nullptr};
 
-            /// Pcap error buffer.
-            char m_pcapErrorBuf[PCAP_ERRBUF_SIZE];
+    /// Pcap error buffer.
+    char m_pcapErrorBuf[PCAP_ERRBUF_SIZE];
 
-            ipDefragmenter  *m_ipDefragmenter;
-    };
+    ipDefragmenter  * m_ipDefragmenter{nullptr};
+};
 
-}
+} // namespace eprosima
 
 #endif // __cplusplus
 

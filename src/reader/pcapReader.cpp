@@ -73,10 +73,10 @@ struct udphdr
  */
 #ifndef DLT_LINUX_SLL
 #define DLT_LINUX_SLL 113
-#endif
+#endif // ifndef DLT_LINUX_SLL
 #ifndef DLT_LINUX_SLL2
 #define DLT_LINUX_SLL2 276
-#endif
+#endif // ifndef DLT_LINUX_SLL2
 
 /* Length of the link layer headers that precede the IPv4 datagram. */
 #define NULL_HEADER_LEN 4
@@ -107,12 +107,6 @@ pcapReader::pcapReader(
         eProsimaLog& log)
     : m_filename(filename)
     , m_log(log)
-    , m_pcap(NULL)
-    , m_linkType(-1)
-    , m_npackets(0)
-    , m_nrtpspackets(0)
-    , m_callback(NULL)
-    , m_ipDefragmenter(NULL)
 {
     const char* const METHOD_NAME = "pcapReader";
 
@@ -120,7 +114,7 @@ pcapReader::pcapReader(
 
     if (m_pcap != NULL)
     {
-        m_linkType = pcap_datalink(m_pcap);
+        link_type_ = pcap_datalink(m_pcap);
         checkLinkType();
         m_ipDefragmenter = new ipDefragmenter(log);
     }
@@ -133,9 +127,8 @@ pcapReader::pcapReader(
 bool pcapReader::checkLinkType()
 {
     const char* const METHOD_NAME = "checkLinkType";
-    bool returnedValue = false;
 
-    switch (m_linkType)
+    switch (link_type_)
     {
         case DLT_EN10MB:
         case DLT_NULL:
@@ -143,22 +136,22 @@ bool pcapReader::checkLinkType()
         case DLT_LINUX_SLL:
         case DLT_LINUX_SLL2:
         case DLT_RAW:
-            returnedValue = true;
+            link_type_supported_ = true;
             break;
 
         default:
         {
-            const char* name = pcap_datalink_val_to_name(m_linkType);
+            const char* name = pcap_datalink_val_to_name(link_type_);
             logError(m_log,
                     "Unsupported link layer %s (%d) in file %s. Supported link layers are "
                     "EN10MB (Ethernet), NULL and LOOP (loopback), LINUX_SLL and LINUX_SLL2 "
                     "(Linux cooked capture, used by the 'any' interface) and RAW (raw IP)",
-                    (name != NULL) ? name : "UNKNOWN", m_linkType, m_filename.c_str());
+                    (name != NULL) ? name : "UNKNOWN", link_type_, m_filename.c_str());
             break;
         }
     }
 
-    return returnedValue;
+    return link_type_supported_;
 }
 
 const u_char* pcapReader::getIpHeader(
@@ -167,7 +160,7 @@ const u_char* pcapReader::getIpHeader(
 {
     unsigned int headerLen = 0;
 
-    switch (m_linkType)
+    switch (link_type_)
     {
         case DLT_EN10MB:
         {
@@ -203,7 +196,7 @@ const u_char* pcapReader::getIpHeader(
              * case a value that does not fit in a single byte was written by a host of
              * the opposite byte order, so it has to be swapped.
              */
-            if (m_linkType == DLT_LOOP || family > 0xFF)
+            if (link_type_ == DLT_LOOP || family > 0xFF)
             {
                 family = ntohl(family);
             }
@@ -225,7 +218,7 @@ const u_char* pcapReader::getIpHeader(
 
             headerLen = SLL_HEADER_LEN;
 
-            if (m_linkType == DLT_LINUX_SLL2)
+            if (link_type_ == DLT_LINUX_SLL2)
             {
                 headerLen = SLL2_HEADER_LEN;
                 protocolOffset = SLL2_PROTOCOL_OFFSET;
@@ -290,7 +283,7 @@ pcapReader::~pcapReader()
 
 bool pcapReader::isOpen()
 {
-    return (m_pcap != NULL);
+    return (nullptr != m_pcap) && link_type_supported_;
 }
 
 unsigned int pcapReader::processRTPSPackets(
