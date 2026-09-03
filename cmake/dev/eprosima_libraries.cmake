@@ -36,7 +36,8 @@ macro(find_eprosima_package package)
 
         file(MAKE_DIRECTORY ${${package}ExternalDir})
         file(WRITE ${${package}ExternalDir}/CMakeLists.txt
-            "cmake_minimum_required(VERSION 2.8.12)\n"
+            "cmake_minimum_required(VERSION 3.20)\n"
+            "project(fastcdr_thirdparty)\n"
             "include(ExternalProject)\n"
             "set(SOURCE_DIR_ \"${PROJECT_SOURCE_DIR}/thirdparty/${package}\")\n"
             "set(GENERATOR_ -G \"${CMAKE_GENERATOR}\")\n"
@@ -175,22 +176,22 @@ macro(install_eprosima_libraries)
             OPTIONAL
             )
     elseif(UNIX AND EPROSIMA_BUILD AND NOT MINION AND NOT EPROSIMA_INSTALLER)
-            # Install includes
-            install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${INCLUDE_INSTALL_DIR}/
+        # Install includes
+        install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${INCLUDE_INSTALL_DIR}/
                 DESTINATION ${INCLUDE_INSTALL_DIR}
                 COMPONENT headers
                 OPTIONAL
                 )
 
-            # Install libraries
-            install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${LIB_INSTALL_DIR}/
+        # Install libraries
+        install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/${LIB_INSTALL_DIR}/
                 DESTINATION ${LIB_INSTALL_DIR}
                 USE_SOURCE_PERMISSIONS
                 COMPONENT libraries
                 )
 
-            # Install licenses
-            install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/licenses/
+        # Install licenses
+        install(DIRECTORY ${PROJECT_BINARY_DIR}/external/install/licenses/
                 DESTINATION ${LICENSE_INSTALL_DIR}
                 COMPONENT licenses
                 OPTIONAL
