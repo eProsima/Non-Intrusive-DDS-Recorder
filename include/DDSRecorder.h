@@ -37,14 +37,15 @@ public:
      * \param log Log object used to log errors.
      * \param dabase Name of the database file to write.
      * \param tcMaxSize TypeCode maximum allowed size.
-     * \param monitor_mode When true the recording uses the *DDS Record & Replay* schema
-     * instead of the default one. See MonitorDB.
+     * \param queryable_mode When true the recording uses the queryable schema, one table per
+     * DDS Topic with one column per data type member, instead of the default *DDS Record &
+     * Replay* schema. See TypeCodeDB and DynamicDataDB for the former, MonitorDB for the latter.
      */
     DDSRecorder(
             eProsimaLog& log,
             std::string& dabase,
             int tcMaxSize,
-            bool monitor_mode = false);
+            bool queryable_mode);
 
     ~DDSRecorder();
 

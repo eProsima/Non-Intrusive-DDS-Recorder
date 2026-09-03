@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Check the -monitor output of the Non-Intrusive DDS Recorder.
+"""Check the default database schema of the Non-Intrusive DDS Recorder.
 
 The recorder has no C++ test suite, so this script is the regression check for the
-DDS Record & Replay ("monitor") schema.  It records the fixture captures twice, once with
--monitor and once without, and asserts the shape and the content of both databases.
+DDS Record & Replay schema, which is what the recorder writes by default.  It records the
+fixture captures twice, once with no argument and once with -queryable, and asserts the shape
+and the content of both databases.
 
 The expected numbers were obtained by decoding the captures independently of the recorder:
 HelloWorld.pcap carries 31 user DATA submessages of which 30 have a distinct
@@ -65,11 +66,15 @@ class Checker:
         self.check(label, actual == expected, 'got %r, expected %r' % (actual, expected))
 
 
-def run_recorder(recorder, db_path, capture, monitor=False, idl=None):
-    """Record a capture and return the recorder's combined output."""
+def run_recorder(recorder, db_path, capture, queryable=False, idl=None):
+    """Record a capture and return the recorder's combined output.
+
+    The DDS Record & Replay schema is the default, so it needs no argument; -queryable selects
+    the per-topic-table schema instead.
+    """
     command = [recorder, '-db', db_path]
-    if monitor:
-        command.append('-monitor')
+    if queryable:
+        command.append('-queryable')
     if idl:
         command += ['-idl', idl]
     command.append(capture)
@@ -100,9 +105,9 @@ def query(db_path, sql, parameters=()):
 
 
 def check_helloworld(checker, recorder, workdir):
-    print('\n== HelloWorld.pcap, -monitor ==')
+    print('\n== HelloWorld.pcap, default schema ==')
     db = os.path.join(workdir, 'hw_monitor.db')
-    output = run_recorder(recorder, db, HELLOWORLD, monitor=True)
+    output = run_recorder(recorder, db, HELLOWORLD)
 
     if not os.path.exists(db):
         raise Failure('the recorder produced no database:\n' + output)
@@ -110,12 +115,12 @@ def check_helloworld(checker, recorder, workdir):
     checker.equal('processed 147 RTPS packets', packets(output), 147)
 
     found = tables(db)
-    checker.equal('exactly the 6 monitor tables', found, MONITOR_TABLES)
+    checker.equal('exactly the 6 Record & Replay tables', found, MONITOR_TABLES)
     checker.check('no legacy tables', not (found & LEGACY_TABLES),
                   'found %s' % sorted(found & LEGACY_TABLES))
 
     if not (MONITOR_TABLES <= found):
-        raise Failure('monitor schema missing, cannot check content')
+        raise Failure('the Record & Replay schema is missing, cannot check content')
 
     rows = query(db, 'SELECT writer_guid, sequence_number, data_json, data_cdr, '
                      'data_cdr_size, topic, type, key, log_time, publish_time '
@@ -179,16 +184,16 @@ def check_helloworld(checker, recorder, workdir):
                   query(db, 'SELECT COUNT(*) FROM MessagesPartitions')[0][0], 30)
 
     # publish_time must be derived from the RTPS fraction, not from the raw fraction word.
-    print('\n== HelloWorld.pcap, default schema (regression guard) ==')
+    print('\n== HelloWorld.pcap, -queryable schema (regression guard) ==')
     legacy = os.path.join(workdir, 'hw_legacy.db')
-    legacy_output = run_recorder(recorder, legacy, HELLOWORLD)
+    legacy_output = run_recorder(recorder, legacy, HELLOWORLD, queryable=True)
     checker.equal('processed 147 RTPS packets', packets(legacy_output), 147)
     legacy_tables = tables(legacy)
     checker.check('legacy discovery tables present',
                   LEGACY_TABLES <= legacy_tables,
                   'found %s' % sorted(legacy_tables))
     checker.check('per-topic table present', 'Example_HelloWorld' in legacy_tables)
-    checker.check('no monitor tables', not (legacy_tables & MONITOR_TABLES),
+    checker.check('no Record & Replay tables', not (legacy_tables & MONITOR_TABLES),
                   'found %s' % sorted(legacy_tables & MONITOR_TABLES))
     if 'Example_HelloWorld' in legacy_tables:
         checker.equal('legacy table still has 31 rows',
@@ -216,9 +221,9 @@ def check_untyped_capture(checker, recorder, workdir):
 
     print('\n== complextype_in_sequence.pcap: recorded despite having no usable type ==')
     db = os.path.join(workdir, 'cts_monitor.db')
-    run_recorder(recorder, db, capture, monitor=True)
+    run_recorder(recorder, db, capture)
     if not os.path.exists(db) or not (MONITOR_TABLES <= tables(db)):
-        checker.check('monitor schema produced', False)
+        checker.check('the Record & Replay schema was produced', False)
         return
 
     checker.equal('Messages has 13 rows',
@@ -228,10 +233,10 @@ def check_untyped_capture(checker, recorder, workdir):
                             'WHERE data_cdr_size > 0')[0][0] == 13)
 
     legacy = os.path.join(workdir, 'cts_legacy.db')
-    run_recorder(recorder, legacy, capture)
+    run_recorder(recorder, legacy, capture, queryable=True)
     legacy_tables = tables(legacy)
     user_tables = legacy_tables - LEGACY_TABLES
-    checker.check('the legacy schema still records no topic table for it',
+    checker.check('the queryable schema still records no topic table for it',
                   not user_tables, 'found %s' % sorted(user_tables))
 
 
@@ -245,13 +250,13 @@ def check_idl_metadata(checker, recorder, workdir):
 
     print('\n== shapes.pcapng: -idl fills Types.information ==')
     without = os.path.join(workdir, 'shapes_noidl.db')
-    run_recorder(recorder, without, capture, monitor=True)
+    run_recorder(recorder, without, capture)
     withidl = os.path.join(workdir, 'shapes_idl.db')
-    run_recorder(recorder, withidl, capture, monitor=True, idl=idl)
+    run_recorder(recorder, withidl, capture, idl=idl)
 
     for path in (without, withidl):
         if not os.path.exists(path) or not (MONITOR_TABLES <= tables(path)):
-            checker.check('monitor schema produced for shapes.pcapng', False)
+            checker.check('the Record & Replay schema was produced for shapes.pcapng', False)
             return
 
     square = query(without, "SELECT name, type FROM Topics WHERE name = 'Square'")
@@ -277,17 +282,17 @@ def check_idl_metadata(checker, recorder, workdir):
 
 
 def check_other_fixtures(checker, recorder, workdir):
-    """Every remaining fixture must record at least one message under -monitor."""
+    """Every remaining fixture must record at least one message in the default schema."""
     names = ('basic_types', 'arrays', 'sequences', 'unions', 'recursive_structs')
-    print('\n== remaining fixtures record messages under -monitor ==')
+    print('\n== remaining fixtures record messages in the default schema ==')
     for name in names:
         capture = os.path.join(CAPTURES, name + '.pcap')
         if not os.path.exists(capture):
             continue
         db = os.path.join(workdir, name + '_monitor.db')
-        run_recorder(recorder, db, capture, monitor=True)
+        run_recorder(recorder, db, capture)
         if not os.path.exists(db) or not (MONITOR_TABLES <= tables(db)):
-            checker.check('%s: monitor schema produced' % name, False)
+            checker.check('%s: the Record & Replay schema was produced' % name, False)
             continue
         count = query(db, 'SELECT COUNT(*) FROM Messages')[0][0]
         consistent = query(db, 'SELECT COUNT(*) FROM Messages '
@@ -300,7 +305,7 @@ def check_other_fixtures(checker, recorder, workdir):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description='Check the -monitor output of the Non-Intrusive DDS Recorder.')
+        description='Check the default database schema of the Non-Intrusive DDS Recorder.')
     parser.add_argument('-r', '--recorder',
                         default=os.environ.get('DDS_RECORDER', 'dds_recorder'),
                         help='path to the dds_recorder binary '
@@ -324,7 +329,7 @@ def main(argv=None):
     print('recorder: %s' % recorder)
 
     checker = Checker()
-    workdir = tempfile.mkdtemp(prefix='monitor_schema_')
+    workdir = tempfile.mkdtemp(prefix='default_schema_')
     try:
         check_helloworld(checker, recorder, workdir)
         check_untyped_capture(checker, recorder, workdir)

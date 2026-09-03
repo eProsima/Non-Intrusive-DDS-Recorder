@@ -3,15 +3,25 @@
 
 .. _user_manual_database_structure:
 
-############################
-Generated Database Structure
-############################
+################
+Queryable schema
+################
+
+|eddsrecorder| writes this schema when the ``-queryable`` argument is given:
+
+.. code-block:: bash
+
+    DDSRecorder -queryable -db session.db capture.pcap
+
+It deserializes every sample and gives each DDS Topic a table whose columns are the members of its
+data type, so the recorded values can be read and filtered with plain SQL.
+That is what the name refers to, and it is the trade-off: every topic needs its data type to be
+known, from a :term:`TypeCode` in the capture or from an ``-idl`` file, or it is not recorded at all.
 
 .. note::
 
-    This section describes the default schema.
-    |eddsrecorder| can also write the *DDS Record & Replay* schema, which stores each sample as an
-    raw :term:`CDR` payload and needs no data type at all; see
+    Without ``-queryable`` the recording uses the default *DDS Record & Replay* schema, which
+    stores each sample as a raw :term:`CDR` payload and needs no data type; see
     :ref:`user_manual_monitor_schema`.
 
 |eddsrecorder| writes two kinds of tables into the generated :term:`SQLite` file.

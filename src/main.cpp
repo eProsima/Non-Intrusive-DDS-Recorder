@@ -27,14 +27,16 @@ void printHelp()
     printf("                               [-db <database>]\n");
     printf("                               [-tcMaxSize <size>]\n");
     printf("                               [-idl <idlfile>]\n");
-    printf("                               [-monitor]\n");
+    printf("                               [-queryable]\n");
     printf("                               [-help]\n");
     printf("Options:\n");
     printf("    <pcapFile>: The sniffer file to process (PCAP format required)\n");
     printf("    -db <database>: Database file to store the DDS traffic (Default: dump.db)\n");
     printf("    -tcMaxSize <size>: TypeCode maximum allowed size (Default: 2048)\n");
     printf("    -idl <idlfile>: An IDL file containing the description of the used types.\n");
-    printf("    -monitor: Use the DDS Record & Replay database schema.\n");
+    printf("    -queryable: Use the queryable database schema, one table per DDS Topic with\n");
+    printf("              one column per data type member, instead of the default DDS Record &\n");
+    printf("              Replay schema. Requires the data type of every topic to be known.\n");
     printf("    -help: Print help information.\n");
 }
 
@@ -66,18 +68,18 @@ int main(
         int argc,
         char * argv[])
 {
-    int returnedValue = -1;
+    int returnedValue{-1};
     string filename;
-    string db = "dump.db";
+    string db{"dump.db"};
     string idlfile;
-    int tcMaxSize = TYPECODE_MAX_SERIALIZED_LENGTH;
-    bool monitor_mode = false;
-    eProsimaLog * log = NULL;
-    pcapReader * reader = NULL;
-    RTPSPacketAnalyzer * analyzer = NULL;
-    DDSRecorder * rtpsdumper = NULL;
-    UserTypeCodeProvider* UTCprovider = NULL;
-    unsigned int numRTPSPackets = 0;
+    int tcMaxSize{TYPECODE_MAX_SERIALIZED_LENGTH};
+    bool queryable_mode{false};
+    eProsimaLog* log{nullptr};
+    pcapReader* reader{nullptr};
+    RTPSPacketAnalyzer* analyzer{nullptr};
+    DDSRecorder* rtpsdumper{nullptr};
+    UserTypeCodeProvider* UTCprovider{nullptr};
+    unsigned int numRTPSPackets{0};
 
     /* Check options */
     for (int i = 1; i < argc; i++)
@@ -99,9 +101,21 @@ int main(
                 return returnedValue;
             }
         }
+        else if (strcmp(argv[i], "-queryable") == 0)
+        {
+            queryable_mode = true;
+        }
+        /*
+         * '-monitor' used to select the DDS Record & Replay schema, which is now the default.
+         * Without this branch the option would fall through to the catch-all below and be taken
+         * for the capture file name, so a script still passing it would be silently misread.
+         */
         else if (strcmp(argv[i], "-monitor") == 0)
         {
-            monitor_mode = true;
+            printf("Error: -monitor was removed. The DDS Record & Replay schema is now the\n"
+                    "       default, so simply drop the option. Use -queryable to get the\n"
+                    "       previous per-topic-table schema instead.\n");
+            return returnedValue;
         }
         else if (strcmp(argv[i], "-idl") == 0)
         {
@@ -168,7 +182,7 @@ int main(
 
                     if (analyzer != NULL)
                     {
-                        rtpsdumper = new DDSRecorder(*log, db, tcMaxSize, monitor_mode);
+                        rtpsdumper = new DDSRecorder(*log, db, tcMaxSize, queryable_mode);
                         rtpsdumper->setUSerTypeCodeProvider(UTCprovider);
 
                         if (rtpsdumper != NULL)

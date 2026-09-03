@@ -10,6 +10,12 @@ Supported data types
 This section describes the IDL constructs that |eddsrecorder| supports and how each of them is mapped to the generated
 SQL schema.
 
+.. note::
+
+    All of this applies to the ``-queryable`` schema only, since it is the one that deserializes the
+    samples into columns. The default schema stores every sample as a raw :term:`CDR` payload and is
+    therefore indifferent to the data type; see :ref:`user_manual_monitor_schema`.
+
 .. _user_manual_data_types_basic_types:
 
 ***********

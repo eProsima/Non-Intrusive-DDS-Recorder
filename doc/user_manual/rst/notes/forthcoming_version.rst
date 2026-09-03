@@ -1,3 +1,7 @@
+.. add orphan tag when new info added to this file
+
+:orphan:
+
 ###################
 Forthcoming Version
 ###################
@@ -13,8 +17,19 @@ This release adds support for capture files whose link layer is not Ethernet:
 The link layer of the capture file is now inspected when the file is opened, and a capture using an unsupported link
 layer is reported instead of being processed as if it contained no RTPS traffic.
 
-This release also adds the ``-monitor`` argument, which writes the recording using the *eProsima DDS Record & Replay*
-schema instead of the default one.
-Each sample is stored as the raw CDR payload, so no data type is required: topics whose TypeCode was never
-announced, and whose samples the default schema cannot store, are recorded as well.
+This release changes the database schema a recording uses by default.
+
+The *eProsima DDS Record & Replay* schema is now the **default**.
+Each sample is stored as its raw CDR payload, so no data type is required at all: a topic whose TypeCode was never
+announced, and for which no IDL file was supplied, is now recorded like any other.
 See :ref:`user_manual_monitor_schema`.
+
+The previous schema, one table per DDS Topic with one column per data type member, is still available through the new
+``-queryable`` argument.
+See :ref:`user_manual_database_structure`.
+
+.. warning::
+
+    The ``-monitor`` argument has been **removed**, since the schema it selected is now the default.
+    A command line still passing it is refused with a message explaining the replacement: drop the argument to keep
+    getting that schema, or pass ``-queryable`` for the previous one.

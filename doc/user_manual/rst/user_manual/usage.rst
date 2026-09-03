@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: bash
 
-    DDSRecorder <pcapFile> [-db <database>] [-tcMaxSize <size>] [-idl <file>] [-monitor] [-help]
+    DDSRecorder <pcapFile> [-db <database>] [-tcMaxSize <size>] [-idl <file>] [-queryable] [-help]
 
 .. _user_manual_usage_application_arguments:
 
@@ -66,31 +66,40 @@ Command-Line Parameters
           in the captured system. |br|
           Only needed when their TypeCodes are |br|
           not sent during the discovery phase. |br|
-          With ``-monitor`` it is never required, |br|
-          and only fills in the ``Types.idl`` |br|
-          column of the recording. |br|
+          Only needed with ``-queryable``. |br|
+          In the default schema it is never |br|
+          required, and only fills in the |br|
+          ``Types.idl`` column. |br|
           See |br|
           :ref:`user_manual_usage_idl_naming_policy`.
 
-    *   - Monitor schema
-        - ``-monitor``
+    *   - Queryable schema
+        - ``-queryable``
         -
         -
         - Write the recording using the |br|
-          *DDS Record & Replay* schema instead |br|
-          of the default one, storing each |br|
-          sample as raw CDR instead of |br|
-          decoding it. |br|
-          No data type is needed, so topics |br|
-          whose type is never announced are |br|
-          recorded too. |br|
-          See :ref:`user_manual_monitor_schema`.
+          queryable schema, one table per DDS |br|
+          Topic with one column per data type |br|
+          member, instead of the default |br|
+          *DDS Record & Replay* schema. |br|
+          Every topic then needs its data type |br|
+          to be known, from the capture or from |br|
+          ``-idl``, or it is not recorded. |br|
+          See |br|
+          :ref:`user_manual_database_structure`.
 
     *   - Help
         - ``-help``
         -
         -
         - Print the usage information and exit.
+
+.. note::
+
+    Without ``-queryable`` the recording uses the *DDS Record & Replay* and *DDS Monitor* schema, which stores every
+    sample as its raw :term:`CDR` payload and needs no data type at all.
+    :ref:`user_manual_monitor_schema` describes it, and
+    :ref:`user_manual_database_structure` describes what ``-queryable`` produces instead.
 
 .. warning::
 

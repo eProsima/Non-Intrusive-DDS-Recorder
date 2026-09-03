@@ -15,6 +15,12 @@ This section collects queries that answer the questions that come up most often 
 All of them run against the ``HelloWorld`` example described in :ref:`user_manual_usage_example`, whose topic
 ``Example HelloWorld`` is stored in the table ``Example_HelloWorld``.
 
+.. note::
+
+    These recipes are written for the ``-queryable`` schema, whose per-topic tables they join and
+    filter. For the default schema, whose payload is an opaque blob until something decodes it, see
+    :ref:`user_manual_monitor_schema_querying`.
+
 To follow along, open the database with:
 
 .. code-block:: bash

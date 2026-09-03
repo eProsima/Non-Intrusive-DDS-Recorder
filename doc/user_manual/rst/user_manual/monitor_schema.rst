@@ -3,23 +3,22 @@
 
 .. _user_manual_monitor_schema:
 
-######################
-Record & Replay schema
-######################
+###############################
+Default schema: Record & Replay
+###############################
 
-|eddsrecorder| can write its recording in a second, fixed schema instead of the default one, by
-passing the ``-monitor`` argument:
+This is the schema |eddsrecorder| writes unless told otherwise, so it needs no argument:
 
 .. code-block:: bash
 
-    DDSRecorder -monitor -db session.db capture.pcap
+    DDSRecorder -db session.db capture.pcap
 
-This is the same schema that *eProsima DDS Record & Replay* writes — the tables, the columns and the
+It is the same schema that *eProsima DDS Record & Replay* writes — the tables, the columns and the
 keys match it, with the single addition of the ``Types.idl`` column described below — so a recording
-made this way is meant to be opened with the *eProsima DDS Monitor* and replayed with
-``ddsreplayer``.
-The default schema is unchanged and remains what you get without the argument; see
-:ref:`user_manual_database_structure`.
+is meant to be opened with the *eProsima DDS Monitor* and replayed with ``ddsreplayer``.
+
+The alternative is the queryable schema, one table per DDS Topic with one column per data type
+member, selected with ``-queryable`` and described in :ref:`user_manual_database_structure`.
 
 .. _user_manual_monitor_schema_differences:
 
@@ -28,30 +27,31 @@ Why you might prefer it
 ***********************
 
 The two schemas store the same traffic in opposite shapes.
-The default one deserializes every sample and gives each DDS Topic a table whose columns are the
-members of its data type.
-This schema has a single ``Messages`` table in which the sample is stored as the untouched
+This one has a single ``Messages`` table in which the sample is stored as the untouched
 :term:`CDR` payload.
+The queryable schema deserializes every sample instead, and gives each DDS Topic a table whose
+columns are the members of its data type.
 
 That difference has three consequences worth knowing:
 
 * **No data type is required.**
   Nothing is deserialized, so a topic is recorded even when its :term:`TypeCode` was never announced
-  and no IDL file was supplied. In the default schema such a topic gets no table at all.
+  and no IDL file was supplied. Under ``-queryable`` such a topic gets no table at all.
 
 * **Any encapsulation is recorded.**
-  The default schema stores a sample only when it is encoded as plain CDR; this one stores the bytes
-  whatever their encapsulation, so extended CDR payloads are captured too.
+  The queryable schema stores a sample only when it is encoded as plain CDR; this one stores the
+  bytes whatever their encapsulation, so extended CDR payloads are captured too.
 
 * **The recording can be replayed.**
-  ``ddsreplayer`` selects the samples that carry a payload, which the default schema cannot provide.
+  ``ddsreplayer`` selects the samples that carry a payload, which the queryable schema cannot
+  provide.
 
 What you give up is the ability to query individual members with SQL, since the payload is an opaque
 blob until something decodes it.
 
 .. note::
 
-    ``-idl`` is not needed with ``-monitor``, but it is still honored.
+    ``-idl`` is not needed for this schema, but it is still honored.
     When supplied it is used only to fill in the ``Types.idl`` column for topics whose data type was
     not announced in the capture; it can never change the recorded payload.
 
@@ -62,7 +62,7 @@ The tables
 **********
 
 Six tables are created, and no others.
-The discovery tables of the default schema are not written.
+The discovery tables of the queryable schema are not written.
 
 .. list-table::
     :header-rows: 1
@@ -162,8 +162,8 @@ Messages table
     ``(writer_guid, sequence_number)`` is the primary key, which removes duplicates for free.
     A sample that appears several times in the capture, because it was seen both as multicast and as
     unicast or because the writer repaired it, is stored once.
-    A row count is therefore a count of distinct samples, unlike the default schema where each row is
-    one observed transmission.
+    A row count is therefore a count of distinct samples, unlike the queryable schema where each row
+    is one observed transmission.
     Compare :ref:`user_manual_querying_database_samples`.
 
 Topics and Types tables
@@ -179,7 +179,7 @@ Topics and Types tables
     *   - ``Topics.name`` |br|
           ``Topics.type``
         - Name of the DDS Topic and of its data type, as announced. |br|
-          Unlike the default schema, the topic name is stored |br|
+          Unlike the queryable schema, the topic name is stored |br|
           verbatim and is never used as an SQL identifier, so none |br|
           of the character substitutions described in |br|
           :ref:`user_manual_database_structure_table_names` apply.

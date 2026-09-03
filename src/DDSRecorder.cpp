@@ -59,7 +59,7 @@ DDSRecorder::DDSRecorder(
         eProsimaLog& log,
         string& database,
         int tcMaxSize,
-        bool monitor_mode)
+        bool queryable_mode)
     : m_log(log)
     , m_databaseH(NULL)
     , m_typecodeDB(NULL)
@@ -73,19 +73,11 @@ DDSRecorder::DDSRecorder(
     if (sqlite3_open(database.c_str(), &m_databaseH) == SQLITE_OK)
     {
         /*
-         * The two schemas are exclusive: in monitor mode the discovery tables and the per-topic
-         * tables of the default schema are not created at all.
+         * The two schemas are exclusive. The default one is the *DDS Record & Replay* schema,
+         * which stores the samples as CDR and therefore needs no data type; the queryable schema
+         * deserializes them into a table per DDS Topic instead.
          */
-        if (monitor_mode)
-        {
-            monitor_db_ = new MonitorDB(m_log, m_databaseH);
-
-            if (monitor_db_ == NULL)
-            {
-                logError(m_log, "Cannot create object MonitorDB");
-            }
-        }
-        else
+        if (queryable_mode)
         {
             m_typecodeDB = new TypeCodeDB(m_log, m_databaseH, tcMaxSize);
 
@@ -101,6 +93,15 @@ DDSRecorder::DDSRecorder(
             else
             {
                 logError(m_log, "Cannot create object TypeCodeDB");
+            }
+        }
+        else
+        {
+            monitor_db_ = new MonitorDB(m_log, m_databaseH);
+
+            if (monitor_db_ == NULL)
+            {
+                logError(m_log, "Cannot create object MonitorDB");
             }
         }
     }

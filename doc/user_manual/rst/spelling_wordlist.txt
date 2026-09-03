@@ -47,6 +47,7 @@ PCAP
 pcap
 pcapng
 QoS
+queryable
 Redistributable
 retransmitted
 RTPS
