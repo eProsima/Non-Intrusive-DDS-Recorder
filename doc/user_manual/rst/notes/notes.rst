@@ -58,17 +58,13 @@ Supported DDS implementations
 |eddsrecorder| works at the wire protocol level, so the traffic and the endpoint discovery of any DDS implementation
 that speaks :term:`RTPS` over UDP/IPv4 is recorded, regardless of the vendor.
 
-What does depend on the implementation is the **automatic data type discovery**.
-|eddsrecorder| obtains the data type schema from the :term:`TypeCode` parameter of the :term:`SEDP` endpoint
-announcements, and that parameter is a vendor extension rather than a part of the RTPS specification.
-For an implementation that does not include it, the data types must be supplied with an :term:`IDL` file through the
-``-idl`` argument, as described in :ref:`user_manual_usage_idl_naming_policy`.
-This includes |efastdds|, which announces its types using a different mechanism.
+The data types are a separate matter, and do not depend on the implementation either: |eddsrecorder| reads no type
+description from the wire at all.
+Supply the types with an :term:`IDL` file through the ``-idl`` argument, as described in
+:ref:`user_manual_usage_idl_naming_policy`.
 
-The ``contains_typecode`` column of the ``_endpointDiscoveryMessages`` table reports, for each endpoint found in a
-capture, whether its announcement carried a TypeCode.
-It is the quickest way to find out whether a given system needs an IDL file; see
-:ref:`user_manual_querying_database_entities`.
+Without one a capture is still recorded in full, since every sample is stored as its raw :term:`CDR` payload; it
+simply carries no type description, and ``-queryable`` produces no per-topic table.
 
 Supported capture formats
 =========================

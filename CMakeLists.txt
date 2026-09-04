@@ -77,6 +77,24 @@ endif()
 
 include(${PROJECT_SOURCE_DIR}/cmake/dev/eprosima_libraries.cmake)
 find_eprosima_package(fastcdr)
+# Fast DDS is used purely as a local type model: it parses the IDL file given with '-idl' and
+# decodes the CDR payloads. The recorder never joins a DDS domain. It is not a thirdparty
+# submodule like Fast CDR, so it has to be found already installed.
+#
+# foonathan_memory is probed first because fastdds-config.cmake does
+# 'find_dependency(foonathan_memory REQUIRED)'. A prefix path that reaches Fast DDS but not
+# foonathan_memory therefore fails deep inside that file, with an error naming a package this
+# project never asks for; checking here turns that into something actionable.
+find_package(foonathan_memory QUIET)
+
+if(NOT foonathan_memory_FOUND)
+    message(FATAL_ERROR
+        "Could not find foonathan_memory, a required dependency of Fast DDS. Add its "
+        "installation prefix to CMAKE_PREFIX_PATH. In a colcon workspace it is installed by "
+        "the foonathan_memory_vendor package, and sourcing the workspace puts it on the path.")
+endif()
+
+find_package(fastdds REQUIRED)
 include(${PROJECT_SOURCE_DIR}/cmake/dev/external_dependencies.cmake)
 #Remind the user the need to give the directories to sqlite and winpcap
 if(WIN32)
@@ -101,7 +119,10 @@ else()
     endif()
 endif()
 
-add_compile_options(--std=c++0x)
+# C++17 is what Fast DDS needs. The project was pinned to C++11 by the flex 2.5.35 scanner in
+# src/idlparser, which used the 'register' keyword C++17 removed; that parser is gone.
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #Compile library
 add_subdirectory(src)

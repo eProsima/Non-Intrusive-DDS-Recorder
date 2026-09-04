@@ -131,19 +131,15 @@ The :term:`SEDP` announcements of DataWriters and DataReaders are decoded and st
 participant announcements are skipped: a participant is only visible through the :term:`GuidPrefix` of its endpoints.
 
 QoS policies carried in the discovery messages are not recorded either.
-Only the topic name, the type name and the :term:`TypeCode` are extracted from each announcement.
-
-.. note::
-
-    The ``-tcMaxSize`` argument is accepted for compatibility but has no effect in this release.
-    TypeCodes found in the discovery traffic are deserialized regardless of the value given.
+Only the topic name, the type name and the :term:`Guid` are extracted from each announcement.
 
 Data types
 ==========
 
-Type resolution depends on the DDS implementation including the TypeCode of the topic in its endpoint announcements.
-Implementations that do not are supported through the ``-idl`` argument, described in
-:ref:`user_manual_usage_idl_naming_policy`.
+|eddsrecorder| reads no data type description from the wire.
+The types come from the file given with the ``-idl`` argument, described in
+:ref:`user_manual_usage_idl_naming_policy`; without it a capture is recorded in full but carries no type description
+and gets no per-topic table.
 
 The mapping of IDL constructs to SQL is described in :ref:`user_manual_data_types`.
 In summary, the current release does not record:
@@ -220,21 +216,14 @@ A capture that has already been truncated cannot be repaired.
 The discovery tables are populated but a topic has no table
 ===========================================================
 
-The topic appears in ``_topics`` and ``_endpoints``, yet no table holds its samples.
+The topic appears in ``Topics`` and ``Endpoints``, yet ``DataTables`` names no table for it.
 
-* **The data type could not be resolved.**
-  Check the ``contains_typecode`` column of ``_endpointDiscoveryMessages`` for that topic; the query in
-  :ref:`user_manual_querying_database_entities` lists the affected topics.
-  If it is ``0``, supply the type with ``-idl``.
+* **No IDL file was given, or it does not declare the type.**
+  |eddsrecorder| reads no type description from the wire, so ``-idl`` is the only source.
+  The console says which of the two it was.
 * **The data type uses an unsupported construct.**
   The console reports the unrecognized kind.
   See :ref:`user_manual_data_types_unsupported`.
-* **A member name is not a valid SQL column name.**
-  Member names are used verbatim as column names, so a member named after an SQLite keyword prevents the table from
-  being created.
-  See :ref:`user_manual_usage_idl_naming_policy`.
-* **Two topic names collapsed onto the same table name.**
-  See :ref:`user_manual_database_structure_table_names`.
 * **No sample was captured.**
   Discovery is largely multicast while user samples are often unicast, so a capture point may see the announcements
   of a topic without seeing its data.

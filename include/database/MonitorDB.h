@@ -15,7 +15,7 @@
 
 #include <sqlite3.h>
 #include "RTPSPacketAnalyzer.h"
-#include "database/EntitiesDB.h"
+#include "database/Endpoint.h"
 
 namespace eprosima {
 class eProsimaLog;
@@ -29,8 +29,8 @@ class eProsimaLog;
  * *DDS Monitor* reads.
  *
  * The sample is stored as the untouched CDR payload, so this writer never needs the data
- * type of a topic. That is what allows a topic whose TypeCode was never announced, and whose
- * samples the default schema cannot store, to be recorded anyway.
+ * type of a topic. That is what allows a topic whose data type is not in the '-idl' file, or
+ * which has no '-idl' file at all, to be recorded anyway.
  */
 class MonitorDB
 {
@@ -60,9 +60,8 @@ public:
      * \param topicName Name of the DDS Topic.
      * \param typeName Name of the DDS Topic data type.
      * \param idl The data type rendered as IDL, or an empty string when the data type is
-     * not known. Stored in the 'idl' column, whether it came from a TypeCode in the
-     * capture or from the file given with '-idl'. It is there for the user to read;
-     * nothing in this tool parses it back.
+     * not known. Stored in the 'idl' column, rendered from the file given with '-idl'.
+     * It is there for the user to read; nothing in this tool parses it back.
      * \return True value is returned if the topic was added or was already present.
      */
     bool add_topic(
@@ -94,6 +93,32 @@ public:
             std::string& typeName);
 
     /**
+     * \brief What add_message() resolved about a sample, for a caller that has to write it
+     * somewhere else too.
+     *
+     * The topic and the type are recovered from the discovery traffic and the writer GUID is
+     * rendered here, so a caller writing the '-queryable' data tables would otherwise have to
+     * repeat both.
+     */
+    typedef struct StoredMessage
+    {
+        std::string writer_guid;
+        unsigned long long sequence_number = 0;
+        std::string topic_name;
+        std::string type_name;
+        /**
+         * False when the sample was a duplicate and Messages already held it. A caller keyed on
+         * (writer_guid, sequence_number) must not write it a second time.
+         */
+        bool stored = false;
+        /**
+         * False when the sample could not be attributed to any announced endpoint, in which case
+         * none of the fields above mean anything and Messages holds no row for it either.
+         */
+        bool resolved = false;
+    } StoredMessage;
+
+    /**
      * \brief This function stores a user sample as a row of the Messages table.
      *
      * The payload is stored verbatim, encapsulation header included, so no data type is
@@ -117,7 +142,8 @@ public:
             unsigned long long writerSeqNum,
             struct DDS_Time_t & sourceTmp,
             const char * serializedData,
-            unsigned int serializedDataLen);
+            unsigned int serializedDataLen,
+            StoredMessage * stored = nullptr);
 
     /// Number of rows written into the Messages table.
     unsigned int getMessageCount();
@@ -137,6 +163,18 @@ public:
             unsigned int appId,
             unsigned int instanceId,
             unsigned int entityId);
+
+    /**
+     * \brief Renders a GuidPrefix on its own, the twelve zero padded hexadecimal bytes without
+     * the entity id that format_guid() appends.
+     *
+     * Returns an empty string for the all zero prefix, which is what a packet carrying no
+     * INFO_DST submessage leaves behind and means "every participant" rather than a real one.
+     */
+    static std::string format_guid_prefix(
+            unsigned int hostId,
+            unsigned int appId,
+            unsigned int instanceId);
 
     /**
      * \brief Renders a timestamp as 'YYYY-MM-DD HH:MM:SS.nnnnnnnnn' in UTC.
@@ -167,7 +205,7 @@ private:
     bool execute(
             const char * statement);
 
-    eEntity* find_endpoint(
+    Endpoint* find_endpoint(
             unsigned int hostId,
             unsigned int appId,
             unsigned int instanceId,
@@ -183,10 +221,9 @@ private:
     sqlite3_stmt * add_type_stmt_{nullptr};
 
     /**
-     * Fills in Types.idl for a type that was first announced without a TypeCode and
-     * later described, either by another endpoint or by the '-idl' file. Guarded on
-     * the column being empty, so the first description wins and repeated announcements
-     * cost nothing.
+     * Fills in Types.idl for a type that was first announced before the '-idl' file was
+     * consulted for it. Guarded on the column being empty, so the first description wins
+     * and repeated announcements cost nothing.
      */
     sqlite3_stmt * updatte_type_stmt_{nullptr};
 
@@ -196,7 +233,7 @@ private:
     sqlite3_stmt * add_message_partitition_stmt{nullptr};
 
     /// Endpoints seen in the discovery traffic, used to attribute samples to a topic.
-    std::list<eEntity*> m_endpoints;
+    std::list<Endpoint*> m_endpoints;
 
     unsigned int message_count{0};
 

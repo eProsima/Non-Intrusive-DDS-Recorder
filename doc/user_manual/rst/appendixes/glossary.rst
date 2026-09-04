@@ -20,12 +20,6 @@ Non-Intrusive DDS Recorder nomenclature
         Lightweight, serverless and self-contained SQL database engine.
         The output of |eddsrecorder| is a SQLite database file that requires no external configuration.
 
-    TypeCode
-        Representation of the definition of a data type that some DDS implementations send as part of the discovery
-        information.
-        |eddsrecorder| uses it to build the tables that store the user data of each topic.
-        When it is not present in the discovery traffic, an :term:`IDL` file must be supplied instead.
-
     snaplen
         **Snapshot length**.
         Maximum number of bytes that a network sniffer stores for each packet.
@@ -89,8 +83,8 @@ DDS nomenclature
     IDL
         **Interface Definition Language**.
         Language defined by the OMG used to describe the data types exchanged over DDS.
-        It can be supplied to |eddsrecorder| when the DDS implementation under study does not send TypeCode
-        information.
+        It is supplied to |eddsrecorder| through the ``-idl`` argument, and is the only source of data types:
+        the RTPS traffic carries no type description the application reads.
 
     QoS
         **Quality of Service**.

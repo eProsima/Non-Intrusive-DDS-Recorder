@@ -28,11 +28,11 @@
  * whole compatibility contract, and every table below is reproduced unchanged.
  *
  * Types is the single exception: it gains an 'idl' column, which holds the data type rendered as
- * IDL. That is the only type description the RTPS traffic and the '-idl' file can provide, and
- * neither of the columns the original schema has for it fits, since both expect base64 of a
- * TypeIdentifier or a TypeObject. The column is additive, so a reader that selects the original
- * columns by name is unaffected, and it is declared with a default so that a writer that does not
- * know about it can still insert into Types.
+ * IDL. That is the only type description the file given with '-idl' can provide, and neither of
+ * the columns the original schema has for it fits, since both expect base64 of a TypeIdentifier
+ * or a TypeObject. The column is additive, so a reader that selects the original columns by name
+ * is unaffected, and it is declared with a default so that a writer that does not know about it
+ * can still insert into Types.
  */
 static const char* const TABLE_TYPES_CREATE =
         "CREATE TABLE IF NOT EXISTS Types ("
@@ -90,9 +90,14 @@ static const char* const TABLE_MESSAGESPARTITIONS_CREATE =
         "REFERENCES Messages(writer_guid, sequence_number) ON DELETE CASCADE,"
         "FOREIGN KEY (partition) REFERENCES Partitions(name) ON DELETE CASCADE)";
 
+/* Selecting the samples of one topic over a time window is the query this schema is read with. */
+static const char* const INDEX_MESSAGES_CREATE =
+        "CREATE INDEX IF NOT EXISTS Messages_topic_time ON Messages(topic, type, log_time)";
+
 /* Children first: the schema declares foreign keys even though enforcement is left off. */
 static const char* const TABLES_DROP[] =
 {
+    "DROP INDEX IF EXISTS Messages_topic_time",
     "DROP TABLE IF EXISTS MessagesPartitions",
     "DROP TABLE IF EXISTS TopicsPartitions",
     "DROP TABLE IF EXISTS Messages",
@@ -122,8 +127,8 @@ static const char* const PARTITION_ADD =
         "INSERT OR IGNORE INTO Partitions (name) VALUES ('')";
 
 /*
- * The recorder parses only the topic name, the type name, the TypeCode and the GUID out of the
- * discovery messages, so no QoS survives. These are the DDS Record & Replay defaults, in the
+ * The recorder parses only the topic name, the type name and the GUID out of the discovery
+ * messages, so no QoS survives. These are the DDS Record & Replay defaults, in the
  * exact four-key YAML that Serializer::serialize<TopicQoS> emits.
  */
 static const char* const DEFAULT_QOS =
@@ -190,7 +195,7 @@ MonitorDB::MonitorDB(
 
 MonitorDB::~MonitorDB()
 {
-    list<eEntity*>::iterator it;
+    list<Endpoint*>::iterator it;
 
     if (add_type_stmt_ != NULL)
     {
@@ -261,6 +266,7 @@ bool MonitorDB::create_schema()
         TABLE_PARTITIONS_CREATE,
         TABLE_TOPICSPARTITIONS_CREATE,
         TABLE_MESSAGESPARTITIONS_CREATE,
+        INDEX_MESSAGES_CREATE,
         NULL
     };
 
@@ -322,6 +328,35 @@ std::string MonitorDB::format_guid(
     return string(buffer);
 }
 
+std::string MonitorDB::format_guid_prefix(
+        unsigned int hostId,
+        unsigned int appId,
+        unsigned int instanceId)
+{
+    const unsigned int words[3] = { hostId, appId, instanceId };
+    char buffer[64];
+    int offset = 0;
+
+    if (hostId == 0 && appId == 0 && instanceId == 0)
+    {
+        return std::string();
+    }
+
+    for (int word = 0; word < 3; ++word)
+    {
+        for (int shift = 24; shift >= 0; shift -= 8)
+        {
+            offset += SNPRINTF(buffer + offset, sizeof(buffer) - offset, "%02x.",
+                            (words[word] >> shift) & 0xFF);
+        }
+    }
+
+    // Drop the trailing '.'; there is no entity id to separate from.
+    buffer[offset - 1] = '\0';
+
+    return std::string(buffer);
+}
+
 std::string MonitorDB::format_timestamp(
         long long seconds,
         unsigned long long nanos)
@@ -355,13 +390,13 @@ unsigned int MonitorDB::fraction_to_nanosec(
     return (unsigned int)((((unsigned long long)fraction) * 1000000000ULL) >> 32);
 }
 
-eEntity* MonitorDB::find_endpoint(
+Endpoint* MonitorDB::find_endpoint(
         unsigned int hostId,
         unsigned int appId,
         unsigned int instanceId,
         unsigned int entityId)
 {
-    list<eEntity*>::iterator it;
+    list<Endpoint*>::iterator it;
 
     for (it = m_endpoints.begin(); it != m_endpoints.end(); it++)
     {
@@ -400,11 +435,10 @@ bool MonitorDB::add_topic(
     }
 
     /*
-     * Types.information and Types.object would hold a serialized TypeIdentifier and TypeObject,
-     * neither of which the RTPS traffic carries, so both are left empty: the DDS Monitor drops a
-     * Types row whose object does not decode. The type description goes into the 'idl' column
-     * instead, whether it was rendered from a TypeCode found in the capture or taken from the
-     * file given with '-idl'.
+     * Types.information and Types.object would hold a serialized TypeIdentifier and TypeObject.
+     * The recorder reads no XTypes type information off the wire, so both are always left empty:
+     * the DDS Monitor drops a Types row whose object does not decode. The type description goes
+     * into the 'idl' column instead, rendered from the file given with '-idl'.
      */
     sqlite3_bind_text(add_type_stmt_, 1, typeName.c_str(), (int)typeName.length(), SQLITE_STATIC);
     sqlite3_bind_text(add_type_stmt_, 2, "", 0, SQLITE_STATIC);
@@ -497,8 +531,8 @@ bool MonitorDB::add_endpoint(
 
     if (find_endpoint(hostId, appId, instanceId, entityId) == NULL)
     {
-        m_endpoints.push_back(new eEntity(hostId, appId, instanceId, entityId,
-                topicName, typeName, false));
+        m_endpoints.push_back(new Endpoint(hostId, appId, instanceId, entityId,
+                topicName, typeName));
     }
 
     return true;
@@ -514,10 +548,16 @@ bool MonitorDB::add_message(
         unsigned long long writerSeqNum,
         struct DDS_Time_t& sourceTmp,
         const char* serializedData,
-        unsigned int serializedDataLen)
+        unsigned int serializedDataLen,
+        StoredMessage* stored)
 {
     const char* const METHOD_NAME = "addMessage";
-    eEntity* endpoint = NULL;
+    Endpoint* endpoint = NULL;
+
+    if (stored != NULL)
+    {
+        stored->stored = false;
+    }
 
     if (!ready_)
     {
@@ -559,8 +599,17 @@ bool MonitorDB::add_message(
     string logTime = format_timestamp(wts.tv_sec, (unsigned long long)wts.tv_usec * 1000ULL);
     string publishTime = format_timestamp(sourceTmp.seconds,
                     fraction_to_nanosec(sourceTmp.nanoseconds));
-    string& topicName = endpoint->getTopicName();
-    string& typeName = endpoint->getTypeName();
+    const string& topicName = endpoint->getTopicName();
+    const string& typeName = endpoint->getTypeName();
+
+    if (stored != NULL)
+    {
+        stored->resolved = true;
+        stored->writer_guid = writerGuid;
+        stored->sequence_number = writerSeqNum;
+        stored->topic_name = topicName;
+        stored->type_name = typeName;
+    }
 
     if (sqlite3_reset(add_message_stmt_) != SQLITE_OK)
     {
@@ -623,6 +672,11 @@ bool MonitorDB::add_message(
     }
 
     ++message_count;
+
+    if (stored != NULL)
+    {
+        stored->stored = true;
+    }
 
     return true;
 }

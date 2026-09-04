@@ -35,7 +35,7 @@ columns are the members of its data type.
 That difference has three consequences worth knowing:
 
 * **No data type is required.**
-  Nothing is deserialized, so a topic is recorded even when its :term:`TypeCode` was never announced
+  Nothing is deserialized, so a topic is recorded even when no :term:`IDL` file describes it
   and no IDL file was supplied. Under ``-queryable`` such a topic gets no table at all.
 
 * **Any encapsulation is recorded.**

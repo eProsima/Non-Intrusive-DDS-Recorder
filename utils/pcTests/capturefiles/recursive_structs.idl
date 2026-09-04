@@ -1,0 +1,19 @@
+struct LevelTwo
+{
+	long levelTwoLo;
+	string levelTwoSt;
+};
+
+struct LevelOne
+{
+	LevelTwo two1;
+	LevelTwo two2;
+	long levelOneLo;
+};
+
+struct RecursiveStructs
+{
+	long count;
+	string message;
+	LevelOne one;
+};

@@ -7,29 +7,16 @@ set( SOURCES
 	main.cpp
 	DDSRecorder.cpp
 	RTPSPacketAnalyzer.cpp
+	TypeStore.cpp
 	version.cpp
-	cdr/ArrayTypeCode.cpp
-	cdr/ContentTypeCode.cpp
-	cdr/EnumTypeCode.cpp
-	cdr/MemberedTypeCode.cpp
-	cdr/PrimitiveTypeCode.cpp
-	cdr/SequenceTypeCode.cpp
-	cdr/StringTypeCode.cpp
-	cdr/StructTypeCode.cpp
-	cdr/TypeCode.cpp
-	cdr/TypeCodeCopy.cpp
-	cdr/UnionTypeCode.cpp
-	database/DynamicDataDB.cpp
-	database/EntitiesDB.cpp
+	database/CaptureDB.cpp
+	database/Endpoint.cpp
 	database/MonitorDB.cpp
-	database/TypeCodeDB.cpp
-	idlparser/IDLParser.cc
-	idlparser/IDLScanner.cc
-	idlparser/UserTypeCodeProvider.cpp
+	database/TopicDataDB.cpp
+	database/TopicsDB.cpp
 	log/eProsimaLog.cpp
 	reader/ipDefragmenter.cpp
 	reader/pcapReader.cpp
-	util/IDLPrinter.cpp
 	)
 
 if(WIN32)
@@ -60,9 +47,9 @@ if(WIN32)
 endif()
 target_include_directories(dds_recorder PRIVATE ${Boost_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src ${SQLITE3_INCLUDE_DIR} ${PCAP_INCLUDE_DIR})
 if(WIN32)
-    target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} Ws2_32)
+    target_link_libraries(dds_recorder fastdds fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} Ws2_32)
 else()
-    target_link_libraries(dds_recorder fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} ${SQLITE3_LIBRARY})
+    target_link_libraries(dds_recorder fastdds fastcdr ${Boost_LIBRARIES} ${PCAP_LIBRARY} ${SQLITE3_LIBRARY})
 endif()
 
 

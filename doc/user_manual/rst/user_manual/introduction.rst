@@ -32,7 +32,7 @@ The application works in four stages:
    that topic carries.
 
 #. **Type resolution.**
-   The data type schema is taken from the :term:`TypeCode` embedded in the discovery messages.
+   The data type schema is taken from the :term:`IDL` file given with ``-idl``.
    When the DDS implementation under study does not publish that information, an :term:`IDL` file supplied with the
    ``-idl`` argument is used instead.
 
@@ -60,7 +60,7 @@ type, next to the protocol metadata of each sample, so the recorded values can b
 
 .. code-block:: sql
 
-    SELECT counter, message FROM Example_HelloWorld ORDER BY message_id;
+    SELECT counter, message FROM Data_Example_HelloWorld_flat ORDER BY log_time;
 
 That one also records the discovery information as tables of its own: the topics found in the capture together with a
 human readable rendering of their data types, the endpoints that were announced, and the raw endpoint discovery

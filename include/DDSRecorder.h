@@ -17,14 +17,11 @@
 #ifdef __cplusplus
 
 namespace eprosima {
-class UserTypeCodeProvider;
-} // namespace eprosima
-using namespace eprosima;
-namespace eprosima {
 class eProsimaLog;
-class TypeCodeDB;
-class EntitiesDB;
+class CaptureDB;
 class MonitorDB;
+class TopicsDB;
+class TypeStore;
 
 
 class DDSRecorder
@@ -36,16 +33,17 @@ public:
      *
      * \param log Log object used to log errors.
      * \param dabase Name of the database file to write.
-     * \param tcMaxSize TypeCode maximum allowed size.
-     * \param queryable_mode When true the recording uses the queryable schema, one table per
-     * DDS Topic with one column per data type member, instead of the default *DDS Record &
-     * Replay* schema. See TypeCodeDB and DynamicDataDB for the former, MonitorDB for the latter.
+     * \param queryable_mode When true, each sample is additionally deserialized into a table of
+     * its own topic, with one column per data type member. The *DDS Record & Replay* tables are
+     * written either way, so this only ever adds to the recording.
+     * \param type_store The data types read from the file given with '-idl'. Not owned, and has
+     * to outlive the recorder. May be NULL.
      */
     DDSRecorder(
             eProsimaLog& log,
             std::string& dabase,
-            int tcMaxSize,
-            bool queryable_mode);
+            bool queryable_mode,
+            const TypeStore * type_store);
 
     ~DDSRecorder();
 
@@ -88,12 +86,6 @@ public:
             const char * serializedData,
             unsigned int serializedDataLen);
 
-    void setUSerTypeCodeProvider(
-            UserTypeCodeProvider* utcp)
-    {
-        UTCprovider = utcp;
-    }
-
 private:
 
     typedef struct GUID
@@ -117,10 +109,6 @@ private:
         GUID guid;
         std::string topic_name;
         std::string type_name;
-        char * typeCode;
-        uint32_t typeCodeLength;
-        PublicationBuiltinTopic() : typeCode(NULL), typeCodeLength(0) {
-        }
     } PublicationBuiltinTopic;
 
     typedef struct SubscriptionBuiltinTopic
@@ -130,10 +118,6 @@ private:
         GUID guid;
         std::string topic_name;
         std::string type_name;
-        char * typeCode;
-        uint32_t typeCodeLength;
-        SubscriptionBuiltinTopic() : typeCode(NULL), typeCodeLength(0) {
-        }
     } SubscriptionBuiltinTopic;
 
     void processDataW(
@@ -210,16 +194,17 @@ private:
     /// Handler of the database.
     sqlite3 * m_databaseH;
 
-    TypeCodeDB * m_typecodeDB;
+    /// Writer of the *DDS Record & Replay* schema.
+    MonitorDB * monitor_db_{nullptr};
 
-    EntitiesDB * m_entitiesDB;
+    /// Writer of the per topic data tables. NULL unless '-queryable' was given.
+    TopicsDB * topics_db_{nullptr};
 
-    /// Writer of the *DDS Record & Replay* schema. NULL unless '-monitor' was given.
-    MonitorDB * monitor_db_;
+    /// Writer of the packet level tables. NULL unless '-queryable' was given.
+    CaptureDB * capture_db_{nullptr};
 
-    int m_tcMaxSize;
-
-    UserTypeCodeProvider* UTCprovider;
+    /// Data types read from the file given with '-idl'. Not owned, and may be NULL.
+    const TypeStore * type_store_{nullptr};
 };
 } // namespace eprosima
 

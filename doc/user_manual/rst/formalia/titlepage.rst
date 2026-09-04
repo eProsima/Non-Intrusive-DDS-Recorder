@@ -43,13 +43,11 @@ The application provides the following features:
   In order to capture all the traffic in a network, the switch debug port should be sniffed; otherwise only the traffic
   directed to the node where the sniffer runs is obtained.
 
-* **Automatic type discovery**.
-  DDS uses an automatic discovery process to announce all the DDS entities in a network, including the topic data types.
-  *eProsima Non-Intrusive DDS Recorder* analyzes the discovery traffic, searching for the data type definition
-  (:term:`TypeCode`) in the discovery messages, and uses the data type schema to build the tables that store the DDS
-  user data traffic.
-  For DDS implementations that do not send the type information over the network, an :term:`IDL` file with the type
-  definitions can be provided instead.
+* **Automatic entity discovery**.
+  DDS uses an automatic discovery process to announce all the DDS entities in a network.
+  *eProsima Non-Intrusive DDS Recorder* analyzes the discovery traffic to learn which topics exist and which
+  DataWriters and DataReaders serve them, so every sample it captures can be attributed to a topic.
+  Supply an :term:`IDL` file with the type definitions to have the samples deserialized into columns as well.
 
 * **Human readable output**.
   The RTPS messages are translated into a human readable format and stored in a :term:`SQLite` database.
@@ -74,7 +72,7 @@ resulting file, and query the database it produces.
     DDSRecorder -db session.db capture.pcap
 
     # 3. Query the result
-    sqlite3 session.db "SELECT topic_name, type_name FROM _topics;"
+    sqlite3 session.db "SELECT name, type FROM Topics;"
 
 #################################
 Contributing to the documentation

@@ -1,5 +1,0 @@
-struct MyStr
-{
-	short aux[3],aux2;
-};
-
