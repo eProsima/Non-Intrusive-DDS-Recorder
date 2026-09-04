@@ -1,3 +1,0 @@
-[submodule "thirdparty/Fast-CDR"]
-	path = thirdparty/fastcdr
-	url = http://github.com/eProsima/Fast-CDR.git

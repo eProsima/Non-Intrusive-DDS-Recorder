@@ -75,8 +75,6 @@ if(EPROSIMA_BUILD)
     set(THIRDPARTY ON)
 endif()
 
-include(${PROJECT_SOURCE_DIR}/cmake/dev/eprosima_libraries.cmake)
-find_eprosima_package(fastcdr)
 # Fast DDS is used purely as a local type model: it parses the IDL file given with '-idl' and
 # decodes the CDR payloads. The recorder never joins a DDS domain. It is not a thirdparty
 # submodule like Fast CDR, so it has to be found already installed.
@@ -93,6 +91,8 @@ if(NOT foonathan_memory_FOUND)
         "installation prefix to CMAKE_PREFIX_PATH. In a colcon workspace it is installed by "
         "the foonathan_memory_vendor package, and sourcing the workspace puts it on the path.")
 endif()
+
+find_package(fastcdr)
 
 find_package(fastdds REQUIRED)
 include(${PROJECT_SOURCE_DIR}/cmake/dev/external_dependencies.cmake)
@@ -142,7 +142,6 @@ if(BUILD_DOCUMENTATION)
 endif()
 # Packaging
 # Install external eprosima libraries
-install_eprosima_libraries()
 install_boost(${BOOST_LIBRARIES_DEFAULT})
 
 # Install licenses
