@@ -11,7 +11,7 @@ This is the schema |eddsrecorder| writes unless told otherwise, so it needs no a
 
 .. code-block:: bash
 
-    DDSRecorder -db session.db capture.pcap
+    ni_ddsrecorder -db session.db capture.pcap
 
 It is the same schema that *eProsima DDS Record & Replay* writes — the tables, the columns and the
 keys match it, with the single addition of the ``Types.idl`` column described below — so a recording

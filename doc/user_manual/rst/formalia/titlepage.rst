@@ -69,7 +69,7 @@ resulting file, and query the database it produces.
     sudo tcpdump -i eth0 -s 0 -w capture.pcap udp
 
     # 2. Translate the capture into a SQLite database
-    DDSRecorder -db session.db capture.pcap
+    ni_ddsrecorder -db session.db capture.pcap
 
     # 3. Query the result
     sqlite3 session.db "SELECT name, type FROM Topics;"

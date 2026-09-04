@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: bash
 
-    DDSRecorder <pcapFile> [-db <database>] [-idl <file>] [-queryable] [-help]
+    ni_ddsrecorder <pcapFile> [-db <database>] [-idl <file>] [-queryable] [-help]
 
 .. _user_manual_usage_application_arguments:
 
@@ -145,7 +145,7 @@ Make sure you have permission to create files in the working directory:
 
 .. code-block:: bash
 
-    DDSRecorder -db HelloWorld.db HelloWorld.pcap
+    ni_ddsrecorder -db HelloWorld.db HelloWorld.pcap
 
 The application reports its progress and the number of RTPS packets it recognized:
 
@@ -171,7 +171,7 @@ Record it again with the IDL that ships beside the capture to get both:
 
 .. code-block:: bash
 
-    DDSRecorder -db HelloWorld.db -idl HelloWorld.idl HelloWorld.pcap
+    ni_ddsrecorder -db HelloWorld.db -idl HelloWorld.idl HelloWorld.pcap
 
 The database now contains the six tables of the *DDS Record & Replay* schema:
 
@@ -234,7 +234,7 @@ Adding the queryable tables
 
 .. code-block:: bash
 
-    DDSRecorder -db HelloWorld-queryable.db -queryable -idl HelloWorld.idl HelloWorld.pcap
+    ni_ddsrecorder -db HelloWorld-queryable.db -queryable -idl HelloWorld.idl HelloWorld.pcap
 
 Four more tables appear, plus one table and one view for the topic itself:
 

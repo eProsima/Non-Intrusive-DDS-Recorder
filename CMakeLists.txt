@@ -1,6 +1,6 @@
 ###
 #
-#	CMAKE Build rules for DDSRecorder
+#	CMAKE Build rules for ni_ddsrecorder
 #
 ####
 cmake_minimum_required(VERSION 3.20)
@@ -14,11 +14,11 @@ else()
         )
 endif()
 
-project(DDSRecorder VERSION 1.1.0 LANGUAGES C CXX)
+project(ni_ddsrecorder VERSION 1.1.0 LANGUAGES C CXX)
 
-set(PROJECT_NAME "DDSRecorder")
-set(PROJECT_NAME_LARGE "DDSRecorder")
-set(PROJECT_NAME_STYLED "DDSRecorder")
+set(PROJECT_NAME "NI_DDSRecorder")
+set(PROJECT_NAME_LARGE "Non-Intrusive DDSRecorder")
+set(PROJECT_NAME_STYLED "Non-Intrusive DDS Recorder")
 string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
 set(${PROJECT_NAME}_DESCRIPTION_SUMMARY "Non-intrusive RTPS protocol packet analyzer.")
 set(${PROJECT_NAME}_DESCRIPTION "eProsima ${PROJECT_NAME} non-intrusive RTPS protocol packet analyzer.")
