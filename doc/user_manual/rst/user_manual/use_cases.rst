@@ -80,8 +80,8 @@ the announcement never reached the reader host, the two matched but no data foll
 else.
 
 Because the discovery messages are recorded verbatim, the database answers this directly.
-The ``_endpointDiscoveryMessages`` table shows which endpoint was announced, by which participant, from which IP and to
-which IP, and the ``_endpoints`` table shows the resulting view of the system.
+The ``DiscoveryMessages`` table shows which endpoint was announced, from which IP and to which IP, and the
+``Endpoints`` table shows the resulting view of the system.
 :ref:`user_manual_querying_database_entities` collects the queries.
 
 Interoperability between DDS implementations
@@ -90,10 +90,9 @@ Interoperability between DDS implementations
 When two vendors are supposed to interoperate, the wire is the only neutral arbiter: it shows what was actually sent
 rather than what each library believes it sent.
 
-|eddsrecorder| records the topic name, the type name and the data type as announced by each side, so a mismatch in any
-of them becomes visible.
-The ``typecode`` column of ``_topics`` holds the type definition in readable IDL, and the ``contains_typecode`` column
-of ``_endpointDiscoveryMessages`` tells you which implementations published their types at all.
+|eddsrecorder| records the topic name and the type name as announced by each side, so a mismatch in either becomes
+visible in ``Topics`` and ``Endpoints``.
+The ``idl`` column of ``Types`` holds the type definition in readable IDL, taken from the file given with ``-idl``.
 
 Characterizing traffic and timing
 =================================
@@ -164,8 +163,9 @@ The table below states when it is the wrong tool, so that the choice is made bef
 
     *   - You need the QoS policies of |br|
           each endpoint.
-        - Only the topic name, the type name and the :term:`TypeCode` |br|
-          are extracted from the discovery messages.
+        - Only the topic name, the type name and the |br|
+          :term:`Guid` are extracted from the discovery |br|
+          messages.
 
     *   - You cannot reach a capture point |br|
           that sees the traffic.

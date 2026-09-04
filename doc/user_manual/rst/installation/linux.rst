@@ -17,10 +17,10 @@ Download the installation package for your system and extract its contents:
 
 .. parsed-literal::
 
-    tar -xzf eProsima_DDSRecorder-\ |release|\ -Linux.tar.gz
+    tar -xzf eProsima_NI_DDSRecorder-\ |release|\ -Linux.tar.gz
 
 The resulting directory contains two folders: ``fastcdr``, with the |efastcdr| library that |eddsrecorder|
-depends on, and ``DDSRecorder``, with the application itself.
+depends on, and ``ni_ddsrecorder``, with the application itself.
 They must be installed in that order.
 
 ****************************
@@ -48,7 +48,7 @@ With |efastcdr| in place, install the application:
 
 .. code-block:: bash
 
-    cd DDSRecorder; ./configure; make; sudo make install
+    cd ni_ddsrecorder; ./configure; make; sudo make install
 
 **************************
 Verifying the installation
@@ -58,7 +58,7 @@ Print the application help to check that the installation succeeded and that eve
 
 .. code-block:: bash
 
-    DDSRecorder -help
+    ni_ddsrecorder -help
 
 The command prints the list of accepted arguments, described in
 :ref:`user_manual_usage_application_arguments`.

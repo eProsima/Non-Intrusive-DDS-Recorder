@@ -1,4 +1,4 @@
-name: DDSRecorder
+name: ni_ddsrecorder
 type: cmake
 dependencies:
     - fastdds

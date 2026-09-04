@@ -1,2 +1,0 @@
-bison --language=C++ --output=IDLParser.cc idl.y
-flex -+ -outfile=IDLScaner.cc idl.lex

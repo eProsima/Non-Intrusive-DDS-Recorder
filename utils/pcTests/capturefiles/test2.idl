@@ -1,0 +1,5 @@
+struct Prueba
+{
+    long count;
+    string message;
+};

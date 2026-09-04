@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: bash
 
-    DDSRecorder <pcapFile> [-db <database>] [-tcMaxSize <size>] [-idl <file>] [-help]
+    ni_ddsrecorder <pcapFile> [-db <database>] [-idl <file>] [-queryable] [-help]
 
 .. _user_manual_usage_application_arguments:
 
@@ -46,34 +46,51 @@ Command-Line Parameters
         - Path of the SQLite file that will hold |br|
           the translated RTPS messages.
 
-    *   - TypeCode Max Size
-        - ``-tcMaxSize``
-        - Integer
-        - ``2048``
-        - Maximum serialized size, in bytes, |br|
-          accepted for a :term:`TypeCode` found |br|
-          in the discovery traffic. |br|
-          Accepted and validated, but it has |br|
-          **no effect** in this release: |br|
-          TypeCodes are deserialized |br|
-          regardless of the value given.
-
     *   - IDL File
         - ``-idl``
         - String
         -
         - IDL file describing the data types used |br|
           in the captured system. |br|
-          Only needed when their TypeCodes are |br|
-          not sent during the discovery phase. |br|
+          It is the only source of data types: |br|
+          the RTPS traffic carries no type |br|
+          description |eddsrecorder| reads. |br|
+          Without it a capture is still recorded, |br|
+          it simply carries no type description |br|
+          and gets no per-topic table. |br|
           See |br|
           :ref:`user_manual_usage_idl_naming_policy`.
+
+    *   - Queryable schema
+        - ``-queryable``
+        -
+        -
+        - Also store each sample in a table of |br|
+          its own DDS Topic, with one column |br|
+          per data type member. |br|
+          This *adds to* the |br|
+          *DDS Record & Replay* tables rather |br|
+          than replacing them, so a recording |br|
+          made with it can still be replayed. |br|
+          Needs ``-idl`` to know the data types. |br|
+          See |br|
+          :ref:`user_manual_database_structure`.
 
     *   - Help
         - ``-help``
         -
         -
         - Print the usage information and exit.
+
+.. note::
+
+    The *DDS Record & Replay* and *DDS Monitor* schema is always written, whatever the arguments.
+    It stores every sample as its raw :term:`CDR` payload and needs no data type at all, which is why a capture is
+    recorded in full even when no IDL file describes it.
+    ``-queryable`` adds tables beside it: one per DDS Topic with one column per data type member, plus the packet
+    level tables the capture reveals and the schema has no column for.
+    :ref:`user_manual_monitor_schema` describes the former, and
+    :ref:`user_manual_database_structure` describes what ``-queryable`` adds.
 
 .. warning::
 
@@ -128,7 +145,7 @@ Make sure you have permission to create files in the working directory:
 
 .. code-block:: bash
 
-    DDSRecorder -db HelloWorld.db HelloWorld.pcap
+    ni_ddsrecorder -db HelloWorld.db HelloWorld.pcap
 
 The application reports its progress and the number of RTPS packets it recognized:
 
@@ -149,100 +166,172 @@ A count of zero means that no RTPS traffic was found in the capture.
 Understanding the SQLite database
 =================================
 
-For this example, |eddsrecorder| creates four tables in the generated SQLite database:
+The recording above used no ``-idl`` file, so it holds the samples but no description of their data type.
+Record it again with the IDL that ships beside the capture to get both:
 
-.. figure:: /rst/figures/helloworld_db_tables.png
-    :align: center
+.. code-block:: bash
 
-    Tables created for the *HelloWorld* example
+    ni_ddsrecorder -db HelloWorld.db -idl HelloWorld.idl HelloWorld.pcap
 
-Three of them start with an underscore and hold the discovery information; the fourth one holds the recorded samples.
-Refer to :ref:`user_manual_database_structure` for a detailed explanation of the whole schema.
-
-It is possible to browse the database through numerous graphical interfaces; the figures in this section use the
-`SQLiteman <http://sqliteman.com/>`_ GUI tool.
-Every result shown here can also be obtained with the ``sqlite3`` command line client.
-
-_endpointDiscoveryMessages table
---------------------------------
-
-|eddsrecorder| finds two endpoint discovery RTPS messages, one from the publisher and one from the subscriber
-application.
-The ``_endpointDiscoveryMessages`` table shows these entries, corresponding to a DDS :term:`DataWriter` and a DDS
-:term:`DataReader`:
-
-.. figure:: /rst/figures/helloworld_endpoint_discovery_messages.png
-    :align: center
-
-    Endpoint discovery messages found in the capture
-
-The ``contains_typecode`` column is ``1`` in both rows, which means the discovery traffic carried the data type
-definition and no ``-idl`` file was needed.
-
-|eddsrecorder| extracts the information about endpoints and topics from these discovery messages, thus creating the two
-following tables.
-
-_endpoints table
-----------------
-
-Table ``_endpoints`` shows the two DDS endpoints detected in the discovery traffic, a DataReader and a DataWriter.
-
-.. figure:: /rst/figures/helloworld_endpoints.png
-    :align: center
-
-    Endpoints detected in the discovery traffic
-
-_topics table
--------------
-
-Table ``_topics`` shows a human readable IDL representation of the TypeCode of the present topic:
-
-.. figure:: /rst/figures/helloworld_topics.png
-    :align: center
-
-    Topics detected in the discovery traffic
-
-.. code-block:: idl
-
-    struct HelloWorld {
-       long counter;
-       string  message;
-    };
-
-This rendering is what |eddsrecorder| used to lay out the columns of the topic table below, which makes it the first
-place to look when a column is missing or has an unexpected type.
-
-Example_HelloWorld table
-------------------------
-
-This table contains the data and the protocol metadata of every sample captured during the session.
-
-.. figure:: /rst/figures/helloworld_topic_table.png
-    :align: center
-
-    Samples recorded for the *HelloWorld* topic
-
-Note that the table is named ``Example_HelloWorld`` while the topic is named ``Example HelloWorld``: the blank space is
-not valid in a SQL identifier and is replaced by an underscore.
-:ref:`user_manual_database_structure_table_names` describes the complete set of substitutions.
-
-The two rightmost columns, ``counter`` and ``message``, are the fields of the ``HelloWorld`` data type.
-All the columns to their left are the protocol metadata that |eddsrecorder| adds to every sample.
-For instance, the recorded samples can be listed in capture order with:
-
-.. code-block:: sql
-
-    SELECT message_id, counter, message FROM Example_HelloWorld ORDER BY message_id;
+The database now contains the six tables of the *DDS Record & Replay* schema:
 
 .. code-block:: text
 
-    38|0|HelloWorld 0
-    45|0|HelloWorld 0
-    55|1|HelloWorld 1
-    59|2|HelloWorld 2
+    Messages  MessagesPartitions  Partitions  Topics  TopicsPartitions  Types
 
-The first two rows carry the same ``counter``: the sample was sent twice.
-:ref:`user_manual_querying_database` shows how to detect and filter such repetitions.
+:ref:`user_manual_monitor_schema` describes each of them.
+It is possible to browse the database through numerous graphical interfaces; every result shown here can also be
+obtained with the ``sqlite3`` command line client.
+
+Topics and Types
+----------------
+
+``Topics`` holds the DDS Topic and the name of its data type, and ``Types`` holds the type itself, rendered as IDL
+from the file given with ``-idl``:
+
+.. code-block:: sql
+
+    SELECT name, type FROM Topics;
+    SELECT idl FROM Types;
+
+.. code-block:: text
+
+    Example HelloWorld|HelloWorld
+
+    @extensibility(APPENDABLE)
+    struct HelloWorld
+    {
+        long counter;
+        string message;
+    };
+
+Without ``-idl`` the ``Types`` row is still written, with an empty ``idl`` column.
+The ``information`` and ``object`` columns stay empty in every case: they are meant for an XTypes ``TypeIdentifier``
+and ``TypeObject``, and |eddsrecorder| reads no XTypes type information from the wire.
+
+Messages
+--------
+
+``Messages`` holds one row per sample, keyed on the writer and the sequence number, with the payload kept as the raw
+:term:`CDR` it traveled as:
+
+.. code-block:: sql
+
+    SELECT sequence_number, log_time, data_cdr_size FROM Messages ORDER BY sequence_number LIMIT 3;
+
+.. code-block:: text
+
+    1|2013-06-18 13:08:52.160848000|28
+    2|2013-06-18 13:08:56.162000000|28
+    3|2013-06-18 13:09:00.163239000|28
+
+``log_time`` is when the sniffer saw the packet and ``publish_time`` is the source timestamp the writer put in it.
+
+Adding the queryable tables
+===========================
+
+``-queryable`` keeps everything above and adds to it:
+
+.. code-block:: bash
+
+    ni_ddsrecorder -db HelloWorld-queryable.db -queryable -idl HelloWorld.idl HelloWorld.pcap
+
+Four more tables appear, plus one table and one view for the topic itself:
+
+.. code-block:: text
+
+    DataTables  DiscoveryMessages  Endpoints  MessagesCapture
+    Data_Example_HelloWorld  Data_Example_HelloWorld_flat
+
+Endpoints and DiscoveryMessages
+-------------------------------
+
+|eddsrecorder| finds two endpoint discovery messages, one from the publisher and one from the subscriber application.
+``Endpoints`` holds the endpoints they announced, and ``DiscoveryMessages`` holds the packets that announced them:
+
+.. code-block:: sql
+
+    SELECT guid, kind FROM Endpoints;
+    SELECT packet_id, ip_src, ip_dst, kind FROM DiscoveryMessages;
+
+.. code-block:: text
+
+    c0.a8.01.0c.00.00.19.04.00.00.00.01|80.0.0.3|DataWriter
+    c0.a8.44.05.00.00.15.98.00.00.00.01|80.0.0.4|DataReader
+
+    23|192.168.1.12|239.255.0.1|DataWriter
+    29|192.168.1.26|192.168.1.12|DataReader
+
+``Endpoints.guid`` is spelled exactly as ``Messages.writer_guid``, so the two join without conversion.
+
+MessagesCapture
+---------------
+
+``Messages`` describes the recording as a DDS application would see it, so it says nothing about which packet carried
+a sample or between which addresses.
+``MessagesCapture`` holds that, one row per packet:
+
+.. code-block:: sql
+
+    SELECT COUNT(*) FROM Messages;
+    SELECT COUNT(*) FROM MessagesCapture;
+
+.. code-block:: text
+
+    30
+    31
+
+The counts differ because one sample traveled twice.
+``Messages`` is keyed on ``(writer_guid, sequence_number)`` and holds it once; ``MessagesCapture`` keeps both
+transmissions, so the repetition the capture witnessed is not lost:
+
+.. code-block:: sql
+
+    SELECT writer_guid, sequence_number, COUNT(*) FROM MessagesCapture
+        GROUP BY 1, 2 HAVING COUNT(*) > 1;
+
+.. code-block:: text
+
+    c0.a8.01.0c.00.00.19.04.00.00.00.01|80.0.0.3|1|2
+
+The topic table
+---------------
+
+``Data_Example_HelloWorld`` holds the deserialized samples, one column per member of the data type:
+
+.. code-block:: text
+
+    writer_guid  sequence_number  counter  message
+
+The first two columns are the key back into ``Messages``; ``counter`` and ``message`` are the fields of the
+``HelloWorld`` data type.
+Note that the table is named ``Data_Example_HelloWorld`` while the topic is named ``Example HelloWorld``: the blank
+space is not valid in a SQL identifier and is replaced by an underscore.
+``DataTables`` records the mapping, so it is never necessary to reproduce that substitution by hand:
+
+.. code-block:: sql
+
+    SELECT topic, member_path, table_name FROM DataTables;
+
+.. code-block:: text
+
+    Example HelloWorld||Data_Example_HelloWorld
+
+Reading a sample beside its timestamps means joining ``Messages``.
+The ``_flat`` view does that join once, and reads like a single table:
+
+.. code-block:: sql
+
+    SELECT log_time, counter, message FROM Data_Example_HelloWorld_flat ORDER BY log_time LIMIT 4;
+
+.. code-block:: text
+
+    2013-06-18 13:08:52.160848000|0|HelloWorld 0
+    2013-06-18 13:08:56.162000000|1|HelloWorld 1
+    2013-06-18 13:09:00.163239000|2|HelloWorld 2
+    2013-06-18 13:09:04.164486000|3|HelloWorld 3
+
+:ref:`user_manual_querying_database` shows more of what can be asked of the schema.
 
 .. _user_manual_usage_idl_naming_policy:
 
@@ -250,26 +339,23 @@ The first two rows carry the same ``counter``: the sample was sent twice.
 A note on IDL file naming policy
 ********************************
 
-Not every DDS implementation sends the definition of its data types as part of the discovery process.
-When |eddsrecorder| is used with a library that does not, an IDL file with the type definitions must be provided
-through the ``-idl`` argument.
-Three rules apply to that file:
+The RTPS traffic carries no data type description that |eddsrecorder| reads, so an IDL file given through the
+``-idl`` argument is the only way to describe the types of a captured system.
+Without one the capture is still recorded in full, as :term:`CDR`, but ``Types.idl`` stays empty and ``-queryable``
+produces no topic table.
+Two rules apply to that file:
 
 * **The struct name must match the type name announced on the wire.**
   |eddsrecorder| looks up the type by the ``dataType`` name found in the discovery messages.
   For example, if a topic is named ``SimpleDataTopic`` and its type is ``SimpleDataType``, the structure defining it in
   the IDL must be named ``SimpleDataType``.
 
-* **Member names must be valid, unquoted SQL identifiers.**
-  Member names are used verbatim as column names, so a member whose name is an SQLite keyword, such as ``index``,
-  ``order`` or ``group``, makes the creation of the topic table fail and the topic is not recorded.
-  Rename the member in the IDL file supplied to |eddsrecorder| when this happens; the name only has to match on the
-  wire at the type level, not at the member level.
+* **The file must declare every type you want described.**
+  It is parsed once, as a whole, and every structure, union, enumeration and alias in it is kept.
+  A topic whose type is not among them is recorded without a description, which is not an error.
 
-* **Member names must not collide with the protocol metadata columns.**
-  |eddsrecorder| adds its own columns in front of every topic table, so avoid members named ``message_id``, ``ip_src``,
-  ``ip_dst`` or any of the other names listed in
-  :ref:`user_manual_database_structure_metadata`.
+Member names are emitted as quoted SQL identifiers, so a member named after an SQLite keyword, such as ``index`` or
+``order``, needs no renaming.
 
 If the file cannot be parsed, |eddsrecorder| prints ``Error parsing the IDL file`` and stops without processing the
 capture.

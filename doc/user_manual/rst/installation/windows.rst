@@ -17,7 +17,7 @@ Download the installation package for your system:
 
 .. parsed-literal::
 
-    eProsima_DDSRecorder-\ |release|\ -Win32.exe
+    eProsima_NI_DDSRecorder-\ |release|\ -Win32.exe
 
 Execute the installer and follow the onscreen instructions.
 
@@ -29,7 +29,7 @@ Download the installation package for your system:
 
 .. parsed-literal::
 
-    eProsima_DDSRecorder-\ |release|\ -Win64.exe
+    eProsima_NI_DDSRecorder-\ |release|\ -Win64.exe
 
 Execute the installer and follow the onscreen instructions.
 
@@ -37,12 +37,12 @@ Execute the installer and follow the onscreen instructions.
 Verifying the installation
 **************************
 
-The installer adds the ``DDSRecorder`` executable to the installation directory.
+The installer adds the ``ni_ddsrecorder`` executable to the installation directory.
 Open a command prompt in that directory and print the application help to check that the installation succeeded:
 
 .. code-block:: bat
 
-    DDSRecorder -help
+    ni_ddsrecorder -help
 
 The command prints the list of accepted arguments, described in
 :ref:`user_manual_usage_application_arguments`.

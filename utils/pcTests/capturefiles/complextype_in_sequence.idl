@@ -1,0 +1,12 @@
+struct Estructura
+{
+    long id;
+    string msg;
+};
+
+typedef sequence<Estructura> Estructura_seq;
+
+struct CompletypeInSequence
+{
+    Estructura_seq seq;
+};

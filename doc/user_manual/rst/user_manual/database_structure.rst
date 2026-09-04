@@ -3,215 +3,213 @@
 
 .. _user_manual_database_structure:
 
-############################
-Generated Database Structure
-############################
+################
+Queryable schema
+################
 
-|eddsrecorder| writes two kinds of tables into the generated :term:`SQLite` file.
-Tables whose name starts with an underscore are created by the application itself and always have the same schema;
-every other table is derived from a DDS Topic found in the capture and its columns depend on the topic data type.
+The ``-queryable`` argument does not choose a schema, it adds one.
+The *DDS Record & Replay* tables described in :ref:`user_manual_monitor_schema` are written whatever the arguments,
+and ``-queryable`` puts more tables beside them.
+A recording made with it is therefore still a valid *DDS Record & Replay* database, and can still be replayed.
 
-* **Discovery Tables**: store the relevant discovery information.
+What it adds is of two kinds:
 
-  * ``_topics``: the DDS Topics and their data type information.
-  * ``_endpoints``: the DDS endpoints, that is, DataReaders and DataWriters.
-  * ``_endpointDiscoveryMessages``: the raw DDS endpoint discovery messages.
+* **One table per DDS Topic**, whose columns are the members of the topic data type, so the samples can be read with
+  ordinary SQL instead of decoding a :term:`CDR` blob.
+  That is what the name refers to, and it is the trade-off: a topic needs its data type to be known, from the file
+  passed with ``-idl``, or it gets no table.
 
-* **User Topics Tables**:
-
-  * **Topic Main Tables**: one table per DDS Topic, storing the topic samples using the topic data type schema.
-
-    * ``topicName1``
-    * ``topicName2``
-    * ...
-    * ``topicNameN``
-
-  * **Topic Auxiliary Tables**: for DDS Topics containing variable length fields, such as an array or a sequence,
-    auxiliary tables hold the individual element values of each sample.
-
-    * ``topicNameT``
-
-      * ``topicNameT_varLengthFieldName1``
-      * ``topicNameT_varLengthFieldName2``
-      * ...
-      * ``topicNameT_varLengthFieldNameN``
-
-The user topic tables are only created for the topics whose data type could be resolved.
-A topic whose :term:`TypeCode` is neither announced in the discovery traffic nor described in the file passed with
-``-idl`` appears in ``_topics`` and ``_endpoints`` but gets no table of its own.
+* **The packet level tables**, holding what a capture reveals and the *DDS Record & Replay* schema has no column for:
+  which packet carried which sample, and between which addresses.
 
 .. note::
 
-    The tables are recreated on every run.
-    When |eddsrecorder| opens a database file that already contains its tables, the discovery tables are emptied and
-    the topic tables are dropped before the new capture is processed.
+    A topic without a table is not a loss.
+    Its samples are in ``Messages`` as :term:`CDR`, exactly as they would be without ``-queryable``.
 
 .. _user_manual_database_structure_discovery_tables:
 
-****************
-Discovery Tables
-****************
+*******************
+Packet level tables
+*******************
 
-_topics table
-=============
+Endpoints
+=========
 
-|eddsrecorder| creates a table named ``_topics``.
-This table stores information about all DDS Topics found in the sniffer trace.
+One row per DDS :term:`DataWriter` or :term:`DataReader` announced in the discovery traffic.
 
-.. list-table:: ``_topics`` table fields
+.. list-table::
     :header-rows: 1
+    :widths: 24 16 60
 
-    *   - Table field
-        - Field type
+    *   - Column
+        - Type
         - Description
 
-    *   - ``topic_name``
-        - ``VARCHAR(255)``
-        - The name of the discovered DDS Topic, |br|
-          exactly as announced on the wire.
+    *   - ``guid``
+        - TEXT
+        - :term:`Guid` of the endpoint, spelled exactly as |br|
+          ``Messages.writer_guid`` spells a writer. |br|
+          Primary key.
 
-    *   - ``type_name``
-        - ``VARCHAR(255)``
-        - The name of the DDS Topic data type.
+    *   - ``kind``
+        - TEXT
+        - ``DataWriter`` or ``DataReader``.
 
-    *   - ``typecode``
-        - ``TEXT``
-        - The TypeCode of the data type rendered |br|
-          as human readable IDL.
+    *   - ``topic``
+        - TEXT
+        - Name of the DDS Topic the endpoint serves.
 
-The ``typecode`` column is the definitive record of the schema |eddsrecorder| used to lay out the corresponding topic
-table, which makes it the first thing to inspect when a column is missing or has an unexpected type.
+    *   - ``type``
+        - TEXT
+        - Name of the DDS Topic data type.
 
-_endpoints table
-================
+Because ``guid`` uses the same spelling as ``Messages.writer_guid``, the two join without any conversion:
 
-|eddsrecorder| creates a table named ``_endpoints``.
-This table stores information about the DataWriters and DataReaders found in the sniffer trace.
-Its primary key is the four-field :term:`Guid`, so each endpoint appears exactly once no matter how many times it was
-announced.
+.. code-block:: sql
 
-.. list-table:: ``_endpoints`` table fields
+    SELECT e.kind, e.topic, COUNT(m.sequence_number)
+        FROM Endpoints e LEFT JOIN Messages m ON m.writer_guid = e.guid
+        GROUP BY e.guid;
+
+DiscoveryMessages
+=================
+
+One row per discovery packet the capture holds, not per endpoint: an endpoint announced repeatedly, or announced to
+several destinations, produced several packets.
+
+.. list-table::
     :header-rows: 1
+    :widths: 24 16 60
 
-    *   - Table field
-        - Field type
+    *   - Column
+        - Type
         - Description
 
-    *   - ``rtps_host_id`` |br|
-          ``rtps_app_id`` |br|
-          ``rtps_instance_id`` |br|
-          ``rtps_entity_id``
-        - ``UNSIGNED INT``
-        - These four fields contain the unique |br|
-          identifier of the endpoint. |br|
-          The first three are the |br|
-          :term:`GuidPrefix` of the participant |br|
-          that owns it; the fourth identifies |br|
-          the endpoint inside that participant. |br|
-          Together they form the primary key.
+    *   - ``packet_id``
+        - INTEGER
+        - Ordinal of the packet inside the capture |br|
+          file. Primary key.
 
-    *   - ``endpoint_type``
-        - ``CHARACTER(10)``
-        - Type of entity: ``DataReader`` or |br|
-          ``DataWriter``.
+    *   - ``log_time``
+        - DATETIME
+        - When the sniffer saw the packet.
 
-    *   - ``topic_name``
-        - ``VARCHAR(255)``
-        - Topic associated with the entity.
-
-_endpointDiscoveryMessages table
-================================
-
-|eddsrecorder| creates a table named ``_endpointDiscoveryMessages``.
-This table stores all RTPS messages involved in the endpoint discovery phase, one row per message, keyed by
-``message_id``.
-
-.. list-table:: ``_endpointDiscoveryMessages`` table fields
-    :header-rows: 1
-
-    *   - Table field
-        - Field type
-        - Description
-
-    *   - ``message_id``
-        - ``INT``
-        - Numeric identifier for the message, |br|
-          matching the sniffer packet number. |br|
-          Primary key of the table.
-
-    *   - ``sniffer_timestamp_sec`` |br|
-          ``sniffer_timestamp_usec``
-        - ``INT``
-        - Sniffer timestamp (seconds, microseconds).
+    *   - ``publish_time``
+        - DATETIME
+        - Source timestamp carried by the packet.
 
     *   - ``ip_src``
-        - ``VARCHAR(15)``
-        - Source IP address.
+        - TEXT
+        - Source IPv4 address.
 
     *   - ``ip_dst``
-        - ``VARCHAR(15)``
-        - Destination IP address. |br|
-          A multicast address here means the |br|
-          message was announced to the whole |br|
-          domain rather than to a single peer.
+        - TEXT
+        - Destination IPv4 address.
 
-    *   - ``src_rtps_host_id`` |br|
-          ``src_rtps_app_id`` |br|
-          ``src_rtps_instance_id``
-        - ``UNSIGNED INT``
-        - :term:`GuidPrefix` of the source |br|
-          participant.
+    *   - ``dst_guid_prefix``
+        - TEXT
+        - GuidPrefix the packet was addressed to, |br|
+          or ``NULL`` when it carried no |br|
+          ``INFO_DST`` and so was addressed to |br|
+          every participant.
 
-    *   - ``src_timestamp_sec`` |br|
-          ``src_timestamp_nanosec``
-        - ``INT``
-        - Source timestamp of the discovery message |br|
-          (seconds, nanoseconds). |br|
-          This timestamp is set when the source |br|
-          participant sends the discovery message |br|
-          using its own clock.
+    *   - ``endpoint_guid``
+        - TEXT
+        - The endpoint announced, referencing |br|
+          ``Endpoints.guid``.
 
-    *   - ``dst_rtps_host_id`` |br|
-          ``dst_rtps_app_id`` |br|
-          ``dst_rtps_instance_id``
-        - ``UNSIGNED INT``
-        - :term:`GuidPrefix` of the destination |br|
-          participant. |br|
-          These fields are ``NULL`` when the |br|
-          discovery message is not addressed to |br|
-          a single DomainParticipant.
+    *   - ``kind``
+        - TEXT
+        - ``DataWriter`` or ``DataReader``.
 
-    *   - ``endpoint_rtps_entity_id``
-        - ``UNSIGNED INT``
-        - ``rtps_entity_id`` of the announced |br|
-          endpoint. |br|
-          The endpoint Guid is obtained by |br|
-          appending this ID to the source |br|
-          participant GuidPrefix.
+The announcing participant is the one that owns the endpoint, so its GuidPrefix is the prefix half of
+``endpoint_guid`` and has no column of its own.
 
-    *   - ``endpoint_type``
-        - ``CHARACTER(10)``
-        - This field specifies if the endpoint is |br|
-          a ``DataWriter`` or a ``DataReader``.
+MessagesCapture
+===============
 
-    *   - ``topic_name``
-        - ``VARCHAR(255)``
-        - The name of the DDS Topic associated |br|
-          with the DataWriter or DataReader.
+One row per packet that carried a user sample.
 
-    *   - ``contains_typecode``
-        - ``UNSIGNED TINYINT``
-        - ``1`` if the endpoint information |br|
-          contains the TypeCode of the topic data |br|
-          type, otherwise ``0``. |br|
-          A ``0`` means the topic can only be |br|
-          recorded if an IDL file is supplied.
+.. list-table::
+    :header-rows: 1
+    :widths: 24 16 60
 
-.. note::
+    *   - Column
+        - Type
+        - Description
 
-    The :term:`SPDP` participant announcements are not recorded.
-    |eddsrecorder| tracks DDS entities at the endpoint level, so a participant is only visible through the
-    GuidPrefix of the endpoints it owns and the samples it sends.
+    *   - ``packet_id``
+        - INTEGER
+        - Ordinal of the packet inside the capture |br|
+          file. Primary key.
+
+    *   - ``writer_guid``
+        - TEXT
+        - Together with ``sequence_number``, |br|
+          references ``Messages``.
+
+    *   - ``sequence_number``
+        - INTEGER
+        - Sequence number of the sample.
+
+    *   - ``log_time``
+        - DATETIME
+        - When the sniffer saw the packet.
+
+    *   - ``ip_src``
+        - TEXT
+        - Source IPv4 address.
+
+    *   - ``ip_dst``
+        - TEXT
+        - Destination IPv4 address.
+
+    *   - ``dst_guid_prefix``
+        - TEXT
+        - GuidPrefix the packet was addressed to, |br|
+          or ``NULL``.
+
+This table is the reason ``-queryable`` sees more than ``Messages`` does.
+``Messages`` is keyed on ``(writer_guid, sequence_number)``, so a sample that traveled twice, because it was sent
+both as multicast and as unicast or because the writer repaired it, appears once there.
+Here each transmission is a row, so the repetition the capture witnessed survives:
+
+.. code-block:: sql
+
+    SELECT writer_guid, sequence_number, COUNT(*) FROM MessagesCapture
+        GROUP BY 1, 2 HAVING COUNT(*) > 1;
+
+DataTables
+==========
+
+The registry naming the per topic tables.
+
+.. list-table::
+    :header-rows: 1
+    :widths: 24 16 60
+
+    *   - Column
+        - Type
+        - Description
+
+    *   - ``topic``
+        - TEXT
+        - Name of the DDS Topic.
+
+    *   - ``type``
+        - TEXT
+        - Name of the DDS Topic data type.
+
+    *   - ``member_path``
+        - TEXT
+        - Empty for the topic's own table, |br|
+          otherwise the collection member the |br|
+          table holds.
+
+    *   - ``table_name``
+        - TEXT
+        - The SQL name of the table.
 
 .. _user_manual_database_structure_user_topics_tables:
 
@@ -224,117 +222,120 @@ User Topics tables
 Table names
 ===========
 
-For each discovered DDS Topic whose data type could be resolved, |eddsrecorder| creates a table named after the topic.
-Since a DDS topic name may contain characters that are not valid in an unquoted SQL identifier, the following
-substitutions are applied to obtain the table name.
-Every occurrence of
+A DDS topic name may contain characters that are not valid in an unquoted SQL identifier, so the table of a topic is
+named ``Data_`` followed by the topic name with every character outside ``A-Z``, ``a-z``, ``0-9`` and ``_`` replaced
+by an underscore.
+For example, the topic ``Example HelloWorld`` is stored in a table named ``Data_Example_HelloWorld``.
 
-.. code-block:: text
+Two different topic names can end up with the same identifier that way.
+Rather than let the second silently replace the first, |eddsrecorder| gives it a numeric suffix, and records every
+table in ``DataTables``:
 
-    ':'   '.'   '-'   ' '
+.. code-block:: sql
 
-is replaced by the character ``_``.
+    SELECT table_name FROM DataTables WHERE topic = 'Example HelloWorld' AND member_path = '';
 
-For example, the topic ``Example HelloWorld`` used in :ref:`user_manual_usage_example` is stored in a table named
-``Example_HelloWorld``, and a topic named ``robot.arm-1`` would be stored in ``robot_arm_1``.
-The ``_topics`` table always keeps the original, unmodified topic name, so it is the way to map a table back to its
-topic.
-
-.. warning::
-
-    Because these substitutions are not reversible, two different topic names may map to the same table name; for
-    instance ``a.b`` and ``a-b`` both become ``a_b``.
-    When that happens the topic discovered later drops and recreates the table, discarding the rows already written
-    for the other topic.
-    Rename one of the topics, or record them from separate captures, to record both.
+Read the name from there rather than reproducing the substitution by hand; it is the only way that stays correct when
+a suffix has been added.
 
 Topic Main Tables
 =================
 
-The main table of a topic stores all its data samples, using the following schema:
+The main table of a topic holds one row per sample: two key columns, then one column per member of the data type.
 
-* Protocol metadata fields, always the same and always first.
-* Topic data type fields, derived from the TypeCode as described in :ref:`user_manual_data_types`.
-
-.. _user_manual_database_structure_metadata:
-
-.. list-table:: Topic table protocol metadata fields
+.. list-table::
     :header-rows: 1
+    :widths: 24 16 60
 
-    *   - Table field
-        - Field type
+    *   - Column
+        - Type
         - Description
 
-    *   - ``message_id``
-        - ``INT``
-        - Numeric identifier for the message, |br|
-          matching the sniffer packet number. |br|
-          Primary key of the table, and the |br|
-          natural way to order samples by |br|
-          capture order.
+    *   - ``writer_guid``
+        - TEXT
+        - Together with ``sequence_number``, the |br|
+          primary key, referencing ``Messages``.
 
-    *   - ``sniffer_timestamp_sec`` |br|
-          ``sniffer_timestamp_usec``
-        - ``INT``
-        - Sniffer timestamp (seconds, microseconds). |br|
-          Taken from the capture file, so all |br|
-          samples share this clock regardless of |br|
-          which node sent them.
+    *   - ``sequence_number``
+        - INTEGER
+        - Sequence number of the sample.
 
-    *   - ``ip_src``
-        - ``VARCHAR(15)``
-        - Source IP address.
+    *   - *one per member*
+        - *depends*
+        - The members of the data type, |br|
+          flattened as described below.
 
-    *   - ``ip_dst``
-        - ``VARCHAR(15)``
-        - Destination IP address.
+Everything the recording shares with the *DDS Record & Replay* schema, from the timestamps to the topic name, stays in
+``Messages`` instead of being repeated in every topic table.
+Reading a sample beside those columns is therefore a join, and the ``_flat`` view created next to each table does it
+for you:
 
-    *   - ``src_rtps_host_id`` |br|
-          ``src_rtps_app_id`` |br|
-          ``src_rtps_instance_id``
-        - ``UNSIGNED INT``
-        - :term:`GuidPrefix` of the participant |br|
-          that sent the sample.
+.. code-block:: sql
 
-    *   - ``src_timestamp_sec`` |br|
-          ``src_timestamp_nanosec``
-        - ``INT``
-        - Source timestamp of the message |br|
-          (seconds, nanoseconds). |br|
-          This timestamp is set when the source |br|
-          participant sends the message using its |br|
-          own clock.
+    SELECT log_time, counter, message FROM Data_Example_HelloWorld_flat ORDER BY log_time;
 
-    *   - ``dst_rtps_host_id`` |br|
-          ``dst_rtps_app_id`` |br|
-          ``dst_rtps_instance_id``
-        - ``UNSIGNED INT``
-        - :term:`GuidPrefix` of the destination |br|
-          participant. |br|
-          These fields are ``NULL`` when the message |br|
-          is not addressed to a single |br|
-          DomainParticipant.
+A nested structure is flattened into the same table, its member names prefixed with the path that reaches them, so a
+member ``ins`` of type ``Inside`` with a member ``count`` becomes the column ``ins_count``.
+Member names are emitted as quoted identifiers, so a member named after an SQLite keyword needs no renaming.
 
-.. note::
-
-    The metadata identifies the *participant* that sent a sample, not the individual DataWriter: there is no
-    ``src_rtps_entity_id`` column.
-    When a participant owns several DataWriters on the same topic, their samples cannot be told apart.
-    Joining the three ``src_rtps_*`` columns against ``_endpoints`` resolves the writer whenever the participant owns
-    exactly one writer on the topic, as shown in :ref:`user_manual_querying_database`.
-
-Because these names are added in front of every topic table, a data type member with one of these names collides
-with them.
-See :ref:`user_manual_usage_idl_naming_policy`.
+A union adds a ``<path>_discriminator`` column holding the value that selected the branch, and one column per branch.
+The columns of the branches a sample did not take are ``NULL``.
 
 Topic Auxiliary Tables
 ======================
 
-If a topic contains a variable length field, such as an array or a sequence, an auxiliary table named
-``<TopicTableName>_<FieldName>`` holds one row per element of that field, and the main table gets an integer
-``<FieldName>_id`` column that links to it.
+An array or a sequence member cannot fit in one column, so it gets a table of its own, named after the main table and
+the member: ``Data_Example_Arrays_ocarray`` for the member ``ocarray``.
+It holds one row per element.
 
-The complete information of a sample is obtained with an SQL query that joins the auxiliary table with the
-corresponding main table on that column.
-Please refer to :ref:`user_manual_data_types_sequences_arrays` for the exact schema of these tables and to
-:ref:`user_manual_querying_database` for the queries.
+.. list-table::
+    :header-rows: 1
+    :widths: 24 16 60
+
+    *   - Column
+        - Type
+        - Description
+
+    *   - ``writer_guid``
+        - TEXT
+        - Together with ``sequence_number``, |br|
+          identifies the sample the element |br|
+          belongs to.
+
+    *   - ``sequence_number``
+        - INTEGER
+        - Sequence number of the sample.
+
+    *   - ``index_0`` ... ``index_n``
+        - INTEGER
+        - Position of the element. One column per |br|
+          array dimension; a sequence has one.
+
+    *   - ``value``
+        - *depends*
+        - The element, when it is a simple type.
+
+    *   - *one per member*
+        - *depends*
+        - When the element is a structure, its |br|
+          members are flattened here instead of |br|
+          a single ``value`` column.
+
+The key columns are the same as the main table's, so an element joins back to its sample, and through it to
+``Messages``:
+
+.. code-block:: sql
+
+    SELECT m.log_time, a.index_0, a.value
+        FROM Data_Example_Arrays_ocarray a
+        JOIN Messages m USING (writer_guid, sequence_number)
+        ORDER BY m.log_time, a.index_0;
+
+*******************
+Unsupported members
+*******************
+
+A member whose type has no column representation makes the whole topic unrepresentable, and no table is created for
+it. That covers maps, bitsets, bitmasks, 128 bit floats, wide strings, and a collection nested directly inside
+another collection.
+The samples are still recorded as :term:`CDR` in ``Messages``, and the reason is printed on the console.

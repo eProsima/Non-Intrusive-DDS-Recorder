@@ -9,13 +9,10 @@
 #include "fastcdr/Cdr.h"
 #include "fastcdr/exceptions/Exception.h"
 #include "log/eProsimaLog.h"
-#include "database/TypeCodeDB.h"
-#include "database/EntitiesDB.h"
-#include "database/DynamicDataDB.h"
-#include "cdr/TypeCode.h"
-
-#include "./idlparser/UserTypeCodeProvider.h"
-
+#include "database/MonitorDB.h"
+#include "database/CaptureDB.h"
+#include "database/TopicsDB.h"
+#include "TypeStore.h"
 
 #ifdef EPROSIMA_LINUX
 #include <sys/time.h>
@@ -30,7 +27,6 @@
 #define RTPS_PID_END (0x0001)
 #define RTPS_PID_TOPIC_NAME (0x0005)
 #define RTPS_PID_TYPE_NAME (0x0007)
-#define RTPS_PID_TYPECODE (0x8004)
 #define RTPS_PID_GUID (0x005A)
 
 using namespace eprosima::fastcdr;
@@ -42,32 +38,43 @@ static const char* const CLASS_NAME = "DDSRecorder";
 DDSRecorder::DDSRecorder(
         eProsimaLog& log,
         string& database,
-        int tcMaxSize)
+        bool queryable_mode,
+        const TypeStore * type_store)
     : m_log(log)
     , m_databaseH(NULL)
-    , m_typecodeDB(NULL)
-    , m_entitiesDB(NULL)
-    , m_tcMaxSize(tcMaxSize)
-    , UTCprovider(NULL)
+    , type_store_(type_store)
 {
     const char* const METHOD_NAME = "DDSRecorder";
 
     if (sqlite3_open(database.c_str(), &m_databaseH) == SQLITE_OK)
     {
-        m_typecodeDB = new TypeCodeDB(m_log, m_databaseH, tcMaxSize);
+        monitor_db_ = new MonitorDB(m_log, m_databaseH);
 
-        if (m_typecodeDB != NULL)
+        if (monitor_db_ == NULL)
         {
-            m_entitiesDB = new EntitiesDB(m_log, m_databaseH);
-
-            if (m_entitiesDB == NULL)
-            {
-                logError(m_log, "Cannot create object EntitiesDB");
-            }
+            logError(m_log, "Cannot create object MonitorDB");
         }
-        else
+
+        /*
+         * The two schemas are no longer exclusive: '-queryable' keeps the *DDS Record & Replay*
+         * tables and adds a table per DDS Topic beside them, so a recording made with it can
+         * still be replayed.
+         */
+        if (queryable_mode)
         {
-            logError(m_log, "Cannot create object TypeCodeDB");
+            topics_db_ = new TopicsDB(m_log, m_databaseH, type_store_);
+
+            if (topics_db_ == NULL || !topics_db_->is_ready())
+            {
+                logError(m_log, "Cannot create object TopicsDB");
+            }
+
+            capture_db_ = new CaptureDB(m_log, m_databaseH);
+
+            if (capture_db_ == NULL || !capture_db_->is_ready())
+            {
+                logError(m_log, "Cannot create object CaptureDB");
+            }
         }
     }
     else
@@ -80,13 +87,17 @@ DDSRecorder::DDSRecorder(
 
 DDSRecorder::~DDSRecorder()
 {
-    if (m_typecodeDB != NULL)
+    if (capture_db_ != NULL)
     {
-        delete m_typecodeDB;
+        delete capture_db_;
     }
-    if (m_entitiesDB != NULL)
+    if (topics_db_ != NULL)
     {
-        delete m_entitiesDB;
+        delete topics_db_;
+    }
+    if (monitor_db_ != NULL)
+    {
+        delete monitor_db_;
     }
     if (m_databaseH != NULL)
     {
@@ -199,61 +210,32 @@ void DDSRecorder::processDataW(
     {
         PublicationBuiltinTopic pubtopic;
         deserializePublicationBuiltinTopic(endianess, (char*)serializedData, serializedDataLen, pubtopic);
-        bool sentTypeCode = false;
-        TypeCode * typeCode = NULL;
 
-        if (pubtopic.typeCode != NULL)
+        if (nullptr != monitor_db_)
         {
-            typeCode = TypeCode::deserializeTypeCode(pubtopic.typeCode, pubtopic.typeCodeLength);
-            sentTypeCode = true;
-            if (typeCode == NULL)
-            {
-                logError(m_log, "Cannot deserialize the typecode");
-            }
+            /*
+             * The schema stores the samples as CDR, so the data type is needed only to describe
+             * the type for the user. Its one source is the file given with '-idl'; when that file
+             * did not declare it, the type is recorded without a description.
+             */
+            monitor_db_->add_topic(pubtopic.topic_name, pubtopic.type_name,
+                    (type_store_ != nullptr) ? type_store_->idl_for(pubtopic.type_name) : string());
+            monitor_db_->add_endpoint(pubtopic.guid.hostId, pubtopic.guid.appId,
+                    pubtopic.guid.instanceId, pubtopic.guid.objectId,
+                    pubtopic.topic_name, pubtopic.type_name);
         }
-        else if (UTCprovider != NULL) //Look for the typecode in the user provided idl list of typecodes
-        {
-            if (!UTCprovider->getStructTypeCode(pubtopic.type_name, &typeCode))
-            {
-                logError(m_log, "Cannot find the typeCode in the user provided IDL file.");
-            }
-        }
-        if (typeCode != NULL)
-        {
-            // Add typecode.
-            if (m_typecodeDB == NULL || m_typecodeDB->addTypecode(pubtopic.topic_name, pubtopic.type_name,
-                    typeCode) == false)
-            {
-                if (sentTypeCode)
-                {
-                    delete typeCode;
-                }
-            }
 
-            // Add entity.
-            if (m_entitiesDB != NULL)
-            {
-                m_entitiesDB->addEntity(npacket, wts, ip_src, ip_dst, hostId,
-                        appId, instanceId, readerId, writerId, writerSeqNum,
-                        sourceTmp, destHostId, destAppId, destInstanceId, pubtopic.guid.hostId,
-                        pubtopic.guid.appId, pubtopic.guid.instanceId,
-                        pubtopic.guid.objectId, 1, pubtopic.topic_name, pubtopic.type_name, true);
-            }
-        }
-        else
+        if (topics_db_ != NULL)
         {
-            logInfo(m_log,
-                    "the datawriter of topic %s doesn't send the typecode, and the user didn't provide it either",
-                    pubtopic.topic_name.c_str());
+            topics_db_->add_topic(pubtopic.topic_name, pubtopic.type_name);
+        }
 
-            if (m_entitiesDB != NULL)
-            {
-                m_entitiesDB->addEntity(npacket, wts, ip_src, ip_dst, hostId,
-                        appId, instanceId, readerId, writerId, writerSeqNum,
-                        sourceTmp, destHostId, destAppId, destInstanceId, pubtopic.guid.hostId,
-                        pubtopic.guid.appId, pubtopic.guid.instanceId,
-                        pubtopic.guid.objectId, 1, pubtopic.topic_name, pubtopic.type_name, false);
-            }
+        if (capture_db_ != NULL)
+        {
+            capture_db_->add_discovery(npacket, wts, ip_src, ip_dst, sourceTmp,
+                    destHostId, destAppId, destInstanceId,
+                    pubtopic.guid.hostId, pubtopic.guid.appId, pubtopic.guid.instanceId,
+                    pubtopic.guid.objectId, true, pubtopic.topic_name, pubtopic.type_name);
         }
     }
     else
@@ -287,62 +269,32 @@ void DDSRecorder::processDataR(
     {
         SubscriptionBuiltinTopic subtopic;
         deserializeSubscriptionBuiltinTopic(endianess, (char*)serializedData, serializedDataLen, subtopic);
-        bool sentTypeCode = false;
-        TypeCode * typeCode = NULL;
 
-        if (subtopic.typeCode != NULL)
+        if (monitor_db_ != NULL)
         {
-            typeCode = TypeCode::deserializeTypeCode(subtopic.typeCode, subtopic.typeCodeLength);
-            sentTypeCode = true;
-            if (typeCode == NULL)
-            {
-                logError(m_log, "Cannot deserialize the typecode");
-            }
-        }
-        else if (UTCprovider != NULL) //Look for the typecode in the user provided idl list of typecodes
-        {
-            if (!UTCprovider->getStructTypeCode(subtopic.type_name, &typeCode))
-            {
-                logError(m_log, "Cannot find the typeCode in the user provided IDL file.");
-            }
+            /*
+             * The schema stores the samples as CDR, so the data type is needed only to describe
+             * the type for the user. Its one source is the file given with '-idl'; when that file
+             * did not declare it, the type is recorded without a description.
+             */
+            monitor_db_->add_topic(subtopic.topic_name, subtopic.type_name,
+                    (type_store_ != nullptr) ? type_store_->idl_for(subtopic.type_name) : string());
+            monitor_db_->add_endpoint(subtopic.guid.hostId, subtopic.guid.appId,
+                    subtopic.guid.instanceId, subtopic.guid.objectId,
+                    subtopic.topic_name, subtopic.type_name);
         }
 
-        if (typeCode != NULL)
+        if (topics_db_ != NULL)
         {
-            // Add typecode.
-            if (m_typecodeDB == NULL || m_typecodeDB->addTypecode(subtopic.topic_name, subtopic.type_name,
-                    typeCode) == false)
-            {
-                if (sentTypeCode)
-                {
-                    delete typeCode;
-                }
-            }
-
-            // Add entity.
-            if (m_entitiesDB != NULL)
-            {
-                m_entitiesDB->addEntity(npacket, wts, ip_src, ip_dst, hostId,
-                        appId, instanceId, readerId, writerId, writerSeqNum,
-                        sourceTmp, destHostId, destAppId, destInstanceId, subtopic.guid.hostId,
-                        subtopic.guid.appId, subtopic.guid.instanceId,
-                        subtopic.guid.objectId, 0, subtopic.topic_name, subtopic.type_name, true);
-            }
+            topics_db_->add_topic(subtopic.topic_name, subtopic.type_name);
         }
-        else
-        {
-            logInfo(m_log,
-                    "the datareader of topic %s doesn't send the typecode, and the user didn't provide it either",
-                    subtopic.topic_name.c_str());
 
-            if (m_entitiesDB != NULL)
-            {
-                m_entitiesDB->addEntity(npacket, wts, ip_src, ip_dst, hostId,
-                        appId, instanceId, readerId, writerId, writerSeqNum,
-                        sourceTmp, destHostId, destAppId, destInstanceId, subtopic.guid.hostId,
-                        subtopic.guid.appId, subtopic.guid.instanceId,
-                        subtopic.guid.objectId, 0, subtopic.topic_name, subtopic.type_name, false);
-            }
+        if (capture_db_ != NULL)
+        {
+            capture_db_->add_discovery(npacket, wts, ip_src, ip_dst, sourceTmp,
+                    destHostId, destAppId, destInstanceId,
+                    subtopic.guid.hostId, subtopic.guid.appId, subtopic.guid.instanceId,
+                    subtopic.guid.objectId, false, subtopic.topic_name, subtopic.type_name);
         }
     }
     else
@@ -370,57 +322,31 @@ void DDSRecorder::processDataNormal(
         const char * serializedData,
         unsigned int serializedDataLen)
 {
-    const char* const METHOD_NAME = "processDataNormal";
-    eEntity * entity = NULL;
-    eTypeCode * typecode = NULL;
-    DynamicDataDB * dynamicDB = NULL;
-    bool error = false;
+    MonitorDB::StoredMessage stored;
 
-    // Check the writer or reader has associated a typecode.
-    if ((entity = m_entitiesDB->findEntity(hostId, appId,
-            instanceId, writerId)) != NULL ||
-            (entity = m_entitiesDB->findEntity(hostId, appId,
-            instanceId, readerId)) != NULL)
+    monitor_db_->add_message(wts, hostId, appId, instanceId, readerId, writerId,
+            writerSeqNum, sourceTmp, serializedData, serializedDataLen, &stored);
+
+    /*
+     * Only a sample that Messages actually took gets a data row. A duplicate, seen twice because
+     * it travelled both as multicast and as unicast, would collide on the same key here too.
+     */
+    if (topics_db_ != NULL && stored.stored)
     {
-        if ((typecode = m_typecodeDB->findTypecode(entity->getTopicName(),
-                entity->getTypeName(), error)) != NULL && !error)
-        {
-            Cdr::Endianness _endianess = endianess ? Cdr::LITTLE_ENDIANNESS : Cdr::BIG_ENDIANNESS;
-            FastBuffer buffer((char*)serializedData, serializedDataLen);
-            Cdr cdr(buffer, _endianess, CdrVersion::XCDRv1);
-
-            cdr.read_encapsulation();
-
-            if (cdr.get_encoding_flag() == EncodingAlgorithmFlag::PLAIN_CDR)
-            {
-                // It is necessary reset the alignment in the CDR buffer.
-                cdr.reset_alignment();
-                dynamicDB = typecode->getDynamicDataDB();
-
-                if (dynamicDB != NULL)
-                {
-                    if (!dynamicDB->storeDynamicData(npacket, wts, ip_src, ip_dst, hostId,
-                            appId, instanceId, readerId, writerId, writerSeqNum,
-                            sourceTmp, destHostId, destAppId, destInstanceId,
-                            typecode->getCdrTypecode(), cdr))
-                    {
-                        logError(m_log, "Cannot stores the dynamic data in database");
-                    }
-                }
-            }
-        }
-        else
-        {
-            logError(m_log, "Cannot find the typecode from topic %s", entity->getTopicName().c_str());
-        }
-    }
-    else
-    {
-        logError(m_log, "Cannot find entity in database: (%u, %u, %u, %u) or " \
-                "(%u, %u, %u, %u)", hostId, appId, instanceId, writerId,
-                hostId, appId, instanceId, readerId);
+        topics_db_->store(stored.topic_name, stored.type_name, stored.writer_guid,
+                stored.sequence_number, serializedData, serializedDataLen);
     }
 
+    /*
+     * Every packet that carried an attributable sample gets a row, duplicates included: unlike
+     * Messages, this is a record of what the capture saw rather than of what was published.
+     */
+    if (capture_db_ != NULL && stored.resolved)
+    {
+        capture_db_->add_message_capture(npacket, wts, ip_src, ip_dst,
+                destHostId, destAppId, destInstanceId, stored.writer_guid,
+                stored.sequence_number);
+    }
 }
 
 bool DDSRecorder::deserializePublicationBuiltinTopic(
@@ -466,10 +392,6 @@ bool DDSRecorder::deserializePublicationBuiltinTopic(
                             break;
                         case RTPS_PID_TYPE_NAME:
                             cdr >> pubtopic.type_name;
-                            break;
-                        case RTPS_PID_TYPECODE:
-                            pubtopic.typeCode = cdr.get_current_position();
-                            pubtopic.typeCodeLength = parameterLength;
                             break;
                         default:
                             break;
@@ -540,10 +462,6 @@ bool DDSRecorder::deserializeSubscriptionBuiltinTopic(
                             break;
                         case RTPS_PID_TYPE_NAME:
                             cdr >> subtopic.type_name;
-                            break;
-                        case RTPS_PID_TYPECODE:
-                            subtopic.typeCode = cdr.get_current_position();
-                            subtopic.typeCodeLength = parameterLength;
                             break;
                         default:
                             break;
