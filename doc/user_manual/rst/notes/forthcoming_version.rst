@@ -49,14 +49,3 @@ Sequences and arrays of user defined structures are now supported, and their ele
 the structure flattened into columns.
 Member names are emitted as quoted SQL identifiers, so a member named after an SQLite keyword no longer prevents a
 topic from being recorded.
-
-.. warning::
-
-    The ``-monitor`` argument has been **removed**, since the schema it selected is now the default.
-    A command line still passing it is refused with a message explaining the replacement: drop the argument to keep
-    getting that schema, or pass ``-queryable`` to add the per-topic tables.
-
-.. warning::
-
-    The ``-tcMaxSize`` argument has been **removed** together with the TypeCode support it configured.
-    It had no effect in previous releases.

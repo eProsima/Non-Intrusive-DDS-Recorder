@@ -23,9 +23,8 @@ class eProsimaLog;
 /**
  * \brief Writes the recorded traffic using the *DDS Record & Replay* schema.
  *
- * This is the alternative to the default schema, selected with the '-monitor' command line
- * argument. Instead of one table per DDS Topic with one column per data type member, it
- * writes the fixed Types/Topics/Messages layout that *DDS Record & Replay* produces and the
+ * This is the default schema.
+ * Itt writes the fixed Types/Topics/Messages layout that *DDS Record & Replay* produces and the
  * *DDS Monitor* reads.
  *
  * The sample is stored as the untouched CDR payload, so this writer never needs the data

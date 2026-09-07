@@ -48,14 +48,13 @@ your types.
 The command line syntax is:
 
 ```bash
-DDSRecorder <pcap_file> [-db <database>] [-tcMaxSize <size>] [-idl <file>] [-help]
+ni_ddsrecorder <pcap_file> [-db <database>] [-idl <file>] [-help]
 ```
 
 * *< pcap_file >*: name of the file that the application will analyze.
 This file should be a PCAP format.
 * *-db < database >*: name of the SQLite file that will be created and used to store the translated RTPS messages.
 By default *eProsima Non-Intrusive DDS Recorder* creates the file `dump.db`.
-* *-tcMaxSize < size >*: TypeCode maximum allowed size (Default: 2048)
 * *-idl < file >*: IDL file containing all data types used in the captured system if their typecodes are not being sent
 in the discovery phase.
 * *-help*: Print help information.
