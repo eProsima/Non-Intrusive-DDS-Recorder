@@ -67,6 +67,16 @@ using namespace std;
 
 static const char* const CLASS_NAME = "DDSRecorder";
 
+/*
+ * How many samples are written before the open transaction is committed and the next one opened.
+ *
+ * One transaction for the whole capture would be fastest, but it would also mean that a run
+ * interrupted for any reason left an empty database. Committing periodically bounds both the cost
+ * and what an interruption throws away. The number counts samples rather than rows because that
+ * is what a user can reason about; with '-queryable' each sample may be many rows.
+ */
+#define SAMPLES_PER_TRANSACTION (1000)
+
 /// What the entityKind octet of an endpoint's EntityId_t says about the topic being keyed.
 enum class Keyedness
 {
@@ -109,6 +119,18 @@ DDSRecorder::DDSRecorder(
 
     if (sqlite3_open(database.c_str(), &m_databaseH) == SQLITE_OK)
     {
+        /*
+         * Write ahead logging, as SqlWriter::open_new_file_nts_ sets it in ddsrecorder_participants.
+         * The sidecar files it creates are checkpointed away by the sqlite3_close in the destructor.
+         */
+        execute("PRAGMA journal_mode=WAL");
+
+        /*
+         * Opened before the writers below, so that the CREATE TABLE and DROP TABLE they run in
+         * their constructors are part of it too.
+         */
+        in_transaction_ = execute("BEGIN TRANSACTION");
+
         monitor_db_ = new MonitorDB(m_log, m_databaseH);
 
         if (monitor_db_ == NULL)
@@ -148,6 +170,10 @@ DDSRecorder::DDSRecorder(
 
 DDSRecorder::~DDSRecorder()
 {
+    /*
+     * The writers are deleted first: they finalize their prepared statements, and the transaction
+     * has to outlive them so that everything they wrote is committed together.
+     */
     if (capture_db_ != NULL)
     {
         delete capture_db_;
@@ -160,10 +186,59 @@ DDSRecorder::~DDSRecorder()
     {
         delete monitor_db_;
     }
+
+    if (in_transaction_)
+    {
+        execute("COMMIT");
+        in_transaction_ = false;
+    }
+
     if (m_databaseH != NULL)
     {
         sqlite3_close(m_databaseH);
     }
+}
+
+bool DDSRecorder::execute(
+        const char * statement)
+{
+    const char* const METHOD_NAME = "execute";
+    char * error = NULL;
+
+    if (m_databaseH == NULL)
+    {
+        return false;
+    }
+
+    if (SQLITE_OK != sqlite3_exec(m_databaseH, statement, NULL, NULL, &error))
+    {
+        logError(m_log, "Cannot run '%s': %s", statement, error != NULL ? error : "");
+        sqlite3_free(error);
+        return false;
+    }
+
+    return true;
+}
+
+void DDSRecorder::checkpoint()
+{
+    if (!in_transaction_)
+    {
+        return;
+    }
+
+    /*
+     * A failed COMMIT leaves the transaction open, so the next BEGIN would fail too. Give up on
+     * batching in that case rather than run the rest of the capture against a broken handle.
+     */
+    if (!execute("COMMIT"))
+    {
+        in_transaction_ = false;
+        return;
+    }
+
+    in_transaction_ = execute("BEGIN TRANSACTION");
+    pending_samples_ = 0;
 }
 
 void DDSRecorder::processDataCallback(
@@ -243,6 +318,11 @@ void DDSRecorder::processData(
         processDataNormal(npacket, wts, ip_src, ip_dst, hostId, appId, instanceId, readerId, writerId,
                 writerSeqNum, sourceTmp, destHostId, destAppId, destInstanceId, endianess,
                 serializedData, serializedDataLen);
+
+        if (++pending_samples_ >= SAMPLES_PER_TRANSACTION)
+        {
+            checkpoint();
+        }
     }
 }
 

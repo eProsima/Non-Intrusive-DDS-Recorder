@@ -587,7 +587,10 @@ REMAINING = {
     'sequences': (20, 20),
 }
 
-# These two build twenty child tables each and are much slower than the rest.
+# These two build twenty child tables each, so they write by far the most rows. They used to
+# dominate the runtime of this script; since the recorder batches its writes into transactions
+# they are no longer slow, and --quick saves almost nothing. The flag is kept because a future
+# fixture may need it.
 SLOW = {'arrays', 'sequences'}
 
 
@@ -644,7 +647,7 @@ def main(argv=None):
     parser.add_argument('-k', '--keep', action='store_true',
                         help='keep the generated databases for inspection')
     parser.add_argument('-q', '--quick', action='store_true',
-                        help='skip arrays and sequences, which are slow to record')
+                        help='skip arrays and sequences, the two that write the most rows')
     args = parser.parse_args(argv)
 
     recorder = args.recorder

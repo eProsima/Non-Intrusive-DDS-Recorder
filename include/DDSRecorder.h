@@ -203,6 +203,13 @@ private:
             unsigned int serializedDataLength,
             SubscriptionBuiltinTopic& subtopic);
 
+    /// Runs a statement that returns no rows against the database. Returns true on success.
+    bool execute(
+            const char * statement);
+
+    /// Commits the open transaction and opens the next one.
+    void checkpoint();
+
     eProsimaLog& m_log;
 
     /// Handler of the database.
@@ -219,6 +226,16 @@ private:
 
     /// Data types read from the file given with '-idl'. Not owned, and may be NULL.
     const TypeStore * type_store_{nullptr};
+
+    /**
+     * Whether a transaction is open. Every write of a recording happens inside one: SQLite would
+     * otherwise commit, and fsync, once per INSERT, and a single sample can be dozens of INSERTs
+     * once '-queryable' expands its collections into child tables.
+     */
+    bool in_transaction_{false};
+
+    /// Samples written since the last commit.
+    unsigned int pending_samples_{0};
 };
 } // namespace eprosima
 
