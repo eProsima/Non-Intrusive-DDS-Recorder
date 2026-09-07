@@ -34,6 +34,7 @@ bool TypeStore::load(
     const char* const METHOD_NAME = "load";
 
     types_.clear();
+    idl_cache_.clear();
 
     /*
      * for_each_type_w_uri parses the document once and calls back for every declared type, which
@@ -64,6 +65,7 @@ bool TypeStore::load(
     {
         logError(log_, "Cannot parse the IDL file %s", idl_file.c_str());
         types_.clear();
+        idl_cache_.clear();
         return false;
     }
 
@@ -88,11 +90,21 @@ string TypeStore::idl_for(
         const string& type_name) const
 {
     const char* const METHOD_NAME = "idl_for";
+    map<string, string>::const_iterator cached = idl_cache_.find(type_name);
+
+    if (cached != idl_cache_.end())
+    {
+        return cached->second;
+    }
+
     DynamicType::_ref_type type = find(type_name);
+    string rendered;
 
     if (!type)
     {
-        return string();
+        /* Cached as well: an unknown type name would otherwise be looked up again every packet. */
+        idl_cache_[type_name] = rendered;
+        return rendered;
     }
 
     ostringstream idl;
@@ -100,10 +112,15 @@ string TypeStore::idl_for(
     if (RETCODE_OK != idl_serialize(type, idl))
     {
         logError(log_, "Cannot render the data type %s as IDL", type_name.c_str());
-        return string();
+    }
+    else
+    {
+        rendered = idl.str();
     }
 
-    return idl.str();
+    idl_cache_[type_name] = rendered;
+
+    return rendered;
 }
 
 bool TypeStore::is_keyed(

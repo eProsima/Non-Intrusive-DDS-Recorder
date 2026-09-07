@@ -92,6 +92,19 @@ private:
     eProsimaLog& log_;
 
     std::map<std::string, eprosima::fastdds::dds::DynamicType::_ref_type> types_;
+
+    /**
+     * The IDL of each type as idl_for() rendered it, kept so that it is rendered once.
+     *
+     * idl_for() is called for every endpoint announcement in a capture, and a system re-announces
+     * its endpoints for as long as it runs, while the result is wanted only the first time: the
+     * Types row is written with INSERT OR IGNORE. Rendering walks the whole type and builds a
+     * string, so it is much the most expensive thing done per discovery packet.
+     *
+     * Mutable because the memo is not part of the observable state: idl_for() is const, and a
+     * type name that is not known caches an empty string so that it is not retried either.
+     */
+    mutable std::map<std::string, std::string> idl_cache_;
 };
 } // namespace eprosima
 
