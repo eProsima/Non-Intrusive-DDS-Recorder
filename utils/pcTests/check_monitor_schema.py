@@ -350,6 +350,13 @@ def check_queryable_integrity(checker, db, name, expected_messages, expected_cap
 
     # Every table named in DataTables must exist, and have a flat view beside it.
     named = [r[0] for r in query(db, 'SELECT table_name FROM DataTables')]
+
+    # Asserted first because an empty list would satisfy every check below it without reading
+    # anything: no missing table, no duplicate name, no missing view, no orphan row. Every caller
+    # records a fixture whose data type is known, so there is always at least one table.
+    checker.check('%s: DataTables registered at least one table' % name, bool(named),
+                  'DataTables is empty')
+
     missing = [t for t in named if t not in found]
     checker.check('%s: every DataTables row names a table that exists' % name,
                   not missing, 'missing %s' % missing)
@@ -396,16 +403,19 @@ def check_queryable_integrity(checker, db, name, expected_messages, expected_cap
     checker.check('%s: every data table has its _flat view' % name,
                   not viewless, 'missing views for %s' % viewless)
 
-    # Every data row must anchor to a message.
+    # Every data row must anchor to a message. Summed over the tables and asserted once, so the
+    # assertion itself reads the database: reporting True after a loop leaves it passing when the
+    # loop did not run, and the early return it needed also skipped whatever came after.
+    orphans = {}
+
     for table in named:
-        orphans = one(db, 'SELECT COUNT(*) FROM "%s" d LEFT JOIN Messages m '
-                          'USING (writer_guid, sequence_number) '
-                          'WHERE m.writer_guid IS NULL' % table)
-        if orphans:
-            checker.check('%s: %s rows all anchor to Messages' % (name, table), False,
-                          '%d orphan row(s)' % orphans)
-            return
-    checker.check('%s: every data row anchors to a Messages row' % name, True)
+        count = one(db, 'SELECT COUNT(*) FROM "%s" d LEFT JOIN Messages m '
+                        'USING (writer_guid, sequence_number) '
+                        'WHERE m.writer_guid IS NULL' % table)
+        if count:
+            orphans[table] = count
+
+    checker.equal('%s: every data row anchors to a Messages row' % name, orphans, {})
 
 
 def check_helloworld_queryable(checker, recorder, workdir):
