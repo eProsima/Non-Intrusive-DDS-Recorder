@@ -351,6 +351,15 @@ def check_queryable_integrity(checker, db, name, expected_messages, expected_cap
     missing = [t for t in named if t not in found]
     checker.check('%s: every DataTables row names a table that exists' % name,
                   not missing, 'missing %s' % missing)
+
+    # Two topics whose names sanitize alike, or one topic's table and another topic's child table,
+    # must never land on the same name: the tables are dropped before being created, so the loser
+    # of such a race would have its rows destroyed and both would be listed under one name.
+    checker.equal('%s: no two DataTables rows share a table name' % name,
+                  len(named), len(set(named)))
+    existing = sorted(t for t in found if t.startswith('Data_'))
+    checker.equal('%s: DataTables lists exactly the Data_ tables present' % name,
+                  sorted(named), existing)
     present_views = views(db)
     viewless = [t for t in named if (t + '_flat') not in present_views]
     checker.check('%s: every data table has its _flat view' % name,

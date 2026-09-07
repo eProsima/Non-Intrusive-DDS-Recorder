@@ -11,10 +11,11 @@
 #ifdef __cplusplus
 
 #include <list>
-#include <set>
 #include <string>
 
 #include <sqlite3.h>
+
+#include "database/TableNamer.h"
 
 namespace eprosima {
 class eProsimaLog;
@@ -101,10 +102,6 @@ private:
             const std::string& topicName,
             const std::string& typeName);
 
-    /// Turns a topic name into an SQL identifier no other topic is already using.
-    std::string unique_table_name(
-            const std::string& topicName);
-
     /// Adds one row to DataTables.
     bool register_table(
             const std::string& topicName,
@@ -122,7 +119,11 @@ private:
 
     std::list<Entry*> topics_;
 
-    std::set<std::string> table_names_;
+    /**
+     * Hands out every table name of every topic, the child tables of collection members included,
+     * so that two topics whose names sanitize alike cannot overwrite each other's tables.
+     */
+    TableNamer namer_;
 
     unsigned int row_count_{0};
 

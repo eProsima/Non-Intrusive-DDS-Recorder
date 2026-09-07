@@ -12,12 +12,13 @@ set(SOURCES
     database/CaptureDB.cpp
     database/Endpoint.cpp
     database/MonitorDB.cpp
+    database/TableNamer.cpp
     database/TopicDataDB.cpp
     database/TopicsDB.cpp
     log/eProsimaLog.cpp
     reader/ipDefragmenter.cpp
     reader/pcapReader.cpp
- )
+)
 
 if(WIN32)
     set( SOURCES ${SOURCES}
@@ -58,7 +59,7 @@ endif()
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION ${BIN_INSTALL_DIR}
     COMPONENT binaries
-    )
+)
 
 string(TOUPPER "${MSVC_ARCH}" MSVC_ARCH_UPPER)
 set(CPACK_COMPONENT_BINARIES_DISPLAY_NAME "Binaries" PARENT_SCOPE)

@@ -15,6 +15,8 @@
 
 #include <sqlite3.h>
 
+#include "database/TableNamer.h"
+
 #include <fastdds/dds/xtypes/dynamic_types/DynamicData.hpp>
 #include <fastdds/dds/xtypes/dynamic_types/DynamicPubSubType.hpp>
 #include <fastdds/dds/xtypes/dynamic_types/DynamicType.hpp>
@@ -56,14 +58,16 @@ public:
      *
      * \param log Log object used to log errors.
      * \param databaseH Handler of an already opened database. Cannot be NULL.
-     * \param base_table_name SQL name of the topic's own table. The caller has already made it
-     * unique, since two topic names can sanitize to the same identifier.
+     * \param base_table_name SQL name of the topic's own table, already reserved from \c namer.
+     * \param namer Source of the names of the child tables this topic needs. Shared with every
+     * other topic, and not owned; it has to outlive this object.
      * \param type Data type of the topic.
      */
     TopicDataDB(
             eProsimaLog& log,
             sqlite3 * databaseH,
             const std::string& base_table_name,
+            TableNamer& namer,
             const eprosima::fastdds::dds::DynamicType::_ref_type& type);
 
     ~TopicDataDB();
@@ -185,6 +189,9 @@ private:
     eProsimaLog& log_;
 
     sqlite3 * database_{nullptr};
+
+    /// Reserves the name of every child table, shared with all the other topics. Not owned.
+    TableNamer& namer_;
 
     eprosima::fastdds::dds::DynamicType::_ref_type type_;
 

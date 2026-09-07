@@ -129,41 +129,6 @@ TopicsDB::Entry* TopicsDB::find(
     return NULL;
 }
 
-string TopicsDB::unique_table_name(
-        const string& topicName)
-{
-    string base = "Data_";
-
-    for (size_t i = 0; i < topicName.length(); ++i)
-    {
-        char c = topicName[i];
-
-        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')
-        {
-            base += c;
-        }
-        else
-        {
-            base += '_';
-        }
-    }
-
-    string candidate = base;
-    unsigned int suffix = 1;
-
-    /* Two topic names can sanitize to the same identifier; DataTables says which is which. */
-    while (table_names_.find(candidate) != table_names_.end())
-    {
-        char tail[16];
-        snprintf(tail, sizeof(tail), "_%u", ++suffix);
-        candidate = base + tail;
-    }
-
-    table_names_.insert(candidate);
-
-    return candidate;
-}
-
 bool TopicsDB::register_table(
         const string& topicName,
         const string& typeName,
@@ -234,7 +199,8 @@ bool TopicsDB::add_topic(
         return true;
     }
 
-    TopicDataDB * data = new TopicDataDB(log_, database_, unique_table_name(topicName), type);
+    TopicDataDB * data = new TopicDataDB(log_, database_, namer_.reserve("Data_" + topicName),
+                    namer_, type);
 
     if (!data->is_ready())
     {

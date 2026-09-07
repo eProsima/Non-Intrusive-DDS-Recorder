@@ -52,9 +52,11 @@ TopicDataDB::TopicDataDB(
         eProsimaLog& log,
         sqlite3 * databaseH,
         const string& base_table_name,
+        TableNamer& namer,
         const DynamicType::_ref_type& type)
     : log_(log)
     , database_(databaseH)
+    , namer_(namer)
     , type_(type)
     , pubsub_type_(type)
 {
@@ -242,7 +244,12 @@ bool TopicDataDB::plan_collection(
 
     Table child;
     child.member_path = prefix;
-    child.name = tables_[0].name + "_" + prefix;
+    /*
+     * Through the shared namer, not by string concatenation: this name can collide with the table
+     * of a different topic whose own name sanitizes to the same thing, and the loser of that race
+     * would otherwise be dropped and recreated under the winner.
+     */
+    child.name = namer_.reserve(tables_[0].name + "_" + prefix);
     child.element_type = resolve(descriptor->element_type());
 
     if (!child.element_type)
