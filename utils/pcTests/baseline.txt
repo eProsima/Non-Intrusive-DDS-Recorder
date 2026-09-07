@@ -119,7 +119,9 @@
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,index_0,value
     view  Data_Example_Arrays_usharray_flat            rows=460    sha=b67852179c882b8e
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,index_0,value
+    index DiscoveryMessages_packet
     index MessagesCapture_message
+    index MessagesCapture_packet
     index Messages_topic_time
 == basic_types [default] Number of processed RTPS packets: 228
     table Messages                                     rows=25     sha=4e1a2c7dee479039
@@ -160,7 +162,9 @@
         cols: name,information,object,is_ros2_type,idl
     view  Data_Example_BasicTypes_flat                 rows=25     sha=47bca93fb857ff46
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,oc,ch,sh,ush,lo,ulo,lolo,ulolo,st,fl,dl
+    index DiscoveryMessages_packet
     index MessagesCapture_message
+    index MessagesCapture_packet
     index Messages_topic_time
 == complextype_in_sequence [default] Number of processed RTPS packets: 90
     table Messages                                     rows=13     sha=ef31c0691ba057fe
@@ -205,7 +209,9 @@
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number
     view  Data_Example_CompletypeInSequence_seq_flat   rows=130    sha=0f831f86d9ccf46a
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,index_0,id,msg
+    index DiscoveryMessages_packet
     index MessagesCapture_message
+    index MessagesCapture_packet
     index Messages_topic_time
 == recursive_structs [default] Number of processed RTPS packets: 160
     table Messages                                     rows=10     sha=e657d12c57608447
@@ -246,7 +252,9 @@
         cols: name,information,object,is_ros2_type,idl
     view  Data_Example_RecursiveStructs_flat           rows=10     sha=77986c7ec729a671
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,count,message,one_two1_levelTwoLo,one_two1_levelTwoSt,one_two2_levelTwoLo,one_two2_levelTwoSt,one_levelOneLo
+    index DiscoveryMessages_packet
     index MessagesCapture_message
+    index MessagesCapture_packet
     index Messages_topic_time
 == sequences [default] Number of processed RTPS packets: 206
     table Messages                                     rows=20     sha=cf039ff73d1e862e
@@ -367,7 +375,9 @@
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,index_0,value
     view  Data_Example_Sequences_seush_flat            rows=400    sha=f1ed701718823ac1
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,index_0,value
+    index DiscoveryMessages_packet
     index MessagesCapture_message
+    index MessagesCapture_packet
     index Messages_topic_time
 == test1 [default] Number of processed RTPS packets: 77
     table Messages                                     rows=3      sha=f0a3f8bf177d5049
@@ -408,7 +418,9 @@
         cols: name,information,object,is_ros2_type,idl
     view  Data_Example_Prueba_flat                     rows=3      sha=1261d1e4324d9d82
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,count,message
+    index DiscoveryMessages_packet
     index MessagesCapture_message
+    index MessagesCapture_packet
     index Messages_topic_time
 == test2 [default] Number of processed RTPS packets: 77
     table Messages                                     rows=9      sha=6c0c84b7358a83ef
@@ -449,7 +461,9 @@
         cols: name,information,object,is_ros2_type,idl
     view  Data_Example_Prueba_flat                     rows=9      sha=ebdd6d81e4a24bfa
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,count,message
+    index DiscoveryMessages_packet
     index MessagesCapture_message
+    index MessagesCapture_packet
     index Messages_topic_time
 == unions [default] Number of processed RTPS packets: 319
     table Messages                                     rows=47     sha=1b2c151928d31b1b
@@ -502,7 +516,9 @@
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,index_0,value
     view  Data_Example_Unions_u_n_i_o_n_los_flat       rows=110    sha=f39b2728847828fe
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,index_0,value
+    index DiscoveryMessages_packet
     index MessagesCapture_message
+    index MessagesCapture_packet
     index Messages_topic_time
 == HelloWorld [default] Number of processed RTPS packets: 147
     table Messages                                     rows=30     sha=bf5fa89164f78c2b
@@ -543,5 +559,7 @@
         cols: name,information,object,is_ros2_type,idl
     view  Data_Example_HelloWorld_flat                 rows=30     sha=3202827f63d167c9
         cols: log_time,publish_time,topic,type,writer_guid,sequence_number,counter,message
+    index DiscoveryMessages_packet
     index MessagesCapture_message
+    index MessagesCapture_packet
     index Messages_topic_time

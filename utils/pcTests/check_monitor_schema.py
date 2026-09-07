@@ -282,12 +282,32 @@ def check_queryable_integrity(checker, db, name, expected_messages, expected_cap
     if not (MONITOR_TABLES <= found and QUERYABLE_TABLES <= found):
         return
 
-    checker.equal('%s: Messages rows' % name,
-                  one(db, 'SELECT COUNT(*) FROM Messages'), expected_messages)
+    actual_messages = one(db, 'SELECT COUNT(*) FROM Messages')
+    actual_captures = one(db, 'SELECT COUNT(*) FROM MessagesCapture')
+    checker.equal('%s: Messages rows' % name, actual_messages, expected_messages)
     checker.equal('%s: MessagesCapture rows (one per packet seen)' % name,
-                  one(db, 'SELECT COUNT(*) FROM MessagesCapture'), expected_captures)
+                  actual_captures, expected_captures)
+
+    # Both operands must come from the database: comparing the two expectations to each other
+    # cannot fail, and that is what let a dropped transmission go unnoticed.
     checker.check('%s: MessagesCapture never loses a transmission' % name,
-                  expected_captures >= expected_messages)
+                  actual_captures >= actual_messages,
+                  'MessagesCapture=%d Messages=%d' % (actual_captures, actual_messages))
+    orphaned = one(db, 'SELECT COUNT(*) FROM Messages m WHERE NOT EXISTS ('
+                       'SELECT 1 FROM MessagesCapture mc '
+                       'WHERE mc.writer_guid = m.writer_guid '
+                       'AND mc.sequence_number = m.sequence_number)')
+    checker.equal('%s: every sample has at least one packet recorded' % name, orphaned, 0)
+
+    # One RTPS packet carries several submessages and the recorder calls back once per DATA
+    # submessage with the same packet number, so keying either table on packet_id alone silently
+    # drops every submessage after the first.
+    for packet_table in ('DiscoveryMessages', 'MessagesCapture'):
+        ddl = one(db, "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?",
+                  (packet_table,)) or ''
+        checker.check('%s: %s does not key on packet_id alone' % (name, packet_table),
+                      'packet_id INTEGER PRIMARY KEY' not in ddl.replace('\n', ' '),
+                      ddl[:90])
 
     # Referential integrity. Foreign keys are declared but not enforced, so check them here.
     dangling = one(db, 'SELECT COUNT(*) FROM MessagesCapture mc LEFT JOIN Messages m '
@@ -578,9 +598,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         description='Check the database schema of the Non-Intrusive DDS Recorder.')
     parser.add_argument('-r', '--recorder',
-                        default=os.environ.get('DDS_RECORDER', 'dds_recorder'),
+                        default=os.environ.get('DDS_RECORDER', 'NI_DDSRecorder'),
                         help='path to the dds_recorder binary '
-                             '(default: $DDS_RECORDER or dds_recorder on PATH)')
+                             '(default: $DDS_RECORDER or NI_DDSRecorder on PATH)')
     parser.add_argument('-k', '--keep', action='store_true',
                         help='keep the generated databases for inspection')
     parser.add_argument('-q', '--quick', action='store_true',

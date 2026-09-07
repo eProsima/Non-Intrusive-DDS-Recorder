@@ -89,7 +89,9 @@ several destinations, produced several packets.
     *   - ``packet_id``
         - INTEGER
         - Ordinal of the packet inside the capture |br|
-          file. Primary key.
+          file. Not unique: one packet carries |br|
+          several RTPS submessages, so it can |br|
+          appear on more than one row.
 
     *   - ``log_time``
         - DATETIME
@@ -142,7 +144,9 @@ One row per packet that carried a user sample.
     *   - ``packet_id``
         - INTEGER
         - Ordinal of the packet inside the capture |br|
-          file. Primary key.
+          file. Not unique: one packet carries |br|
+          several RTPS submessages, so it can |br|
+          appear on more than one row.
 
     *   - ``writer_guid``
         - TEXT

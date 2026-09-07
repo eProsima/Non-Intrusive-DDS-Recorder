@@ -40,10 +40,16 @@ static const char* const TABLE_ENDPOINTS_CREATE =
  *
  * The announcing participant is the one that owns the endpoint, so its GuidPrefix is the prefix
  * half of endpoint_guid and is not repeated in a column of its own.
+ *
+ * packet_id is deliberately not the primary key. One RTPS packet carries several submessages, and
+ * processRTPSPacket() calls back once per DATA submessage with the same packet number, so a
+ * datagram announcing two endpoints yields two rows sharing it. Keying on packet_id would drop the
+ * second, which is exactly the loss this table exists to avoid. The rows are told apart by
+ * endpoint_guid; SQLite supplies the identity through its own rowid.
  */
 static const char* const TABLE_DISCOVERYMESSAGES_CREATE =
         "CREATE TABLE IF NOT EXISTS DiscoveryMessages ("
-        "packet_id INTEGER PRIMARY KEY,"
+        "packet_id INTEGER NOT NULL,"
         "log_time DATETIME NOT NULL,"
         "publish_time DATETIME NOT NULL,"
         "ip_src TEXT NOT NULL,"
@@ -53,9 +59,10 @@ static const char* const TABLE_DISCOVERYMESSAGES_CREATE =
         "kind TEXT NOT NULL,"
         "FOREIGN KEY(endpoint_guid) REFERENCES Endpoints(guid))";
 
+/* packet_id is not the primary key here either, for the reason given above. */
 static const char* const TABLE_MESSAGESCAPTURE_CREATE =
         "CREATE TABLE IF NOT EXISTS MessagesCapture ("
-        "packet_id INTEGER PRIMARY KEY,"
+        "packet_id INTEGER NOT NULL,"
         "writer_guid TEXT NOT NULL,"
         "sequence_number INTEGER NOT NULL,"
         "log_time DATETIME NOT NULL,"
@@ -70,8 +77,20 @@ static const char* const INDEX_MESSAGESCAPTURE_CREATE =
         "CREATE INDEX IF NOT EXISTS MessagesCapture_message "
         "ON MessagesCapture(writer_guid, sequence_number)";
 
+/*
+ * Reading a capture back in the order it was observed means ordering by packet_id. That came free
+ * while packet_id was a rowid alias; now that it is an ordinary column it needs its own index.
+ */
+static const char* const INDEX_MESSAGESCAPTURE_PACKET_CREATE =
+        "CREATE INDEX IF NOT EXISTS MessagesCapture_packet ON MessagesCapture(packet_id)";
+
+static const char* const INDEX_DISCOVERYMESSAGES_PACKET_CREATE =
+        "CREATE INDEX IF NOT EXISTS DiscoveryMessages_packet ON DiscoveryMessages(packet_id)";
+
 static const char* const TABLES_DROP[] =
 {
+    "DROP INDEX IF EXISTS DiscoveryMessages_packet",
+    "DROP INDEX IF EXISTS MessagesCapture_packet",
     "DROP INDEX IF EXISTS MessagesCapture_message",
     "DROP TABLE IF EXISTS MessagesCapture",
     "DROP TABLE IF EXISTS DiscoveryMessages",
@@ -83,11 +102,11 @@ static const char* const ENDPOINT_ADD =
         "INSERT OR IGNORE INTO Endpoints (guid, kind, topic, type) VALUES (?, ?, ?, ?)";
 
 static const char* const DISCOVERY_ADD =
-        "INSERT OR IGNORE INTO DiscoveryMessages (packet_id, log_time, publish_time, ip_src, "
+        "INSERT INTO DiscoveryMessages (packet_id, log_time, publish_time, ip_src, "
         "ip_dst, dst_guid_prefix, endpoint_guid, kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 static const char* const CAPTURE_ADD =
-        "INSERT OR IGNORE INTO MessagesCapture (packet_id, writer_guid, sequence_number, "
+        "INSERT INTO MessagesCapture (packet_id, writer_guid, sequence_number, "
         "log_time, ip_src, ip_dst, dst_guid_prefix) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 static const char* const WRITER_KIND = "DataWriter";
@@ -181,7 +200,9 @@ bool CaptureDB::create_schema()
     return execute(TABLE_ENDPOINTS_CREATE) &&
            execute(TABLE_DISCOVERYMESSAGES_CREATE) &&
            execute(TABLE_MESSAGESCAPTURE_CREATE) &&
-           execute(INDEX_MESSAGESCAPTURE_CREATE);
+           execute(INDEX_MESSAGESCAPTURE_CREATE) &&
+           execute(INDEX_MESSAGESCAPTURE_PACKET_CREATE) &&
+           execute(INDEX_DISCOVERYMESSAGES_PACKET_CREATE);
 }
 
 bool CaptureDB::add_discovery(
