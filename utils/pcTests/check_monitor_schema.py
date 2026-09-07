@@ -191,7 +191,9 @@ def check_helloworld_default(checker, recorder, workdir):
     checker.check('data_json is empty everywhere',
                   all(r[2] == '' for r in rows),
                   'distinct values %s' % sorted({r[2] for r in rows})[:3])
-    checker.check("key is '{}' everywhere", all(r[7] == '{}' for r in rows),
+    # Empty, not '{}': the replayer treats a non-empty key as the instance key and would put
+    # every sample of a keyed topic on one instance.
+    checker.check('key is empty everywhere', all(r[7] == '' for r in rows),
                   'distinct values %s' % sorted({r[7] for r in rows})[:3])
 
     checker.equal('writer_guid is the expected GUID',

@@ -132,9 +132,23 @@ static const char* const TOPIC_QOS_UPDATE =
 /* The single, empty partition every topic and message is associated with. */
 static const char* const EMPTY_PARTITION = "";
 
-/* Samples are stored as CDR, never deserialized, so there is no JSON and no key. */
+/*
+ * Samples are stored as CDR, never deserialized, so there is no JSON and no key.
+ *
+ * Both columns are empty, which is what SqlMessage's constructor defaults them to in
+ * ddsrecorder_participants: set_key() only runs for a keyed topic, and it stores the JSON of the
+ * key members. An empty string therefore means "no key was recorded", while '{}' would claim the
+ * key is a JSON object with no members in it.
+ *
+ * The difference is not cosmetic. For a keyed topic the replayer seeds the instance handle with
+ * the key when the column is non-empty, and with (writer_guid, sequence_number) when it is empty
+ * (SqlReaderParticipant.cpp:426-440). Writing '{}' would seed every sample of a topic from the
+ * same literal, collapsing them all onto one instance so that a reader keeping only the last
+ * sample per instance would discard nearly the whole recording. Empty makes each sample its own
+ * instance, which is the fallback that branch exists for and keeps every sample.
+ */
 static const char* const EMPTY_JSON = "";
-static const char* const EMPTY_KEY = "{}";
+static const char* const EMPTY_KEY = "";
 
 static const char* const NOT_ROS2 = "false";
 
@@ -686,7 +700,7 @@ bool MonitorDB::add_message(
             SQLITE_STATIC);
     sqlite3_bind_text(add_message_stmt_, 7, typeName.c_str(), (int)typeName.length(),
             SQLITE_STATIC);
-    sqlite3_bind_text(add_message_stmt_, 8, EMPTY_KEY, (int)strlen(EMPTY_KEY), SQLITE_STATIC);
+    sqlite3_bind_text(add_message_stmt_, 8, EMPTY_KEY, 0, SQLITE_STATIC);
     sqlite3_bind_text(add_message_stmt_, 9, logTime.c_str(), (int)logTime.length(),
             SQLITE_STATIC);
     sqlite3_bind_text(add_message_stmt_, 10, publishTime.c_str(), (int)publishTime.length(),
