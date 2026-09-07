@@ -28,12 +28,73 @@
 #define RTPS_PID_TOPIC_NAME (0x0005)
 #define RTPS_PID_TYPE_NAME (0x0007)
 #define RTPS_PID_GUID (0x005A)
+#define RTPS_PID_DURABILITY (0x001D)
+#define RTPS_PID_RELIABILITY (0x001A)
+#define RTPS_PID_OWNERSHIP (0x001F)
+
+/*
+ * The QoS kinds as they travel, from the RTPS specification. Fast DDS spells them the same way in
+ * dds/core/policy/QosPolicies.hpp.
+ */
+#define RTPS_RELIABILITY_BEST_EFFORT (0x01)
+#define RTPS_RELIABILITY_RELIABLE (0x02)
+#define RTPS_DURABILITY_VOLATILE (0x00)
+#define RTPS_DURABILITY_TRANSIENT_LOCAL (0x01)
+#define RTPS_OWNERSHIP_SHARED (0x00)
+#define RTPS_OWNERSHIP_EXCLUSIVE (0x01)
+
+/*
+ * The entityKind octet of an EntityId_t says whether the endpoint was created on a keyed topic,
+ * which is the only place keyedness appears on the wire: no QoS parameter carries it, and it is a
+ * property of the data type rather than of the endpoint.
+ *
+ * RTPS 2.5 clause 9.3.1.2 table 9.1 gives the kinds. The two most significant bits of the octet
+ * say only whether the entity is user-defined ('00'), built-in ('11') or vendor-specific ('01'),
+ * so a writer with key is 0x02 as a user entity and 0xc2 as a built-in one. The kind itself is the
+ * low nibble, not the low six bits the clause mentions: Fast DDS ORs 0x60 into some
+ * vendor-specific ids, making a keyed writer 0x62, and every kind in the table is distinct in the
+ * nibble. Fast DDS masks 0x0F for the same reason in RTPSParticipantImpl.cpp.
+ */
+#define RTPS_ENTITY_KIND_MASK (0x0F)
+#define RTPS_ENTITY_KIND_WRITER_WITH_KEY (0x02)
+#define RTPS_ENTITY_KIND_WRITER_NO_KEY (0x03)
+#define RTPS_ENTITY_KIND_READER_NO_KEY (0x04)
+#define RTPS_ENTITY_KIND_READER_WITH_KEY (0x07)
 
 using namespace eprosima::fastcdr;
 using namespace eprosima;
 using namespace std;
 
 static const char* const CLASS_NAME = "DDSRecorder";
+
+/// What the entityKind octet of an endpoint's EntityId_t says about the topic being keyed.
+enum class Keyedness
+{
+    /// The kind is not one of the four endpoint kinds, so it says nothing.
+    UNKNOWN,
+    NO_KEY,
+    WITH_KEY
+};
+
+/*
+ * Reads the keyedness out of an entity id. The octet is the least significant byte of the four,
+ * which is the order format_guid() prints them in.
+ */
+static Keyedness keyedness_of(
+        uint32_t entityId)
+{
+    switch (entityId & RTPS_ENTITY_KIND_MASK)
+    {
+        case RTPS_ENTITY_KIND_WRITER_WITH_KEY:
+        case RTPS_ENTITY_KIND_READER_WITH_KEY:
+            return Keyedness::WITH_KEY;
+        case RTPS_ENTITY_KIND_WRITER_NO_KEY:
+        case RTPS_ENTITY_KIND_READER_NO_KEY:
+            return Keyedness::NO_KEY;
+        default:
+            return Keyedness::UNKNOWN;
+    }
+}
 
 DDSRecorder::DDSRecorder(
         eProsimaLog& log,
@@ -218,8 +279,26 @@ void DDSRecorder::processDataW(
              * the type for the user. Its one source is the file given with '-idl'; when that file
              * did not declare it, the type is recorded without a description.
              */
+            MonitorDB::TopicQos qos;
+            qos.reliable = pubtopic.reliable;
+            qos.transient_local = pubtopic.transient_local;
+            qos.exclusive_ownership = pubtopic.exclusive_ownership;
+
+            /*
+             * The endpoint's own entity id states whether its topic is keyed, and that is what the
+             * system really did, so it is preferred. Only when the kind is none of the four
+             * endpoint kinds does the data type read from '-idl' have to answer instead, and
+             * without that file the topic is recorded as unkeyed.
+             */
+            Keyedness keyedness = keyedness_of(pubtopic.guid.objectId);
+
+            qos.keyed = (Keyedness::UNKNOWN != keyedness)
+                    ? (Keyedness::WITH_KEY == keyedness)
+                    : ((type_store_ != nullptr) && type_store_->is_keyed(pubtopic.type_name));
+
             monitor_db_->add_topic(pubtopic.topic_name, pubtopic.type_name,
-                    (type_store_ != nullptr) ? type_store_->idl_for(pubtopic.type_name) : string());
+                    (type_store_ != nullptr) ? type_store_->idl_for(pubtopic.type_name) : string(),
+                    qos, true);
             monitor_db_->add_endpoint(pubtopic.guid.hostId, pubtopic.guid.appId,
                     pubtopic.guid.instanceId, pubtopic.guid.objectId,
                     pubtopic.topic_name, pubtopic.type_name);
@@ -277,8 +356,26 @@ void DDSRecorder::processDataR(
              * the type for the user. Its one source is the file given with '-idl'; when that file
              * did not declare it, the type is recorded without a description.
              */
+            MonitorDB::TopicQos qos;
+            qos.reliable = subtopic.reliable;
+            qos.transient_local = subtopic.transient_local;
+            qos.exclusive_ownership = subtopic.exclusive_ownership;
+
+            /*
+             * The endpoint's own entity id states whether its topic is keyed, and that is what the
+             * system really did, so it is preferred. Only when the kind is none of the four
+             * endpoint kinds does the data type read from '-idl' have to answer instead, and
+             * without that file the topic is recorded as unkeyed.
+             */
+            Keyedness keyedness = keyedness_of(subtopic.guid.objectId);
+
+            qos.keyed = (Keyedness::UNKNOWN != keyedness)
+                    ? (Keyedness::WITH_KEY == keyedness)
+                    : ((type_store_ != nullptr) && type_store_->is_keyed(subtopic.type_name));
+
             monitor_db_->add_topic(subtopic.topic_name, subtopic.type_name,
-                    (type_store_ != nullptr) ? type_store_->idl_for(subtopic.type_name) : string());
+                    (type_store_ != nullptr) ? type_store_->idl_for(subtopic.type_name) : string(),
+                    qos, false);
             monitor_db_->add_endpoint(subtopic.guid.hostId, subtopic.guid.appId,
                     subtopic.guid.instanceId, subtopic.guid.objectId,
                     subtopic.topic_name, subtopic.type_name);
@@ -393,6 +490,33 @@ bool DDSRecorder::deserializePublicationBuiltinTopic(
                         case RTPS_PID_TYPE_NAME:
                             cdr >> pubtopic.type_name;
                             break;
+                        case RTPS_PID_RELIABILITY:
+                        {
+                            uint32_t kind = 0;
+                            cdr >> kind;
+                            pubtopic.reliable = (RTPS_RELIABILITY_RELIABLE == kind);
+                            break;
+                        }
+                        case RTPS_PID_DURABILITY:
+                        {
+                            uint32_t kind = 0;
+                            cdr >> kind;
+                            /*
+                             * The column is a bool that the replayer reads back as either VOLATILE
+                             * or TRANSIENT_LOCAL, so TRANSIENT and PERSISTENT cannot be told apart
+                             * from TRANSIENT_LOCAL. They are all recorded as durable, which keeps
+                             * late joiner delivery on replay; VOLATILE would lose it.
+                             */
+                            pubtopic.transient_local = (kind >= RTPS_DURABILITY_TRANSIENT_LOCAL);
+                            break;
+                        }
+                        case RTPS_PID_OWNERSHIP:
+                        {
+                            uint32_t kind = 0;
+                            cdr >> kind;
+                            pubtopic.exclusive_ownership = (RTPS_OWNERSHIP_EXCLUSIVE == kind);
+                            break;
+                        }
                         default:
                             break;
                     }
@@ -463,6 +587,33 @@ bool DDSRecorder::deserializeSubscriptionBuiltinTopic(
                         case RTPS_PID_TYPE_NAME:
                             cdr >> subtopic.type_name;
                             break;
+                        case RTPS_PID_RELIABILITY:
+                        {
+                            uint32_t kind = 0;
+                            cdr >> kind;
+                            subtopic.reliable = (RTPS_RELIABILITY_RELIABLE == kind);
+                            break;
+                        }
+                        case RTPS_PID_DURABILITY:
+                        {
+                            uint32_t kind = 0;
+                            cdr >> kind;
+                            /*
+                             * The column is a bool that the replayer reads back as either VOLATILE
+                             * or TRANSIENT_LOCAL, so TRANSIENT and PERSISTENT cannot be told apart
+                             * from TRANSIENT_LOCAL. They are all recorded as durable, which keeps
+                             * late joiner delivery on replay; VOLATILE would lose it.
+                             */
+                            subtopic.transient_local = (kind >= RTPS_DURABILITY_TRANSIENT_LOCAL);
+                            break;
+                        }
+                        case RTPS_PID_OWNERSHIP:
+                        {
+                            uint32_t kind = 0;
+                            cdr >> kind;
+                            subtopic.exclusive_ownership = (RTPS_OWNERSHIP_EXCLUSIVE == kind);
+                            break;
+                        }
                         default:
                             break;
                     }

@@ -352,6 +352,35 @@ def check_queryable_integrity(checker, db, name, expected_messages, expected_cap
     checker.check('%s: every DataTables row names a table that exists' % name,
                   not missing, 'missing %s' % missing)
 
+    # The qos column is YAML the replayer loads and applies as the discovered QoS, so the four
+    # keys have to be there and each has to be a boolean it can read back.
+    qos_rows = [r[0] for r in query(db, 'SELECT qos FROM Topics')]
+    checker.check('%s: Topics.qos carries the four keys the replayer reads' % name,
+                  qos_rows and all(
+                      sorted(line.split(':')[0] for line in row.splitlines()) ==
+                      ['durability', 'keyed', 'ownership', 'reliability'] for row in qos_rows),
+                  'got %r' % (qos_rows[:1],))
+    checker.check('%s: every Topics.qos value is a YAML boolean' % name,
+                  all(line.split(': ')[1] in ('true', 'false')
+                      for row in qos_rows for line in row.splitlines()),
+                  'got %r' % (qos_rows[:1],))
+
+    # Keyedness is read from the entityKind nibble of the endpoint's EntityId_t (RTPS 2.5,
+    # 9.3.1.2), so the qos column and the GUID recorded in Endpoints have to agree.
+    ENTITY_WITH_KEY = {0x02, 0x07}
+    ENTITY_NO_KEY = {0x03, 0x04}
+    for topic, topic_qos in query(db, 'SELECT name, qos FROM Topics'):
+        nibbles = {int(guid.split('|')[1].split('.')[-1], 16) & 0x0f
+                   for (guid,) in query(db, 'SELECT guid FROM Endpoints WHERE topic = ?',
+                                        (topic,))}
+        with_key = nibbles & ENTITY_WITH_KEY
+        no_key = nibbles & ENTITY_NO_KEY
+        if not (with_key or no_key) or (with_key and no_key):
+            # No endpoint states it, or they disagree and the DataWriter decides.
+            continue
+        checker.equal('%s: keyed agrees with the entityKind of %s' % (name, topic),
+                      'keyed: true' in topic_qos, bool(with_key))
+
     # Two topics whose names sanitize alike, or one topic's table and another topic's child table,
     # must never land on the same name: the tables are dropped before being created, so the loser
     # of such a race would have its rows destroyed and both would be listed under one name.

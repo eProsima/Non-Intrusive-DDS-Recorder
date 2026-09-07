@@ -126,13 +126,8 @@ static const char* const MESSAGEPARTITION_ADD =
 static const char* const PARTITION_ADD =
         "INSERT OR IGNORE INTO Partitions (name) VALUES ('')";
 
-/*
- * The recorder parses only the topic name, the type name and the GUID out of the discovery
- * messages, so no QoS survives. These are the DDS Record & Replay defaults, in the
- * exact four-key YAML that Serializer::serialize<TopicQoS> emits.
- */
-static const char* const DEFAULT_QOS =
-        "reliability: true\ndurability: false\nownership: false\nkeyed: false";
+static const char* const TOPIC_QOS_UPDATE =
+        "UPDATE Topics SET qos = ? WHERE name = ? AND type = ?";
 
 /* The single, empty partition every topic and message is associated with. */
 static const char* const EMPTY_PARTITION = "";
@@ -147,6 +142,27 @@ using namespace eprosima;
 using namespace std;
 
 static const char* const CLASS_NAME = "MonitorDB";
+
+/*
+ * Renders a TopicQos the way Serializer::serialize<TopicQoS> in ddsrecorder_participants does:
+ * YAML::Dump over a four key map, in this order. The replayer reads the same four keys back and
+ * applies them as the discovered QoS of the topic, so the names, the order and the boolean sense
+ * all have to match. 'reliability' is is_reliable(), 'durability' is is_transient_local() and
+ * 'ownership' is has_ownership().
+ */
+static std::string serialize_qos(
+        const MonitorDB::TopicQos& qos)
+{
+    std::string yaml;
+
+    yaml += std::string("reliability: ") + (qos.reliable ? "true" : "false");
+    yaml += std::string("\ndurability: ") + (qos.transient_local ? "true" : "false");
+    yaml += std::string("\nownership: ") + (qos.exclusive_ownership ? "true" : "false");
+    yaml += std::string("\nkeyed: ") + (qos.keyed ? "true" : "false");
+
+    return yaml;
+}
+
 
 MonitorDB::MonitorDB(
         eProsimaLog& log,
@@ -178,6 +194,8 @@ MonitorDB::MonitorDB(
             &updatte_type_stmt_, NULL) != SQLITE_OK ||
             SQLITE_PREPARE(database_, TOPIC_ADD, (int)strlen(TOPIC_ADD),
             &add_topic_stmt_, NULL) != SQLITE_OK ||
+            SQLITE_PREPARE(database_, TOPIC_QOS_UPDATE, (int)strlen(TOPIC_QOS_UPDATE),
+            &update_topic_qos_stmt_, NULL) != SQLITE_OK ||
             SQLITE_PREPARE(database_, TOPICPARTITION_ADD, (int)strlen(TOPICPARTITION_ADD),
             &add_topic_parttition_stmt_, NULL) != SQLITE_OK ||
             SQLITE_PREPARE(database_, MESSAGE_ADD, (int)strlen(MESSAGE_ADD),
@@ -208,6 +226,10 @@ MonitorDB::~MonitorDB()
     if (add_topic_stmt_ != NULL)
     {
         sqlite3_finalize(add_topic_stmt_);
+    }
+    if (update_topic_qos_stmt_ != NULL)
+    {
+        sqlite3_finalize(update_topic_qos_stmt_);
     }
     if (add_topic_parttition_stmt_ != NULL)
     {
@@ -410,9 +432,11 @@ Endpoint* MonitorDB::find_endpoint(
 }
 
 bool MonitorDB::add_topic(
-        std::string& topicName,
-        std::string& typeName,
-        const std::string& idl)
+        const std::string& topicName,
+        const std::string& typeName,
+        const std::string& idl,
+        const TopicQos& qos,
+        bool from_writer)
 {
     const char* const METHOD_NAME = "addTopic";
 
@@ -482,13 +506,46 @@ bool MonitorDB::add_topic(
     sqlite3_bind_text(add_topic_stmt_, 1, topicName.c_str(), (int)topicName.length(),
             SQLITE_STATIC);
     sqlite3_bind_text(add_topic_stmt_, 2, typeName.c_str(), (int)typeName.length(), SQLITE_STATIC);
-    sqlite3_bind_text(add_topic_stmt_, 3, DEFAULT_QOS, (int)strlen(DEFAULT_QOS), SQLITE_STATIC);
+    // Has to outlive the sqlite3_step below, since it is bound as SQLITE_STATIC.
+    std::string qos_yaml = serialize_qos(qos);
+    sqlite3_bind_text(add_topic_stmt_, 3, qos_yaml.c_str(), (int)qos_yaml.length(),
+            SQLITE_STATIC);
     sqlite3_bind_text(add_topic_stmt_, 4, NOT_ROS2, (int)strlen(NOT_ROS2), SQLITE_STATIC);
 
     if (sqlite3_step(add_topic_stmt_) != SQLITE_DONE)
     {
         logError(log_, "Cannot step the add topic statement: %s", sqlite3_errmsg(database_));
         return false;
+    }
+
+    /*
+     * The INSERT above is an INSERT OR IGNORE, so the first endpoint to announce a topic decides
+     * its QoS. That is the wrong endpoint when it was a DataReader: replaying a topic publishes
+     * it, so it is a DataWriter's QoS the replayer has to reproduce. A writer therefore overwrites
+     * what is there. Several writers with different QoS on one topic cannot be represented, and
+     * the last one announced wins.
+     */
+    if (from_writer)
+    {
+        if (sqlite3_reset(update_topic_qos_stmt_) != SQLITE_OK)
+        {
+            logError(log_, "Cannot reset the update topic QoS statement");
+            return false;
+        }
+
+        sqlite3_bind_text(update_topic_qos_stmt_, 1, qos_yaml.c_str(), (int)qos_yaml.length(),
+                SQLITE_STATIC);
+        sqlite3_bind_text(update_topic_qos_stmt_, 2, topicName.c_str(), (int)topicName.length(),
+                SQLITE_STATIC);
+        sqlite3_bind_text(update_topic_qos_stmt_, 3, typeName.c_str(), (int)typeName.length(),
+                SQLITE_STATIC);
+
+        if (sqlite3_step(update_topic_qos_stmt_) != SQLITE_DONE)
+        {
+            logError(log_, "Cannot step the update topic QoS statement: %s",
+                    sqlite3_errmsg(database_));
+            return false;
+        }
     }
 
     if (sqlite3_reset(add_topic_parttition_stmt_) != SQLITE_OK)
@@ -518,8 +575,8 @@ bool MonitorDB::add_endpoint(
         unsigned int appId,
         unsigned int instanceId,
         unsigned int entityId,
-        std::string& topicName,
-        std::string& typeName)
+        const std::string& topicName,
+        const std::string& typeName)
 {
     const char* const METHOD_NAME = "addEndpoint";
 

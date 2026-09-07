@@ -51,22 +51,48 @@ public:
     ~MonitorDB();
 
     /**
+     * \brief The QoS of a DDS Topic, as the four booleans the 'qos' column can hold.
+     *
+     * The column is the YAML that *DDS Record & Replay* writes, and on replay it is applied as
+     * the discovered QoS of the topic, so these values decide what a replayed writer offers.
+     * Only what the discovery traffic announces can be filled in, plus keyedness, which no
+     * announcement carries and which therefore comes from the '-idl' file.
+     */
+    typedef struct TopicQos
+    {
+        /// RELIABLE when true, BEST_EFFORT when false.
+        bool reliable {true};
+        /// TRANSIENT_LOCAL when true, VOLATILE when false. Cannot express TRANSIENT.
+        bool transient_local {false};
+        /// EXCLUSIVE ownership when true, SHARED when false.
+        bool exclusive_ownership {false};
+        /// Whether the data type declares a key.
+        bool keyed {false};
+    } TopicQos;
+
+    /**
      * \brief This function adds a DDS Topic and its data type.
      *
      * Repeated announcements of the same topic are ignored, so this can be called for
-     * every discovery message.
+     * every discovery message. The QoS is the exception: an announcement made by a DataWriter
+     * overwrites what a DataReader recorded, because a replayed topic is published, so it is the
+     * writer's QoS that the replayer has to reproduce.
      *
      * \param topicName Name of the DDS Topic.
      * \param typeName Name of the DDS Topic data type.
      * \param idl The data type rendered as IDL, or an empty string when the data type is
      * not known. Stored in the 'idl' column, rendered from the file given with '-idl'.
      * It is there for the user to read; nothing in this tool parses it back.
+     * \param qos The QoS announced for the endpoint this topic was learnt from.
+     * \param from_writer True when the announcement came from a DataWriter.
      * \return True value is returned if the topic was added or was already present.
      */
     bool add_topic(
-            std::string& topicName,
-            std::string& typeName,
-            const std::string& idl);
+            const std::string& topicName,
+            const std::string& typeName,
+            const std::string& idl,
+            const TopicQos& qos,
+            bool from_writer);
 
     /**
      * \brief This function registers an endpoint so its samples can be attributed.
@@ -88,8 +114,8 @@ public:
             unsigned int appId,
             unsigned int instanceId,
             unsigned int entityId,
-            std::string& topicName,
-            std::string& typeName);
+            const std::string& topicName,
+            const std::string& typeName);
 
     /**
      * \brief What add_message() resolved about a sample, for a caller that has to write it
@@ -102,19 +128,19 @@ public:
     typedef struct StoredMessage
     {
         std::string writer_guid;
-        unsigned long long sequence_number = 0;
+        unsigned long long sequence_number {0};
         std::string topic_name;
         std::string type_name;
         /**
          * False when the sample was a duplicate and Messages already held it. A caller keyed on
          * (writer_guid, sequence_number) must not write it a second time.
          */
-        bool stored = false;
+        bool stored {false};
         /**
          * False when the sample could not be attributed to any announced endpoint, in which case
          * none of the fields above mean anything and Messages holds no row for it either.
          */
-        bool resolved = false;
+        bool resolved {false};
     } StoredMessage;
 
     /**
@@ -227,6 +253,12 @@ private:
     sqlite3_stmt * updatte_type_stmt_{nullptr};
 
     sqlite3_stmt * add_topic_stmt_{nullptr};
+
+    /**
+     * Replaces the 'qos' column of a topic already inserted. Run only for a DataWriter's
+     * announcement, so a reader's QoS never overrides the writer's.
+     */
+    sqlite3_stmt * update_topic_qos_stmt_{nullptr};
     sqlite3_stmt * add_topic_parttition_stmt_{nullptr};
     sqlite3_stmt * add_message_stmt_{nullptr};
     sqlite3_stmt * add_message_partitition_stmt{nullptr};

@@ -11,6 +11,8 @@
 #include <sstream>
 
 #include <fastdds/dds/xtypes/dynamic_types/DynamicTypeBuilder.hpp>
+#include <fastdds/dds/xtypes/dynamic_types/DynamicTypeMember.hpp>
+#include <fastdds/dds/xtypes/dynamic_types/MemberDescriptor.hpp>
 #include <fastdds/dds/xtypes/dynamic_types/DynamicTypeBuilderFactory.hpp>
 #include <fastdds/dds/xtypes/utils.hpp>
 
@@ -102,6 +104,38 @@ string TypeStore::idl_for(
     }
 
     return idl.str();
+}
+
+bool TypeStore::is_keyed(
+        const string& type_name) const
+{
+    DynamicType::_ref_type type = find(type_name);
+
+    if (!type)
+    {
+        return false;
+    }
+
+    uint32_t count = type->get_member_count();
+
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        DynamicTypeMember::_ref_type member;
+
+        if (RETCODE_OK != type->get_member_by_index(member, i))
+        {
+            continue;
+        }
+
+        MemberDescriptor::_ref_type descriptor = traits<MemberDescriptor>::make_shared();
+
+        if (RETCODE_OK == member->get_descriptor(descriptor) && descriptor->is_key())
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 size_t TypeStore::size() const

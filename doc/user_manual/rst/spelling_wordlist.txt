@@ -63,8 +63,8 @@ sniffing
 SPDP
 sql
 SQL
-SQLite
 sqlite
+SQLite
 SQLiteman
 submessage
 submessages
@@ -73,6 +73,7 @@ tshark
 UDP
 Unencrypted
 unicast
+unkeyed
 unrepresentable
 utils
 Wi

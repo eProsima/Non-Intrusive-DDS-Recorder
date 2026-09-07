@@ -72,6 +72,18 @@ public:
     std::string idl_for(
             const std::string& type_name) const;
 
+    /**
+     * \brief Whether a data type has any member marked as a key.
+     *
+     * Keyedness is a property of the data type, and no RTPS discovery message states it, so the
+     * IDL file is the only place it can come from.
+     *
+     * \param type_name Name of the DDS Topic data type.
+     * \return True when the type is known and declares at least one key member.
+     */
+    bool is_keyed(
+            const std::string& type_name) const;
+
     /// Number of types the IDL file declared.
     size_t size() const;
 

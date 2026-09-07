@@ -163,9 +163,9 @@ The table below states when it is the wrong tool, so that the choice is made bef
 
     *   - You need the QoS policies of |br|
           each endpoint.
-        - Only the topic name, the type name and the |br|
-          :term:`Guid` are extracted from the discovery |br|
-          messages.
+        - Reliability, durability and ownership are |br|
+          recorded; every other policy an |br|
+          announcement carries is dropped.
 
     *   - You cannot reach a capture point |br|
           that sees the traffic.

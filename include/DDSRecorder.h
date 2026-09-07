@@ -109,6 +109,13 @@ private:
         GUID guid;
         std::string topic_name;
         std::string type_name;
+        /*
+         * The QoS the announcement carried, defaulted to what DDS gives an endpoint that says
+         * nothing. A DataWriter defaults to reliable reliability.
+         */
+        bool reliable {true};
+        bool transient_local {false};
+        bool exclusive_ownership {false};
     } PublicationBuiltinTopic;
 
     typedef struct SubscriptionBuiltinTopic
@@ -118,6 +125,13 @@ private:
         GUID guid;
         std::string topic_name;
         std::string type_name;
+        /*
+         * The QoS the announcement carried, defaulted to what DDS gives an endpoint that says
+         * nothing. A DataReader defaults to best effort reliability.
+         */
+        bool reliable {false};
+        bool transient_local {false};
+        bool exclusive_ownership {false};
     } SubscriptionBuiltinTopic;
 
     void processDataW(

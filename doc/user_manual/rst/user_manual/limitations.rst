@@ -130,8 +130,25 @@ DDS entities
 The :term:`SEDP` announcements of DataWriters and DataReaders are decoded and stored, while the :term:`SPDP`
 participant announcements are skipped: a participant is only visible through the :term:`GuidPrefix` of its endpoints.
 
-QoS policies carried in the discovery messages are not recorded either.
-Only the topic name, the type name and the :term:`Guid` are extracted from each announcement.
+Of the QoS policies an announcement carries, three are recorded: reliability, durability and
+ownership, in the ``qos`` column of ``Topics``.
+They are what the *DDS Record & Replay* schema has room for, and on replay they are applied as the
+discovered QoS of the topic.
+Everything else an announcement holds, from deadline to lifespan to partitions, is dropped, and
+``durability`` is a boolean that cannot tell ``TRANSIENT`` and ``PERSISTENT`` apart from
+``TRANSIENT_LOCAL``.
+
+The fourth value in that column, ``keyed``, is not a QoS policy an announcement carries.
+It is read from the ``entityKind`` octet of the endpoint's :term:`Guid`, which RTPS defines as
+stating whether the endpoint was created on a keyed topic, so it is available even with no
+``-idl`` file at all.
+When that octet names no endpoint kind, the data type read from ``-idl`` answers instead, and
+without that file the topic is recorded as unkeyed.
+
+.. note::
+
+    A topic is announced by its DataWriters and its DataReaders alike, and they may not agree.
+    A DataWriter's QoS wins, because replaying a topic publishes it.
 
 Data types
 ==========
