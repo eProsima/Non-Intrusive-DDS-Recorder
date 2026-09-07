@@ -10,8 +10,9 @@
 
 #ifdef __cplusplus
 
+#include <array>
+#include <map>
 #include <string>
-#include <list>
 
 #include <sqlite3.h>
 #include "RTPSPacketAnalyzer.h"
@@ -230,6 +231,15 @@ private:
     bool execute(
             const char * statement);
 
+    /// The four words of a GUID, in the order format_guid() prints them, so it can key a map.
+    typedef std::array<unsigned int, 4> EndpointKey;
+
+    static EndpointKey endpoint_key(
+            unsigned int hostId,
+            unsigned int appId,
+            unsigned int instanceId,
+            unsigned int entityId);
+
     Endpoint* find_endpoint(
             unsigned int hostId,
             unsigned int appId,
@@ -263,8 +273,14 @@ private:
     sqlite3_stmt * add_message_stmt_{nullptr};
     sqlite3_stmt * add_message_partitition_stmt{nullptr};
 
-    /// Endpoints seen in the discovery traffic, used to attribute samples to a topic.
-    std::list<Endpoint*> m_endpoints;
+    /**
+     * Endpoints seen in the discovery traffic, used to attribute samples to a topic.
+     *
+     * Keyed rather than listed because find_endpoint() runs twice for every user sample in the
+     * capture, once for the writer and once for the reader, so a linear scan would cost the
+     * number of endpoints in the system on each. Held by value: the map owns them.
+     */
+    std::map<EndpointKey, Endpoint> endpoints_;
 
     unsigned int message_count{0};
 

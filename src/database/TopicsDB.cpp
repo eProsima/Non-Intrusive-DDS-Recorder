@@ -88,16 +88,6 @@ TopicsDB::TopicsDB(
 
 TopicsDB::~TopicsDB()
 {
-    for (list<Entry*>::iterator it = topics_.begin(); it != topics_.end(); ++it)
-    {
-        if ((*it)->data != NULL)
-        {
-            delete (*it)->data;
-        }
-
-        delete *it;
-    }
-
     if (add_data_table_stmt_ != NULL)
     {
         sqlite3_finalize(add_data_table_stmt_);
@@ -112,21 +102,6 @@ bool TopicsDB::is_ready() const
 unsigned int TopicsDB::get_row_count() const
 {
     return row_count_;
-}
-
-TopicsDB::Entry* TopicsDB::find(
-        const string& topicName,
-        const string& typeName)
-{
-    for (list<Entry*>::iterator it = topics_.begin(); it != topics_.end(); ++it)
-    {
-        if ((*it)->topic == topicName && (*it)->type == typeName)
-        {
-            return *it;
-        }
-    }
-
-    return NULL;
 }
 
 bool TopicsDB::register_table(
@@ -173,15 +148,15 @@ bool TopicsDB::add_topic(
         return false;
     }
 
-    if (find(topicName, typeName) != NULL)
+    TopicKey key(topicName, typeName);
+
+    if (topics_.find(key) != topics_.end())
     {
         return true;
     }
 
-    Entry * entry = new Entry();
-    entry->topic = topicName;
-    entry->type = typeName;
-    topics_.push_back(entry);
+    /* Registered with no table until one is built, so a repeated announcement stops here. */
+    topics_[key] = nullptr;
 
     if (type_store_ == NULL)
     {
@@ -199,17 +174,14 @@ bool TopicsDB::add_topic(
         return true;
     }
 
-    TopicDataDB * data = new TopicDataDB(log_, database_, namer_.reserve("Data_" + topicName),
-                    namer_, type);
+    std::unique_ptr<TopicDataDB> data(new TopicDataDB(log_, database_,
+                    namer_.reserve("Data_" + topicName), namer_, type));
 
     if (!data->is_ready())
     {
         /* TopicDataDB has already said why. The topic stays recorded, only without a table. */
-        delete data;
         return true;
     }
-
-    entry->data = data;
 
     const vector<TopicDataDB::TableRef>& tables = data->tables();
 
@@ -220,6 +192,8 @@ bool TopicsDB::add_topic(
             return false;
         }
     }
+
+    topics_[key] = std::move(data);
 
     return true;
 }
@@ -237,15 +211,16 @@ bool TopicsDB::store(
         return false;
     }
 
-    Entry * entry = find(topicName, typeName);
+    map<TopicKey, std::unique_ptr<TopicDataDB>>::iterator it =
+            topics_.find(TopicKey(topicName, typeName));
 
-    if (entry == NULL || entry->data == NULL)
+    if (it == topics_.end() || !it->second)
     {
         /* A topic without a table is not an error: its samples live in Messages as CDR. */
         return true;
     }
 
-    if (!entry->data->store(writer_guid, sequence_number, payload, payload_len))
+    if (!it->second->store(writer_guid, sequence_number, payload, payload_len))
     {
         return false;
     }

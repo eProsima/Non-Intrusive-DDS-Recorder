@@ -227,8 +227,6 @@ MonitorDB::MonitorDB(
 
 MonitorDB::~MonitorDB()
 {
-    list<Endpoint*>::iterator it;
-
     if (add_type_stmt_ != NULL)
     {
         sqlite3_finalize(add_type_stmt_);
@@ -258,10 +256,6 @@ MonitorDB::~MonitorDB()
         sqlite3_finalize(add_message_partitition_stmt);
     }
 
-    for (it = m_endpoints.begin(); it != m_endpoints.end(); it++)
-    {
-        delete (*it);
-    }
 }
 
 bool MonitorDB::execute(
@@ -426,23 +420,27 @@ unsigned int MonitorDB::fraction_to_nanosec(
     return (unsigned int)((((unsigned long long)fraction) * 1000000000ULL) >> 32);
 }
 
+MonitorDB::EndpointKey MonitorDB::endpoint_key(
+        unsigned int hostId,
+        unsigned int appId,
+        unsigned int instanceId,
+        unsigned int entityId)
+{
+    EndpointKey key = { hostId, appId, instanceId, entityId };
+
+    return key;
+}
+
 Endpoint* MonitorDB::find_endpoint(
         unsigned int hostId,
         unsigned int appId,
         unsigned int instanceId,
         unsigned int entityId)
 {
-    list<Endpoint*>::iterator it;
+    map<EndpointKey, Endpoint>::iterator it =
+            endpoints_.find(endpoint_key(hostId, appId, instanceId, entityId));
 
-    for (it = m_endpoints.begin(); it != m_endpoints.end(); it++)
-    {
-        if ((*it)->equal(hostId, appId, instanceId, entityId))
-        {
-            return (*it);
-        }
-    }
-
-    return NULL;
+    return it != endpoints_.end() ? &it->second : NULL;
 }
 
 bool MonitorDB::add_topic(
@@ -600,11 +598,9 @@ bool MonitorDB::add_endpoint(
         return false;
     }
 
-    if (find_endpoint(hostId, appId, instanceId, entityId) == NULL)
-    {
-        m_endpoints.push_back(new Endpoint(hostId, appId, instanceId, entityId,
-                topicName, typeName));
-    }
+    /* Repeated announcements of the same endpoint leave the first one in place. */
+    endpoints_.emplace(endpoint_key(hostId, appId, instanceId, entityId),
+            Endpoint(topicName, typeName));
 
     return true;
 }

@@ -10,8 +10,10 @@
 
 #ifdef __cplusplus
 
-#include <list>
+#include <map>
+#include <memory>
 #include <string>
+#include <utility>
 
 #include <sqlite3.h>
 
@@ -90,17 +92,8 @@ public:
 
 private:
 
-    typedef struct Entry
-    {
-        std::string topic;
-        std::string type;
-        /// NULL when the type was unknown or could not be represented as columns.
-        TopicDataDB * data = NULL;
-    } Entry;
-
-    Entry * find(
-            const std::string& topicName,
-            const std::string& typeName);
+    /// A DDS Topic is identified by its name together with its data type name.
+    typedef std::pair<std::string, std::string> TopicKey;
 
     /// Adds one row to DataTables.
     bool register_table(
@@ -117,7 +110,15 @@ private:
 
     sqlite3_stmt * add_data_table_stmt_{nullptr};
 
-    std::list<Entry*> topics_;
+    /**
+     * The topics registered so far, and the writer of each one's data tables.
+     *
+     * Keyed rather than listed because a lookup happens for every stored sample, so a linear scan
+     * would cost the number of topics in the system on each. A present key with a null value is a
+     * topic that was registered but got no table, which is how a repeated announcement of an
+     * unrepresentable topic is recognised and ignored.
+     */
+    std::map<TopicKey, std::unique_ptr<TopicDataDB>> topics_;
 
     /**
      * Hands out every table name of every topic, the child tables of collection members included,

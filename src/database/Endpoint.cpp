@@ -11,31 +11,11 @@ using namespace eprosima;
 using namespace std;
 
 Endpoint::Endpoint(
-        unsigned int hostId,
-        unsigned int appId,
-        unsigned int instanceId,
-        unsigned int entityId,
         const string& topicName,
         const string& typeName)
-    : m_hostId(hostId)
-    , m_appId(appId)
-    , m_instanceId(instanceId)
-    , m_entityId(entityId)
-    , m_topicName(topicName)
+    : m_topicName(topicName)
     , m_typeName(typeName)
 {
-}
-
-bool Endpoint::equal(
-        unsigned int hostId,
-        unsigned int appId,
-        unsigned int instanceId,
-        unsigned int entityId) const
-{
-    return hostId == m_hostId &&
-           appId == m_appId &&
-           instanceId == m_instanceId &&
-           entityId == m_entityId;
 }
 
 const string& Endpoint::getTopicName() const

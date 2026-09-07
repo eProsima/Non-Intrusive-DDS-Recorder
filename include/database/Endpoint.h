@@ -20,43 +20,23 @@ namespace eprosima {
  * A user sample carries only the GuidPrefix of its participant and the entity id of its writer,
  * so the topic and the type name it belongs to have to be recovered from the announcement that
  * introduced the endpoint. That is what this remembers.
+ *
+ * The GUID itself is not held here: MonitorDB keys its endpoints by it, so storing it again would
+ * only be a second copy to keep in step.
  */
 class Endpoint
 {
 public:
 
     Endpoint(
-            unsigned int hostId,
-            unsigned int appId,
-            unsigned int instanceId,
-            unsigned int entityId,
             const std::string& topicName,
             const std::string& typeName);
-
-    /**
-     * \brief Whether this is the endpoint with the given GUID.
-     *
-     * \param hostId GuidPrefix of the participant that owns the endpoint.
-     * \param appId GuidPrefix of the participant that owns the endpoint.
-     * \param instanceId GuidPrefix of the participant that owns the endpoint.
-     * \param entityId Entity id of the endpoint inside its participant.
-     * \return True if they are equal, false otherwise.
-     */
-    bool equal(
-            unsigned int hostId,
-            unsigned int appId,
-            unsigned int instanceId,
-            unsigned int entityId) const;
 
     const std::string& getTopicName() const;
     const std::string& getTypeName() const;
 
 private:
 
-    unsigned int m_hostId;
-    unsigned int m_appId;
-    unsigned int m_instanceId;
-    unsigned int m_entityId;
     std::string m_topicName;
     std::string m_typeName;
 };
