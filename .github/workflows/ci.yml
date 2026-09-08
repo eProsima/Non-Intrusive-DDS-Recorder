@@ -1,0 +1,317 @@
+name: CI
+
+# Compiles the recorder and runs the regression suite on Linux and Windows.
+#
+# There is no C++ test suite to drive with CTest, so "test" here means the two standard library
+# Python checkers in utils/pcTests: check_assertions.py, which reads the suite and fails when an
+# assertion cannot fail, and check_monitor_schema.py, which records every fixture with and
+# without '-queryable' and asserts the result.  Both exit non-zero on failure, which is what makes
+# them usable here; the recorder itself returns the same status whatever happens, so nothing in
+# this workflow consults it.
+#
+# Deliberately plain: one build, one configuration per platform, no sanitizers and no nightly
+# matrix.  The point is that a pull request cannot merge with the schema broken.
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The captures are small and the recorder batches its writes, so the whole suite is seconds.
+  colcon_build_args: --event-handlers console_direct+
+
+jobs:
+
+  ubuntu:
+    name: ubuntu
+    runs-on: ubuntu-24.04
+
+    steps:
+
+      - name: Sync repository
+        uses: eProsima/eProsima-CI/external/checkout@v0
+        with:
+          path: src/ni_ddsrecorder
+
+      - name: Install apt dependencies
+        uses: eProsima/eProsima-CI/ubuntu/install_apt_packages@v0
+        with:
+          packages: >-
+            libasio-dev
+            libboost-chrono-dev
+            libboost-date-time-dev
+            libboost-system-dev
+            libboost-thread-dev
+            libpcap-dev
+            libsqlite3-dev
+            libssl-dev
+            libtinyxml2-dev
+
+      - name: Install Python dependencies
+        uses: eProsima/eProsima-CI/ubuntu/install_python_packages@v0
+        with:
+          packages: vcstool
+          upgrade: false
+
+      - name: Install colcon
+        uses: eProsima/eProsima-CI/multiplatform/install_colcon@v0
+
+      - name: Fetch Fast DDS, Fast CDR and foonathan_memory
+        uses: eProsima/eProsima-CI/multiplatform/vcs_import@v0
+        with:
+          vcs_repos_file: ${{ github.workspace }}/src/ni_ddsrecorder/ni_ddsrecorder.repos
+          destination_workspace: src
+
+      - name: Build
+        uses: eProsima/eProsima-CI/multiplatform/colcon_build@v0
+        with:
+          colcon_build_args: ${{ env.colcon_build_args }}
+          cmake_args: -DCMAKE_BUILD_TYPE=Release -DBUILD_DOCUMENTATION=OFF
+          workspace: ${{ github.workspace }}
+
+      # Reads the suite rather than running it, so it is worth doing before the slow step.
+      - name: Check the suite for assertions that cannot fail
+        run: python3 src/ni_ddsrecorder/utils/pcTests/check_assertions.py
+
+      - name: Run the regression suite
+        shell: bash
+        run: |
+          source install/setup.sh
+          python3 src/ni_ddsrecorder/utils/pcTests/check_monitor_schema.py
+
+  windows:
+    name: windows
+    runs-on: windows-2022
+
+    env:
+      # The Npcap SDK lays itself out as Include/ and Lib/x64, which is what find_pcap expects
+      # of WINPCAP_ROOT. SQLite needs nothing: src/sqlite3 is compiled into the binary on Windows.
+      NPCAP_SDK_URL: https://npcap.com/dist/npcap-sdk-1.13.zip
+      # The runtime DLLs, which the SDK does not carry. Npcap rather than WinPcap: WinPcap
+      # 4.1.3 embeds libpcap 1.0, which predates pcapng support, so it cannot open the suite's
+      # shape.pcapng fixture at all. Npcap carries libpcap 1.10 and reads both formats, and it
+      # is the runtime matching the SDK above. Pinned so a silent upstream change cannot alter
+      # what the tests run against.
+      NPCAP_INSTALLER_URL: https://npcap.com/dist/npcap-1.83.exe
+
+    steps:
+
+      - name: Sync repository
+        uses: eProsima/eProsima-CI/external/checkout@v0
+        with:
+          path: src/ni_ddsrecorder
+
+      - name: Install CMake and Ninja
+        uses: eProsima/eProsima-CI/windows/install_fastdds_dependencies@v0
+
+      - name: Install colcon
+        uses: eProsima/eProsima-CI/multiplatform/install_colcon@v0
+
+      - name: Install Python dependencies
+        uses: eProsima/eProsima-CI/windows/install_python_packages@v0
+        with:
+          packages: vcstool
+
+      - name: Download the Npcap SDK
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri $env:NPCAP_SDK_URL -OutFile npcap-sdk.zip
+          Expand-Archive -Path npcap-sdk.zip -DestinationPath ${{ github.workspace }}\npcap-sdk
+          echo "WINPCAP_ROOT=${{ github.workspace }}\npcap-sdk" >> $env:GITHUB_ENV
+
+      # The SDK above is headers and import libraries only: wpcap.lib is a link-time stub and
+      # carries no code, so the build links but the recorder cannot start without wpcap.dll.
+      # That DLL comes from a runtime installer, and the runner image has none.
+      #
+      # The installer is never run. Npcap restricts silent mode to its OEM edition, and WinPcap
+      # 4.1.3 ignores /S outright -- it opens its GUI and then blocks forever on a headless
+      # runner. Chocolatey's package does not install on this image either. It is unpacked
+      # instead, which needs no driver, no service and no elevation.
+      #
+      # None of that matters, because only the DLLs are wanted. This tool calls
+      # pcap_open_offline, pcap_dispatch, pcap_datalink, pcap_datalink_val_to_name and
+      # pcap_close: it reads capture files and never opens an interface, so the npf driver and
+      # the registry entries an install would add are of no use here. 7-Zip, which is on the
+      # image, unpacks an NSIS archive perfectly well.
+      - name: Install the pcap runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          Invoke-WebRequest -Uri $env:NPCAP_INSTALLER_URL -OutFile npcap-installer.exe
+
+          $sevenzip = Get-Command 7z -ErrorAction SilentlyContinue
+          if ($null -eq $sevenzip) {
+              $fallback = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
+              if (-not (Test-Path $fallback)) {
+                  Write-Error "7-Zip is not on this image, so the Npcap archive cannot be unpacked."
+                  exit 1
+              }
+              $sevenzip = $fallback
+          } else {
+              $sevenzip = $sevenzip.Source
+          }
+
+          # The archive's own table of contents, before extraction flattens it. NSIS names the
+          # 32 and 64 bit copies of a library identically (both go to $SYSDIR, redirected at
+          # install time), so duplicates here are the evidence that a second copy exists at all
+          # -- extraction cannot show them, whatever the overwrite mode.
+          Write-Host '--- entries declared by the installer ---'
+          & $sevenzip l npcap-installer.exe
+
+          $extracted = Join-Path ${{ github.workspace }} 'pcap-extracted'
+          # -aou, not -y: the installer carries the same library for several architectures under
+          # one name, so overwriting keeps whichever happens to come last and silently discards
+          # the others. Auto-rename keeps them all, as Packet.dll and Packet_1.dll, and the
+          # architecture is then read from the PE header rather than assumed.
+          & $sevenzip x npcap-installer.exe "-o$extracted" -aou | Out-Null
+
+          # PE parsing lives in one place; see the header of that file.
+          . '${{ github.workspace }}\src\ni_ddsrecorder\.github\workflows\scripts\pe.ps1'
+
+          # Print everything the archive holds, not only the files that turn out to be
+          # executables: a library stored compressed or under an unexpected name is exactly what
+          # this needs to reveal, and it would be invisible in a list of recognised binaries.
+          # Guessing at the layout has cost two runs already.
+          Write-Host '--- contents of the archive ---'
+          $binaries = @()
+          $files = @(Get-ChildItem -Path $extracted -Recurse -File | Sort-Object FullName)
+
+          if ($files.Count -eq 0) {
+              Write-Error "7-Zip extracted nothing from the installer."
+              exit 1
+          }
+
+          foreach ($file in $files) {
+              $machine = Get-PEMachine $file.FullName
+              $arch = Get-PEArchName $machine
+              $relative = $file.FullName.Substring($extracted.Length).TrimStart('\')
+              Write-Host ('  {0,-6} {1,10:N0}  {2}' -f $arch, $file.Length, $relative)
+              if ($machine -ne 0) {
+                  $binaries += [pscustomobject]@{ Path = $file.FullName; Name = $file.Name; Arch = $arch }
+              }
+          }
+
+          Write-Host ('--- {0} file(s), {1} of them executables ---' -f $files.Count, $binaries.Count)
+
+          $runtime = Join-Path ${{ github.workspace }} 'pcap-runtime'
+          New-Item -ItemType Directory -Force -Path $runtime | Out-Null
+
+          # Undo the auto-rename: Packet_1.dll has to be installed as Packet.dll, because that
+          # is the name wpcap.dll imports it by.
+          function Get-CanonicalName([string] $name) {
+              return [regex]::Replace($name, '_\d+(?=\.[^.]+$)', '')
+          }
+
+          # An installer may ship several builds of the same library that are not
+          # interchangeable: WinPcap's second x64 Packet.dll imports NPPTools.dll, a Network
+          # Monitor component absent from the runner image, and picking it made the recorder fail
+          # to start naming a module unrelated to anything installed here. So take the candidate
+          # whose dependencies can all actually be satisfied, rather than trusting the order they
+          # come out of the archive. A library we are installing ourselves counts as satisfiable
+          # even though it is not in place yet: that is what lets wpcap.dll depend on Packet.dll.
+          $provided = @('wpcap.dll', 'Packet.dll')
+          $copied = @()
+
+          foreach ($needed in $provided) {
+              $candidates = @($binaries |
+                              Where-Object { $_.Arch -eq 'x64' -and (Get-CanonicalName $_.Name) -ieq $needed })
+              if ($candidates.Count -eq 0) {
+                  Write-Error "No 64 bit $needed in the archive; see the inventory above. The 32 bit copy cannot stand in for it, so the recorder would not start."
+                  exit 1
+              }
+
+              $chosen = $null
+              foreach ($candidate in $candidates) {
+                  $unmet = @(Get-PEImports $candidate.Path |
+                             Where-Object { $_ -notin $provided -and $null -eq (Resolve-Module $_) })
+                  if ($unmet.Count -eq 0) {
+                      $chosen = $candidate
+                      break
+                  }
+                  Write-Host ("  {0} is not usable here: needs {1}" -f $candidate.Name, ($unmet -join ', '))
+              }
+
+              if ($null -eq $chosen) {
+                  Write-Error "Every 64 bit $needed in the archive depends on something this runner does not have; see the rejections above."
+                  exit 1
+              }
+
+              Copy-Item $chosen.Path -Destination (Join-Path $runtime $needed) -Force
+              $copied += ("{0} (from {1})" -f $needed, $chosen.Name)
+          }
+
+          Write-Host "Installed: $($copied -join ', ')"
+
+          # On PATH rather than copied into System32: the recorder only needs to load them, and
+          # this leaves the runner's system directory alone.
+          $runtime | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      # Boost is a hard dependency (check_boost in CMakeLists) and the runner image does not
+      # ship it, so it is installed here. The chocolatey package is prebuilt for a given MSVC
+      # toolset -- 14.3 is the v143 toolset that windows-2022 uses -- and unpacks into
+      # C:\local\boost_<version>, so the version is read back from the path rather than
+      # hardcoded here and left to drift.
+      - name: Install Boost
+        shell: pwsh
+        run: |
+          choco install -y --no-progress boost-msvc-14.3
+
+          $root = Get-ChildItem C:\local -Directory -Filter 'boost_*' -ErrorAction SilentlyContinue |
+              Sort-Object Name -Descending | Select-Object -First 1
+          if ($null -eq $root) {
+              Write-Error "No boost_* directory under C:\local after installing."
+              exit 1
+          }
+
+          $libdir = Join-Path $root.FullName 'lib64-msvc-14.3'
+          if (-not (Test-Path $libdir)) {
+              Write-Error "Boost is at $($root.FullName) but has no lib64-msvc-14.3; the package may have been built for another toolset."
+              exit 1
+          }
+
+          Write-Host "Boost $($root.Name) with libraries in $libdir"
+
+          # check_boost reads BOOST_LIBRARYDIR from the environment rather than from a cache
+          # entry, so it has to be exported and not passed with -D.
+          "BOOST_ROOT=$($root.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "BOOST_LIBRARYDIR=$libdir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+          # Boost_USE_STATIC_LIBS is OFF, so the recorder links the Boost DLLs and needs them on
+          # PATH when the suite runs it. Without this the build succeeds and the tests die.
+          $libdir | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Fetch Fast DDS, Fast CDR and foonathan_memory
+        uses: eProsima/eProsima-CI/multiplatform/vcs_import@v0
+        with:
+          vcs_repos_file: ${{ github.workspace }}/src/ni_ddsrecorder/ni_ddsrecorder.repos
+          destination_workspace: src
+
+      - name: Build
+        uses: eProsima/eProsima-CI/multiplatform/colcon_build@v0
+        with:
+          colcon_build_args: ${{ env.colcon_build_args }}
+          colcon_meta_file: ${{ github.workspace }}\src\ni_ddsrecorder\.github\workflows\metas\windows.meta
+          cmake_args: >-
+            -DCMAKE_BUILD_TYPE=Release
+            -DBUILD_DOCUMENTATION=OFF
+            -DWINPCAP_ROOT=${{ env.WINPCAP_ROOT }}
+            -DBOOST_ROOT=${{ env.BOOST_ROOT }}
+            -DBoost_NO_WARN_NEW_VERSIONS=1
+          workspace: ${{ github.workspace }}
+
+      - name: Check the suite for assertions that cannot fail
+        run: python src\ni_ddsrecorder\utils\pcTests\check_assertions.py
+
+      - name: Run the regression suite
+        shell: cmd
+        run: |
+          call install\setup.bat
+          python src\ni_ddsrecorder\utils\pcTests\check_monitor_schema.py

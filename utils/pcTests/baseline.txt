@@ -520,6 +520,49 @@
     index MessagesCapture_message
     index MessagesCapture_packet
     index Messages_topic_time
+== shape [default] Number of processed RTPS packets: 220
+    table Messages                                     rows=0      sha=4f53cda18c2baa0c
+        cols: writer_guid,sequence_number,data_json,data_cdr,data_cdr_size,topic,type,key,log_time,publish_time
+    table MessagesPartitions                           rows=0      sha=4f53cda18c2baa0c
+        cols: writer_guid,sequence_number,partition
+    table Partitions                                   rows=1      sha=9d9fceb95bfd9c3d
+        cols: name
+    table Topics                                       rows=19     sha=b5d8618eb7aa9255
+        cols: name,type,qos,is_ros2_topic
+    table TopicsPartitions                             rows=19     sha=5364a09e32507019
+        cols: topic,type,partition
+    table Types                                        rows=10     sha=3f39547a7bc107fc
+        cols: name,information,object,is_ros2_type,idl
+    index Messages_topic_time
+== shape [queryable] Number of processed RTPS packets: 220
+    table DataTables                                   rows=1      sha=73336e670100e6f4
+        cols: topic,type,member_path,table_name
+    table Data_Square                                  rows=0      sha=4f53cda18c2baa0c
+        cols: writer_guid,sequence_number,color,x,y,shapesize
+    table DiscoveryMessages                            rows=38     sha=c2ed39fab5b87dc9
+        cols: packet_id,log_time,publish_time,ip_src,ip_dst,dst_guid_prefix,endpoint_guid,kind
+    table Endpoints                                    rows=38     sha=599186c38759bbdc
+        cols: guid,kind,topic,type
+    table Messages                                     rows=0      sha=4f53cda18c2baa0c
+        cols: writer_guid,sequence_number,data_json,data_cdr,data_cdr_size,topic,type,key,log_time,publish_time
+    table MessagesCapture                              rows=0      sha=4f53cda18c2baa0c
+        cols: packet_id,writer_guid,sequence_number,log_time,ip_src,ip_dst,dst_guid_prefix
+    table MessagesPartitions                           rows=0      sha=4f53cda18c2baa0c
+        cols: writer_guid,sequence_number,partition
+    table Partitions                                   rows=1      sha=9d9fceb95bfd9c3d
+        cols: name
+    table Topics                                       rows=19     sha=b5d8618eb7aa9255
+        cols: name,type,qos,is_ros2_topic
+    table TopicsPartitions                             rows=19     sha=5364a09e32507019
+        cols: topic,type,partition
+    table Types                                        rows=10     sha=3f39547a7bc107fc
+        cols: name,information,object,is_ros2_type,idl
+    view  Data_Square_flat                             rows=0      sha=4f53cda18c2baa0c
+        cols: log_time,publish_time,topic,type,writer_guid,sequence_number,color,x,y,shapesize
+    index DiscoveryMessages_packet
+    index MessagesCapture_message
+    index MessagesCapture_packet
+    index Messages_topic_time
 == HelloWorld [default] Number of processed RTPS packets: 147
     table Messages                                     rows=30     sha=5d6aa878787d53a8
         cols: writer_guid,sequence_number,data_json,data_cdr,data_cdr_size,topic,type,key,log_time,publish_time

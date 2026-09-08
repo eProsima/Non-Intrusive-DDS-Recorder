@@ -65,7 +65,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 #Check libraries
 include(${PROJECT_SOURCE_DIR}/cmake/dev/boost_libraries.cmake)
-set(BOOST_LIBRARIES_DEFAULT chrono date_time thread system)
+set(BOOST_LIBRARIES_DEFAULT chrono date_time thread)
 check_boost(${BOOST_LIBRARIES_DEFAULT})
 
 #Load external eProsima projects

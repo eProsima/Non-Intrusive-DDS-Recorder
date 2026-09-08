@@ -608,7 +608,12 @@ bool DDSRecorder::deserializePublicationBuiltinTopic(
                     cdr >> parameterLength;
                 }
             }
-            catch (exception::Exception& ex)
+            /*
+             * Fully qualified on purpose. This file has using-directives for both std and
+             * eprosima::fastcdr, and each declares an 'exception': a class in one, a namespace in
+             * the other. MSVC rejects the unqualified name as ambiguous, which is correct.
+             */
+            catch (eprosima::fastcdr::exception::Exception& ex)
             {
                 logError(m_log, "Exception: ", ex.what());
                 returnedValue = false;
@@ -705,7 +710,12 @@ bool DDSRecorder::deserializeSubscriptionBuiltinTopic(
                     cdr >> parameterLength;
                 }
             }
-            catch (exception::Exception& ex)
+            /*
+             * Fully qualified on purpose. This file has using-directives for both std and
+             * eprosima::fastcdr, and each declares an 'exception': a class in one, a namespace in
+             * the other. MSVC rejects the unqualified name as ambiguous, which is correct.
+             */
+            catch (eprosima::fastcdr::exception::Exception& ex)
             {
                 logError(m_log, "Exception: ", ex.what());
                 returnedValue = false;

@@ -29,6 +29,10 @@ def fixtures():
         capture = os.path.join(CAPTURES, name + '.pcap')
         idl = os.path.join(CAPTURES, name + '.idl')
         yield capture, (idl if os.path.exists(idl) else None), name
+    # The Shapes capture follows neither convention: it is .pcapng, and its IDL is Shape.idl.
+    yield (os.path.join(CAPTURES, 'shape.pcapng'),
+           os.path.join(CAPTURES, 'Shape.idl'),
+           'shape')
     yield (os.path.join(REPO, 'examples', 'HelloWorld', 'HelloWorld.pcap'),
            os.path.join(REPO, 'examples', 'HelloWorld', 'HelloWorld.idl'),
            'HelloWorld')

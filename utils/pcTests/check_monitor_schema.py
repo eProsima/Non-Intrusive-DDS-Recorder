@@ -140,6 +140,20 @@ def capture_idl(name):
     return path if os.path.exists(path) else None
 
 
+def require_fixture(checker, *paths):
+    """Asserts that the fixture files exist, and says whether the caller may go on.
+
+    Every fixture is committed, so a missing one is a failure rather than a reason to assert
+    less. Skipping quietly is how this suite once lost twenty assertions with nothing going red,
+    which is the whole reason this is an assertion and not an `if` that returns.
+    """
+    missing = [os.path.basename(path) for path in paths if not os.path.exists(path)]
+    checker.check('the fixture files are present: %s'
+                  % ', '.join(os.path.basename(path) for path in paths),
+                  not missing, 'missing %s' % missing)
+    return not missing
+
+
 def seconds_between(first, second):
     """Distance in seconds between two 'YYYY-MM-DD HH:MM:SS.nnnnnnnnn' stamps."""
     fmt = '%Y-%m-%d %H:%M:%S'
@@ -459,11 +473,12 @@ def check_helloworld_queryable(checker, recorder, workdir):
 def check_complextype_in_sequence(checker, recorder, workdir):
     """A sequence of a user type is representable now; it never was under TypeCode."""
     capture = os.path.join(CAPTURES, 'complextype_in_sequence.pcap')
-    idl = capture_idl('complextype_in_sequence')
-    if not os.path.exists(capture) or idl is None:
-        return
+    idl = os.path.join(CAPTURES, 'complextype_in_sequence.idl')
 
     print('\n== complextype_in_sequence.pcap: a sequence of structs gets tables ==')
+
+    if not require_fixture(checker, capture, idl):
+        return
     db = os.path.join(workdir, 'cts_queryable.db')
     output = run_recorder(recorder, db, capture, queryable=True, idl=idl)
 
@@ -500,11 +515,12 @@ def check_complextype_in_sequence(checker, recorder, workdir):
 def check_unions(checker, recorder, workdir):
     """Every branch of a union must reach its own columns, chosen by the discriminator."""
     capture = os.path.join(CAPTURES, 'unions.pcap')
-    idl = capture_idl('unions')
-    if not os.path.exists(capture) or idl is None:
-        return
+    idl = os.path.join(CAPTURES, 'unions.idl')
 
     print('\n== unions.pcap: each branch reaches its own columns ==')
+
+    if not require_fixture(checker, capture, idl):
+        return
     db = os.path.join(workdir, 'unions_queryable.db')
     output = run_recorder(recorder, db, capture, queryable=True, idl=idl)
 
@@ -546,23 +562,33 @@ def check_unions(checker, recorder, workdir):
     checker.equal('no row fills two branches at once', mixed, 0)
 
 
-def check_idl_metadata(checker, recorder, workdir):
-    """shapes.pcapng is the capture kept for the -idl path; it carries no type at all."""
-    capture = os.path.join(REPO, 'shapes.pcapng')
-    idl = os.path.join(REPO, 'Shape.idl')
-    if not (os.path.exists(capture) and os.path.exists(idl)):
-        print('\n== shapes.pcapng / Shape.idl absent, skipping the -idl metadata check ==')
+def check_shape_capture(checker, recorder, workdir):
+    """The Shapes capture, which is the only fixture that exercises several things at once.
+
+    It is the only one with a keyed data type, the only one with more than one topic, and the only
+    one whose topics carry no samples at all. Each of those is a case the schema has to survive:
+    keyedness is read from the entityKind of an endpoint, table names have to stay distinct across
+    topics, and a topic with no sample must still be recorded.
+
+    It is also the capture kept for the '-idl' path, since it announces no type of its own.
+    """
+    capture = os.path.join(CAPTURES, 'shape.pcapng')
+    idl = os.path.join(CAPTURES, 'Shape.idl')
+    print('\n== shape.pcapng: -idl fills Types.idl ==')
+
+    if not require_fixture(checker, capture, idl):
         return
 
-    print('\n== shapes.pcapng: -idl fills Types.idl ==')
-    without = os.path.join(workdir, 'shapes_noidl.db')
+    without = os.path.join(workdir, 'shape_noidl.db')
     run_recorder(recorder, without, capture)
-    withidl = os.path.join(workdir, 'shapes_idl.db')
-    run_recorder(recorder, withidl, capture, idl=idl)
+    withidl = os.path.join(workdir, 'shape_idl.db')
+    output = run_recorder(recorder, withidl, capture, idl=idl)
+
+    checker.equal('processed 220 RTPS packets', packets(output), 220)
 
     for path in (without, withidl):
         if not os.path.exists(path) or not (MONITOR_TABLES <= tables(path)):
-            checker.check('the Record & Replay schema was produced for shapes.pcapng', False)
+            checker.check('the Record & Replay schema was produced for shape.pcapng', False)
             return
 
     square = query(without, "SELECT name, type FROM Topics WHERE name = 'Square'")
@@ -579,12 +605,50 @@ def check_idl_metadata(checker, recorder, workdir):
         checker.check('Types.idl holds the IDL from the file',
                       'struct ShapeType' in (info_with[0][0] or ''),
                       'got %r' % (info_with[0][0],))
+        checker.check('the @key annotation survives the round trip',
+                      '@key' in (info_with[0][0] or ''), 'got %r' % (info_with[0][0],))
         checker.equal('Types.information stays empty even with -idl',
                       info_with[0][1], '')
 
     checker.equal('the two runs agree on the topic set',
                   one(without, 'SELECT COUNT(*) FROM Topics'),
                   one(withidl, 'SELECT COUNT(*) FROM Topics'))
+
+    print('\n== shape.pcapng, -queryable: keyed types, several topics, no samples ==')
+    qdb = os.path.join(workdir, 'shape_queryable.db')
+    qoutput = run_recorder(recorder, qdb, capture, queryable=True, idl=idl)
+
+    if not os.path.exists(qdb):
+        checker.check('the queryable schema was produced for shape.pcapng', False)
+        return
+
+    checker.check('the queryable run logged no error', not errors(qoutput),
+                  '; '.join(errors(qoutput)[:3]))
+
+    # No sample is carried, so no transmission is either. A topic without a sample still has to
+    # be recorded rather than dropped.
+    check_queryable_integrity(checker, qdb, 'shape', 0, 0)
+
+    if not (QUERYABLE_TABLES <= tables(qdb)):
+        return
+
+    checker.equal('19 topics are recorded although none carries a sample',
+                  one(qdb, 'SELECT COUNT(*) FROM Topics'), 19)
+    checker.equal('38 endpoints announced them',
+                  one(qdb, 'SELECT COUNT(*) FROM Endpoints'), 38)
+
+    # The entityKind of an endpoint states keyedness, and every endpoint here is on a keyed
+    # topic. No other fixture reaches this path at all.
+    checker.equal('every topic is recorded as keyed, from the endpoint entityKind',
+                  one(qdb, "SELECT COUNT(*) FROM Topics WHERE qos LIKE '%keyed: true%'"), 19)
+    checker.equal('the durability announced by the writers is recorded',
+                  one(qdb, "SELECT COUNT(*) FROM Topics WHERE qos LIKE '%durability: true%'"), 18)
+
+    # Only ShapeType is described, so only its topic gets a table; the rest keep their samples in
+    # Messages as CDR, which here means none at all.
+    checker.equal('only the described topic gets a data table',
+                  [r[0] for r in query(qdb, "SELECT table_name FROM DataTables "
+                                            "WHERE member_path = ''")], ['Data_Square'])
 
 
 # name -> (Messages rows, MessagesCapture rows)
@@ -612,11 +676,9 @@ def check_remaining_fixtures(checker, recorder, workdir, quick):
             continue
 
         capture = os.path.join(CAPTURES, name + '.pcap')
-        idl = capture_idl(name)
-        if not os.path.exists(capture):
-            continue
-        checker.check('%s: an IDL file sits beside the capture' % name, idl is not None)
-        if idl is None:
+        idl = os.path.join(CAPTURES, name + '.idl')
+
+        if not require_fixture(checker, capture, idl):
             continue
 
         expected_messages, expected_captures = REMAINING[name]
@@ -682,7 +744,7 @@ def main(argv=None):
         check_helloworld_queryable(checker, recorder, workdir)
         check_complextype_in_sequence(checker, recorder, workdir)
         check_unions(checker, recorder, workdir)
-        check_idl_metadata(checker, recorder, workdir)
+        check_shape_capture(checker, recorder, workdir)
         check_remaining_fixtures(checker, recorder, workdir, args.quick)
     except Failure as failure:
         print('\nABORTED: %s' % failure, file=sys.stderr)
