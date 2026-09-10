@@ -71,6 +71,8 @@ Supported capture formats
 
 |eddsrecorder| reads the capture formats supported by :term:`libpcap`, which covers both the classic ``pcap`` format
 and the ``pcapng`` format written by recent versions of *Wireshark*.
+On Windows the runtime is a separate install and decides what can be read: *Npcap* reads both, while the older
+*WinPcap* predates ``pcapng``.
 The capture must contain complete packets and use the transport layers listed in
 :ref:`user_manual_limitations_scope`.
 

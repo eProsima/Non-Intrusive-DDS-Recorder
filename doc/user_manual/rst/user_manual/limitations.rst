@@ -211,6 +211,10 @@ The database is empty and no RTPS packets were found
 
       ``editcap -T`` only relabels the declared encapsulation, it does not rewrite the frames.
       A file converted that way is accepted but contains no recognizable traffic.
+* **The capture is a** ``pcapng`` **file and the Windows runtime is WinPcap.**
+  *WinPcap* embeds libpcap 1.0, which predates the format, so the file cannot be opened and no packet is processed.
+  Install *Npcap* instead, or convert the file with ``editcap -F pcap``.
+  See :ref:`user_manual_capturing_traffic_formats`.
 * The traffic uses a transport that is not dissected, such as RTPS over TCP or over IPv6.
 * The capture was taken on an interface that does not see the DDS traffic.
   See :ref:`user_manual_capturing_traffic_where`.

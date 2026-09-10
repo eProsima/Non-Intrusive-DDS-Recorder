@@ -24,6 +24,25 @@ Latest Microsoft Visual C++ Redistributable package
 The distributed installer checks whether the package is present in the system and, if it is not, prompts the user to
 install it.
 
+Packet capture runtime
+======================
+
+|eddsrecorder| reads capture files through :term:`libpcap`, which on Windows is supplied by a separate runtime rather
+than by the operating system.
+Install `Npcap <https://npcap.com/>`_, which provides ``wpcap.dll`` and ``Packet.dll``.
+
+.. important::
+
+    Install *Npcap* rather than the older *WinPcap*.
+    *WinPcap* 4.1.3, its last release, embeds libpcap 1.0, which predates the ``pcapng`` format that recent versions
+    of *Wireshark* write by default.
+    With it |eddsrecorder| cannot open a ``pcapng`` capture at all.
+    See :ref:`user_manual_capturing_traffic_formats`.
+
+|eddsrecorder| only reads capture files and never opens a network interface, so only these libraries are used at run
+time; the capture driver the runtime also installs is needed by the sniffer that produces the file, not by
+|eddsrecorder|.
+
 .. _installation_manual_requirements_linux:
 
 *******************
