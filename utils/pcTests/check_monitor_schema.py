@@ -27,6 +27,7 @@ import os
 import re
 import shutil
 import sqlite3
+import struct
 import subprocess
 import sys
 import tempfile
@@ -89,6 +90,12 @@ def run_recorder(recorder, db_path, capture, queryable=False, idl=None):
     command.append(capture)
     completed = subprocess.run(command, capture_output=True, text=True)
     return completed.stdout + completed.stderr
+
+
+def exit_status(recorder, *args):
+    """Run the recorder with these arguments and return its process exit status."""
+    completed = subprocess.run([recorder] + list(args), capture_output=True, text=True)
+    return completed.returncode
 
 
 def packets(output):
@@ -709,6 +716,50 @@ def check_remaining_fixtures(checker, recorder, workdir, quick):
                       one(qdb, 'SELECT COUNT(*) FROM DataTables') > 0)
 
 
+def check_exit_status(checker, recorder, workdir):
+    """The exit status has to tell a recording apart from a failure to make one.
+
+    Every path used to return -1, success included, so a script wrapping the recorder had
+    nothing to test and the shell's && and || were both wrong.  These checks pin the outcomes
+    down: 0 when the run did what was asked, 2 when the command line was not understood, and a
+    plain failure otherwise.  Recording zero packets is deliberately a success, because a
+    capture holding no RTPS traffic is a valid input.
+    """
+    print('\n== exit status ==')
+
+    db = os.path.join(workdir, 'exit_status.db')
+    checker.equal('a successful recording exits 0',
+                  exit_status(recorder, '-db', db, '-idl', HELLOWORLD_IDL, HELLOWORLD), 0)
+
+    checker.equal('-help exits 0', exit_status(recorder, '-help'), 0)
+
+    # Usage errors: nothing was recorded, and the command line is the reason.
+    checker.equal('no arguments exits 2', exit_status(recorder), 2)
+    checker.equal('-db without a value exits 2', exit_status(recorder, '-db'), 2)
+    checker.equal('-idl without a value exits 2', exit_status(recorder, '-idl'), 2)
+
+    # Failures: the command line was understood, the work could not be done.
+    missing = os.path.join(workdir, 'no_such_capture.pcap')
+    checker.equal('an unopenable capture exits non-zero, and not as a usage error',
+                  exit_status(recorder, '-db', db, missing), 1)
+
+    bad_idl = os.path.join(workdir, 'broken.idl')
+    with open(bad_idl, 'w') as handle:
+        handle.write('struct Broken { this is not IDL;\n')
+    checker.equal('an IDL file that does not parse exits non-zero',
+                  exit_status(recorder, '-db', db, '-idl', bad_idl, HELLOWORLD), 1)
+
+    # A capture with no RTPS traffic is a valid recording, not a failure. Any file that is a
+    # readable pcap but holds nothing we recognise would do; the smallest one to hand is a
+    # capture written with a link layer we do read, so this uses an empty pcap built here.
+    empty = os.path.join(workdir, 'empty.pcap')
+    with open(empty, 'wb') as handle:
+        # A classic pcap header, EN10MB, and not a single packet after it.
+        handle.write(struct.pack('<IHHiIII', 0xa1b2c3d4, 2, 4, 0, 0, 262144, 1))
+    checker.equal('a capture with no RTPS traffic still exits 0',
+                  exit_status(recorder, '-db', db, empty), 0)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description='Check the database schema of the Non-Intrusive DDS Recorder.')
@@ -746,6 +797,7 @@ def main(argv=None):
         check_unions(checker, recorder, workdir)
         check_shape_capture(checker, recorder, workdir)
         check_remaining_fixtures(checker, recorder, workdir, args.quick)
+        check_exit_status(checker, recorder, workdir)
     except Failure as failure:
         print('\nABORTED: %s' % failure, file=sys.stderr)
         return 1

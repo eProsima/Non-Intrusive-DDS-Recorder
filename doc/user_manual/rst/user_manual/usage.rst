@@ -157,11 +157,42 @@ The application reports its progress and the number of RTPS packets it recognize
 A count of zero means that no RTPS traffic was found in the capture.
 :ref:`user_manual_limitations_troubleshooting` lists the usual causes.
 
-.. note::
+.. _user_manual_usage_exit_status:
 
-    Do not rely on the process exit status to detect failures: |eddsrecorder| returns the same non-zero status on
-    success and on error.
-    Check the printed packet count and the ``ERROR<...>`` lines on the console instead.
+Exit status
+===========
+
+|eddsrecorder| reports the outcome of a run through its exit status, so it can be tested from a script:
+
+.. list-table::
+    :header-rows: 1
+    :widths: 12 88
+
+    *   - Status
+        - Meaning
+
+    *   - ``0``
+        - The capture was processed, or ``-help`` was printed. |br|
+          A capture holding no RTPS traffic is a successful run: it is a valid input, |br|
+          and the recording it produces is simply empty.
+
+    *   - ``1``
+        - The command line was understood but the work could not be carried out, |br|
+          for instance because the capture file could not be opened or the file |br|
+          given with ``-idl`` did not parse.
+
+    *   - ``2``
+        - The command line was not understood: no capture file was named, or an |br|
+          option was given without its value.
+
+The number of packets recognized is still printed on the console, and a run that ends with status ``0`` may still
+have recorded nothing:
+
+.. code-block:: text
+
+    Number of processed RTPS packets: 0
+
+:ref:`user_manual_limitations_troubleshooting` lists the usual causes.
 
 Understanding the SQLite database
 =================================

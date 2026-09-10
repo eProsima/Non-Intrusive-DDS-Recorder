@@ -270,10 +270,12 @@ A previous recording disappeared
 the file passed with ``-db`` before processing a capture.
 Use a different file name for each capture you want to keep.
 
-The command reports a non-zero exit status on success
-=====================================================
+The command exits 0 but the database is empty
+=============================================
 
-The exit status of |eddsrecorder| is not meaningful in this release; the same non-zero value is returned after a
-successful run and after a failure.
-Scripts should check the ``Number of processed RTPS packets`` line and the ``ERROR<...>`` lines on the console
-instead.
+A run that processed the capture exits ``0`` even when the capture held no RTPS traffic, because an empty recording
+of an empty capture is a correct result rather than a failure.
+The ``Number of processed RTPS packets`` line is what distinguishes the two, and the causes of a count of zero are
+listed above.
+A capture that could not be read at all is a different matter and exits non-zero; see
+:ref:`user_manual_usage_exit_status`.

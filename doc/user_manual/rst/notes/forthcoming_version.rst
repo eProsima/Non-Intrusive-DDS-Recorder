@@ -45,6 +45,12 @@ The vendor specific TypeCode parameter of the endpoint announcements is no longe
 from the file given with ``-idl``, which is the only source.
 A capture recorded without one is still complete: it simply carries no type description and gets no per-topic table.
 
+The **exit status is now meaningful**.
+Previously the same non-zero value was returned after a successful run and after a failure, which left a script
+wrapping the application with nothing to test.
+A run that processed the capture now exits ``0``, a command line that could not be understood exits ``2``, and a
+failure to carry out the run exits ``1``.
+
 Sequences and arrays of user defined structures are now supported, and their elements are stored with the members of
 the structure flattened into columns.
 Member names are emitted as quoted SQL identifiers, so a member named after an SQLite keyword no longer prevents a

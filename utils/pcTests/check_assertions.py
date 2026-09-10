@@ -12,8 +12,8 @@ does not happen again: it parses check_monitor_schema.py and reports any asserti
 cannot depend on a recording.
 
 An assertion counts as backed by a recording when either of its operands mentions something that
-came out of one: a call to query(), one(), tables(), views(), indices(), packets() or errors(), or
-a name assigned from such a call, directly or through a comprehension.  A literal False is not an
+came out of one: a call to query(), one(), tables(), views(), indices(), packets(), errors() or
+exit_status(), or a name assigned from such a call, directly or through a comprehension.  A literal False is not an
 assertion but a report, reached only when a guard above it has already failed, so it is skipped.
 
 Names are tracked per function, not across the file.  Two functions may use the same variable
@@ -37,7 +37,8 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 TARGET = os.path.join(REPO, 'utils', 'pcTests', 'check_monitor_schema.py')
 
 # Calls whose result can only have come from a recorded database or the recorder's own output.
-OBSERVED_CALLS = {'query', 'one', 'tables', 'views', 'indices', 'packets', 'errors'}
+OBSERVED_CALLS = {'query', 'one', 'tables', 'views', 'indices', 'packets', 'errors',
+                  'exit_status'}
 
 # Assertions that deliberately check something else, keyed by the literal text of their label.
 ALLOWED = {

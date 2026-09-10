@@ -12,10 +12,24 @@
 #include "log/eProsimaLog.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 using namespace std;
 using namespace eprosima;
+
+/*
+ * Exit status. Every path used to return -1, success included, which left a script wrapping the
+ * recorder with nothing to test: a run that failed to open its capture was indistinguishable
+ * from one that recorded it. The convention is the usual one, so the shell's && and || mean what
+ * a caller expects.
+ *
+ * Recording no packets is not a failure. A capture that holds no RTPS traffic is a valid input
+ * and produces a valid, empty recording; the packet count on stdout is what tells them apart.
+ */
+static constexpr int EXIT_OK = EXIT_SUCCESS;    /* the run did what was asked */
+static constexpr int EXIT_ERROR = EXIT_FAILURE; /* it could not be carried out */
+static constexpr int EXIT_USAGE = 2;            /* the command line was not understood */
 
 void printHelp()
 {
@@ -44,7 +58,12 @@ int main(
         int argc,
         char * argv[])
 {
-    int returnedValue{-1};
+    /*
+     * Failure until a capture has actually been processed, so any path that falls out of the
+     * nesting below without recording -- an unopenable file, a failed allocation -- reports it
+     * without each one having to remember to say so.
+     */
+    int returnedValue{EXIT_ERROR};
     string filename;
     string db{"dump.db"};
     string idlfile;
@@ -62,7 +81,7 @@ int main(
         if (strcmp(argv[i], "-help") == 0)
         {
             printHelp();
-            return returnedValue;
+            return EXIT_OK;
         }
         else if (strcmp(argv[i], "-db") == 0)
         {
@@ -73,7 +92,7 @@ int main(
             else
             {
                 printHelp();
-                return returnedValue;
+                return EXIT_USAGE;
             }
         }
         else if (strcmp(argv[i], "-queryable") == 0)
@@ -89,7 +108,7 @@ int main(
             else
             {
                 printHelp();
-                return returnedValue;
+                return EXIT_USAGE;
             }
         }
         else
@@ -122,7 +141,7 @@ int main(
                     printf("Error parsing the IDL file %s\n", idlfile.c_str());
                     delete type_store;
                     delete log;
-                    return returnedValue;
+                    return EXIT_ERROR;
                 }
             }
 
@@ -145,6 +164,7 @@ int main(
                                             RTPSPacketAnalyzer::processRTPSPacketCallback);
 
                             printf("Number of processed RTPS packets: %u\n", numRTPSPackets);
+                            returnedValue = EXIT_OK;
 
                             delete rtpsdumper;
                         }
@@ -166,7 +186,9 @@ int main(
     }
     else
     {
+        /* No capture file named: nothing to do, and the command line is why. */
         printHelp();
+        returnedValue = EXIT_USAGE;
     }
 
     return returnedValue;
