@@ -35,11 +35,11 @@ void printHelp()
 {
     /* 80 colunms: */
     /*      12345678901234567890123456789012345678901234567890123456789012345678901234567890*/
-    printf("DDSRecorder usage: DDSRecorder [<pcapFile>]\n");
-    printf("                               [-db <database>]\n");
-    printf("                               [-idl <idlfile>]\n");
-    printf("                               [-queryable]\n");
-    printf("                               [-help]\n");
+    printf("ni_ddsrecorder usage: ni_ddsrecorder [<pcapFile>]\n");
+    printf("                                     [-db <database>]\n");
+    printf("                                     [-idl <idlfile>]\n");
+    printf("                                     [-queryable]\n");
+    printf("                                     [-help]\n");
     printf("Options:\n");
     printf("    <pcapFile>: The sniffer file to process (PCAP format required)\n");
     printf("    -db <database>: Database file to store the DDS traffic (Default: dump.db)\n");

@@ -764,9 +764,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         description='Check the database schema of the Non-Intrusive DDS Recorder.')
     parser.add_argument('-r', '--recorder',
-                        default=os.environ.get('DDS_RECORDER', 'NI_DDSRecorder'),
-                        help='path to the dds_recorder binary '
-                             '(default: $DDS_RECORDER or NI_DDSRecorder on PATH)')
+                        default=os.environ.get('DDS_RECORDER', 'ni_ddsrecorder'),
+                        help='path to the ni_ddsrecorder binary '
+                             '(default: $DDS_RECORDER or ni_ddsrecorder on PATH)')
     parser.add_argument('-k', '--keep', action='store_true',
                         help='keep the generated databases for inspection')
     parser.add_argument('-q', '--quick', action='store_true',

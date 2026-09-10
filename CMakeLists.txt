@@ -16,7 +16,10 @@ endif()
 
 project(ni_ddsrecorder VERSION 1.1.0 LANGUAGES C CXX)
 
-set(PROJECT_NAME "NI_DDSRecorder")
+# PROJECT_NAME is deliberately left as project() set it: it names the executable, the colcon
+# package, the CPack package and the -D<name>_SOURCE definition, and an override here is what
+# had the binary installed as NI_DDSRecorder while the documentation, the test scripts and the
+# package all said ni_ddsrecorder. The human readable forms are separate variables below.
 set(PROJECT_NAME_LARGE "Non-Intrusive DDSRecorder")
 set(PROJECT_NAME_STYLED "Non-Intrusive DDS Recorder")
 string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
@@ -65,31 +68,7 @@ include(${PROJECT_SOURCE_DIR}/cmake/dev/boost_libraries.cmake)
 set(BOOST_LIBRARIES_DEFAULT chrono date_time thread)
 check_boost(${BOOST_LIBRARIES_DEFAULT})
 
-#Load external eProsima projects
-option(THIRDPARTY "Activate the use of internal thirdparties" ON)
-
-if(EPROSIMA_BUILD)
-    set(THIRDPARTY ON)
-endif()
-
-# Fast DDS is used purely as a local type model: it parses the IDL file given with '-idl' and
-# decodes the CDR payloads. The recorder never joins a DDS domain. It is not a thirdparty
-# submodule like Fast CDR, so it has to be found already installed.
-#
-# foonathan_memory is probed first because fastdds-config.cmake does
-# 'find_dependency(foonathan_memory REQUIRED)'. A prefix path that reaches Fast DDS but not
-# foonathan_memory therefore fails deep inside that file, with an error naming a package this
-# project never asks for; checking here turns that into something actionable.
-find_package(foonathan_memory QUIET)
-
-if(NOT foonathan_memory_FOUND)
-    message(FATAL_ERROR
-        "Could not find foonathan_memory, a required dependency of Fast DDS. Add its "
-        "installation prefix to CMAKE_PREFIX_PATH. In a colcon workspace it is installed by "
-        "the foonathan_memory_vendor package, and sourcing the workspace puts it on the path.")
-endif()
-
-find_package(fastcdr)
+find_package(fastcdr REQUIRED)
 
 find_package(fastdds REQUIRED)
 include(${PROJECT_SOURCE_DIR}/cmake/dev/external_dependencies.cmake)
