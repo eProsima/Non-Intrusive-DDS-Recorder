@@ -3,12 +3,21 @@ include(${PROJECT_SOURCE_DIR}/cmake/dev/generate_msvc_libraries.cmake)
 
 find_package(Threads REQUIRED)
 
+# The version is declared once, by project() in the top level CMakeLists.txt, and version.cpp is
+# generated from it so the two cannot drift apart -- which they had, the file saying 1.0.0 while
+# the project said 1.1.0. @ONLY because the file is C: a bare ${...} in it must be left alone.
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp.in
+    ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
+    @ONLY
+    )
+
 set(SOURCES
     main.cpp
     DDSRecorder.cpp
     RTPSPacketAnalyzer.cpp
     TypeStore.cpp
-    version.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
     database/CaptureDB.cpp
     database/Endpoint.cpp
     database/MonitorDB.cpp
