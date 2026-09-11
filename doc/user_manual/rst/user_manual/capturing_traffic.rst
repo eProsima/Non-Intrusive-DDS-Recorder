@@ -69,7 +69,7 @@ To record every participant of a DDS network, capture on a **mirror port** of th
 
     Discovery is largely multicast, while user samples are frequently sent unicast to each matched reader.
     A capture point that sees the multicast traffic but not the unicast traffic produces a database with populated
-    ``_topics`` and ``_endpoints`` tables and empty topic tables.
+    ``Topics`` and ``Endpoints`` tables and no samples.
 
 If all the applications run on the same host, capture on the loopback interface instead: ``lo`` on Linux, ``lo0`` on
 macOS and the BSDs, and the loopback adapter provided by *Npcap* on Windows.
@@ -106,8 +106,24 @@ In the *Capture Options* dialog:
 #. Start the capture, then start the DDS applications, so that the discovery phase is included.
 #. Stop the capture and save the file.
 
-Both the classic ``pcap`` format and the ``pcapng`` format that Wireshark writes by default are accepted.
-If a file is ever rejected, convert it with:
+.. _user_manual_capturing_traffic_formats:
+
+********************
+Capture file formats
+********************
+
+Both the classic ``pcap`` format and the ``pcapng`` format that Wireshark writes by default are accepted, as far as
+the :term:`libpcap` runtime in use can read them.
+
+.. important::
+
+    On Windows that runtime is not part of the operating system, and the choice matters.
+    *Npcap* reads both formats.
+    The older *WinPcap*, whose last release embeds libpcap 1.0, predates ``pcapng`` and cannot open such a file at
+    all: |eddsrecorder| reports ``Number of processed RTPS packets: 0`` and writes an empty database.
+    See :ref:`installation_manual_requirements_windows`.
+
+A ``pcapng`` file can be converted to the classic format, which every runtime reads:
 
 .. code-block:: bash
 

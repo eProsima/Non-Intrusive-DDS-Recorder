@@ -16,124 +16,229 @@
 
 #ifdef __cplusplus
 
-namespace eprosima
-{
-	class UserTypeCodeProvider;
-}
-using namespace eprosima;
-namespace eprosima
-{
-    class eProsimaLog;
-    class TypeCodeDB;
-    class EntitiesDB;
+namespace eprosima {
+class eProsimaLog;
+class CaptureDB;
+class MonitorDB;
+class TopicsDB;
+class TypeStore;
 
 
-    class DDSRecorder
+class DDSRecorder
+{
+public:
+
+    /**
+     * \brief Constructor.
+     *
+     * \param log Log object used to log errors.
+     * \param dabase Name of the database file to write.
+     * \param queryable_mode When true, each sample is additionally deserialized into a table of
+     * its own topic, with one column per data type member. The *DDS Record & Replay* tables are
+     * written either way, so this only ever adds to the recording.
+     * \param type_store The data types read from the file given with '-idl'. Not owned, and has
+     * to outlive the recorder. May be NULL.
+     */
+    DDSRecorder(
+            eProsimaLog& log,
+            std::string& dabase,
+            bool queryable_mode,
+            const TypeStore * type_store);
+
+    ~DDSRecorder();
+
+    static void processDataCallback(
+            void * user,
+            const unsigned int npacket,
+            const struct timeval & wts,
+            std::string& ip_src,
+            std::string& ip_dst,
+            unsigned int hostId,
+            unsigned int appId,
+            unsigned int instanceId,
+            unsigned int readerId,
+            unsigned int writerId,
+            unsigned long long writerSequenceNum,
+            struct DDS_Time_t & sourceTmp,
+            unsigned int destHostId,
+            unsigned int destAppId,
+            unsigned int destInstanceId,
+            bool endianess,
+            const char * serializedData,
+            unsigned int serializedDataLen);
+
+    void processData(
+            const unsigned int npacket,
+            const struct timeval & wts,
+            std::string& ip_src,
+            std::string& ip_dst,
+            unsigned int hostId,
+            unsigned int appId,
+            unsigned int instanceId,
+            unsigned int readerId,
+            unsigned int writerId,
+            unsigned long long writerSeqNum,
+            struct DDS_Time_t & sourceTmp,
+            unsigned int destHostId,
+            unsigned int destAppId,
+            unsigned int destInstanceId,
+            bool endianess,
+            const char * serializedData,
+            unsigned int serializedDataLen);
+
+private:
+
+    typedef struct GUID
     {
-        public:
+    public:
 
-            DDSRecorder(eProsimaLog &log, std::string &dabase, int tcMaxSize);
+        uint32_t hostId;
+        uint32_t appId;
+        uint32_t instanceId;
+        uint32_t objectId;
 
-            ~DDSRecorder();
+        GUID() : hostId(0), appId(0),
+            instanceId(0), objectId(0) {
+        }
+    } GUID;
 
-            static void processDataCallback(void *user, const unsigned int npacket, const struct timeval &wts,
-                    std::string &ip_src, std::string &ip_dst, unsigned int hostId,
-                    unsigned int appId, unsigned int instanceId, unsigned int readerId,
-                    unsigned int writerId, unsigned long long writerSequenceNum, 
-                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
-                    const char *serializedData, unsigned int serializedDataLen);
+    typedef struct PublicationBuiltinTopic
+    {
+    public:
 
-            void processData(const unsigned int npacket, const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
-                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum, 
-                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
-                    const char *serializedData, unsigned int serializedDataLen);
+        GUID guid;
+        std::string topic_name;
+        std::string type_name;
+        /*
+         * The QoS the announcement carried, defaulted to what DDS gives an endpoint that says
+         * nothing. A DataWriter defaults to reliable reliability.
+         */
+        bool reliable {true};
+        bool transient_local {false};
+        bool exclusive_ownership {false};
+    } PublicationBuiltinTopic;
 
-            void setUSerTypeCodeProvider(UserTypeCodeProvider* utcp)
-            {
-            	UTCprovider = utcp;
-            }
+    typedef struct SubscriptionBuiltinTopic
+    {
+    public:
 
-        private:
+        GUID guid;
+        std::string topic_name;
+        std::string type_name;
+        /*
+         * The QoS the announcement carried, defaulted to what DDS gives an endpoint that says
+         * nothing. A DataReader defaults to best effort reliability.
+         */
+        bool reliable {false};
+        bool transient_local {false};
+        bool exclusive_ownership {false};
+    } SubscriptionBuiltinTopic;
 
-            typedef struct GUID
-            {
-                public:
-                uint32_t hostId;
-                uint32_t appId;
-                uint32_t instanceId;
-                uint32_t objectId;
+    void processDataW(
+            const unsigned int npacket,
+            const struct timeval & wts,
+            std::string& ip_src,
+            std::string& ip_dst,
+            unsigned int hostId,
+            unsigned int appId,
+            unsigned int instanceId,
+            unsigned int readerId,
+            unsigned int writerId,
+            unsigned long long writerSeqNum,
+            struct DDS_Time_t & sourceTmp,
+            unsigned int destHostId,
+            unsigned int destAppId,
+            unsigned int destInstanceId,
+            bool endianess,
+            const char * serializedData,
+            unsigned int serializedDataLen);
 
-                GUID() : hostId(0), appId(0),
-                    instanceId(0), objectId(0) {}
-            } GUID;
+    void processDataR(
+            const unsigned int npacket,
+            const struct timeval & wts,
+            std::string& ip_src,
+            std::string& ip_dst,
+            unsigned int hostId,
+            unsigned int appId,
+            unsigned int instanceId,
+            unsigned int readerId,
+            unsigned int writerId,
+            unsigned long long writerSeqNum,
+            struct DDS_Time_t & sourceTmp,
+            unsigned int destHostId,
+            unsigned int destAppId,
+            unsigned int destInstanceId,
+            bool endianess,
+            const char * serializedData,
+            unsigned int serializedDataLen);
 
-            typedef struct PublicationBuiltinTopic
-            {
-                public:
-                
-                GUID guid;
-                std::string topic_name;
-                std::string type_name;
-                char *typeCode;
-                uint32_t typeCodeLength;
-                PublicationBuiltinTopic() : typeCode(NULL), typeCodeLength(0) {}
-            } PublicationBuiltinTopic;
+    void processDataNormal(
+            const unsigned int npacket,
+            const struct timeval & wts,
+            std::string& ip_src,
+            std::string& ip_dst,
+            unsigned int hostId,
+            unsigned int appId,
+            unsigned int instanceId,
+            unsigned int readerId,
+            unsigned int writerId,
+            unsigned long long writerSeqNum,
+            struct DDS_Time_t & sourceTmp,
+            unsigned int destHostId,
+            unsigned int destAppId,
+            unsigned int destInstanceId,
+            bool endianess,
+            const char * serializedData,
+            unsigned int serializedDataLen);
 
-            typedef struct SubscriptionBuiltinTopic
-            {
-                public:
-                
-                GUID guid;
-                std::string topic_name;
-                std::string type_name;
-                char *typeCode;
-                uint32_t typeCodeLength;
-                SubscriptionBuiltinTopic() : typeCode(NULL), typeCodeLength(0) {}
-            } SubscriptionBuiltinTopic;
+    bool deserializePublicationBuiltinTopic(
+            bool endianess,
+            char* serializedData,
+            unsigned int serializedDataLength,
+            PublicationBuiltinTopic& pubtopic);
 
-            void processDataW(const unsigned int npacket, const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
-                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
-                    const char *serializedData, unsigned int serializedDataLen);
+    bool deserializeSubscriptionBuiltinTopic(
+            bool endianess,
+            char* serializedData,
+            unsigned int serializedDataLength,
+            SubscriptionBuiltinTopic& subtopic);
 
-            void processDataR(const unsigned int npacket, const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
-                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
-                    const char *serializedData, unsigned int serializedDataLen);
+    /// Runs a statement that returns no rows against the database. Returns true on success.
+    bool execute(
+            const char * statement);
 
-            void processDataNormal(const unsigned int npacket, const struct timeval &wts, std::string &ip_src, std::string &ip_dst,
-                    unsigned int hostId, unsigned int appId, unsigned int instanceId,
-                    unsigned int readerId, unsigned int writerId, unsigned long long writerSeqNum,
-                    struct DDS_Time_t &sourceTmp, unsigned int destHostId,
-                    unsigned int destAppId, unsigned int destInstanceId, bool endianess,
-                    const char *serializedData, unsigned int serializedDataLen);
+    /// Commits the open transaction and opens the next one.
+    void checkpoint();
 
-            bool deserializePublicationBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, PublicationBuiltinTopic &pubtopic);
+    eProsimaLog& m_log;
 
-            bool deserializeSubscriptionBuiltinTopic(bool endianess, char* serializedData, unsigned int serializedDataLength, SubscriptionBuiltinTopic &subtopic);
+    /// Handler of the database.
+    sqlite3 * m_databaseH;
 
-            eProsimaLog &m_log;
-            
-            /// Handler of the database.
-            sqlite3 *m_databaseH;
+    /// Writer of the *DDS Record & Replay* schema.
+    MonitorDB * monitor_db_{nullptr};
 
-            TypeCodeDB *m_typecodeDB;
+    /// Writer of the per topic data tables. NULL unless '-queryable' was given.
+    TopicsDB * topics_db_{nullptr};
 
-            EntitiesDB *m_entitiesDB;
+    /// Writer of the packet level tables. NULL unless '-queryable' was given.
+    CaptureDB * capture_db_{nullptr};
 
-            int m_tcMaxSize;
+    /// Data types read from the file given with '-idl'. Not owned, and may be NULL.
+    const TypeStore * type_store_{nullptr};
 
-            UserTypeCodeProvider* UTCprovider;
-    };
-}
+    /**
+     * Whether a transaction is open. Every write of a recording happens inside one: SQLite would
+     * otherwise commit, and fsync, once per INSERT, and a single sample can be dozens of INSERTs
+     * once '-queryable' expands its collections into child tables.
+     */
+    bool in_transaction_{false};
 
-#endif
+    /// Samples written since the last commit.
+    unsigned int pending_samples_{0};
+};
+} // namespace eprosima
+
+#endif // ifdef __cplusplus
 
 #endif // _DDSRECORDER_H_

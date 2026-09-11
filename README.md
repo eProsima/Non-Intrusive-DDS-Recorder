@@ -1,7 +1,32 @@
-# eProsima Non-Intrusive DDS Recorder
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Non-Intrusive DDS
+Recorder](doc/resources/images/github_banner_ni_ddsrecorder.png)](https://eprosima.com/middleware/tools/non-intrusive-dds-recorder)
 
-<a href="http://www.eprosima.com"><img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSd0PDlVz1U_7MgdTe0FRIWD0Jc9_YH-gGi0ZpLkr-qgCI6ZEoJZ5GBqQ" align="left" hspace="8" vspace="2" width="100" height="100" ></a>
+<br>
+
+<div class="menu" align="center">
+    <strong>
+        <a href="https://eprosima.com/index.php/downloads-all">Download</a>
+        <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+        <a href="https://non-intrusive-dds-recorder.readthedocs.io/en/latest/">Docs</a>
+        <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+        <a href="https://eprosima.com/index.php/company-all/news">News</a>
+        <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+        <a href="https://x.com/EProsima">X</a>
+        <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+        <a href="mailto:info@eprosima.com">Contact Us</a>
+    </strong>
+</div>
+
+<div class="badges" align="center">
+    <a href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/github/license/eProsima/Non-Intrusive-DDS-Recorder.svg"/></a>
+    <a href="https://github.com/eProsima/Non-Intrusive-DDS-Recorder/releases"><img alt="Releases" src="https://img.shields.io/github/v/release/eProsima/Non-Intrusive-DDS-Recorder?sort=semver"/></a>
+    <a href="https://github.com/eProsima/Non-Intrusive-DDS-Recorder/issues"><img alt="Issues" src="https://img.shields.io/github/issues/eProsima/Non-Intrusive-DDS-Recorder.svg"/></a>
+    <a href="https://github.com/eProsima/Non-Intrusive-DDS-Recorder/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/eProsima/Non-Intrusive-DDS-Recorder.svg"/></a>
+    <a href="https://github.com/eProsima/Non-Intrusive-DDS-Recorder/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/eProsima/Non-Intrusive-DDS-Recorder.svg"/></a>
+    <br>
+    <a href="https://non-intrusive-dds-recorder.readthedocs.io"><img alt="Documentation badge" src="https://img.shields.io/readthedocs/non-intrusive-dds-recorder.svg"/></a>
+</div>
+
 *eProsima Non-Intrusive DDS Recorder* is a tool to record all the DDS traffic in your network, using a non-intrusive
 mechanism allowing you to test, analyze or log your DDS distributed system without adding any new DDS participant or
 service, ensuring you are recording the real behavior and timing.
@@ -48,14 +73,13 @@ your types.
 The command line syntax is:
 
 ```bash
-DDSRecorder <pcap_file> [-db <database>] [-tcMaxSize <size>] [-idl <file>] [-help]
+ni_ddsrecorder <pcap_file> [-db <database>] [-idl <file>] [-help]
 ```
 
 * *< pcap_file >*: name of the file that the application will analyze.
 This file should be a PCAP format.
 * *-db < database >*: name of the SQLite file that will be created and used to store the translated RTPS messages.
 By default *eProsima Non-Intrusive DDS Recorder* creates the file `dump.db`.
-* *-tcMaxSize < size >*: TypeCode maximum allowed size (Default: 2048)
 * *-idl < file >*: IDL file containing all data types used in the captured system if their typecodes are not being sent
 in the discovery phase.
 * *-help*: Print help information.

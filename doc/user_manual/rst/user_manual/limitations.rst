@@ -130,20 +130,33 @@ DDS entities
 The :term:`SEDP` announcements of DataWriters and DataReaders are decoded and stored, while the :term:`SPDP`
 participant announcements are skipped: a participant is only visible through the :term:`GuidPrefix` of its endpoints.
 
-QoS policies carried in the discovery messages are not recorded either.
-Only the topic name, the type name and the :term:`TypeCode` are extracted from each announcement.
+Of the QoS policies an announcement carries, three are recorded: reliability, durability and
+ownership, in the ``qos`` column of ``Topics``.
+They are what the *DDS Record & Replay* schema has room for, and on replay they are applied as the
+discovered QoS of the topic.
+Everything else an announcement holds, from deadline to lifespan to partitions, is dropped, and
+``durability`` is a boolean that cannot tell ``TRANSIENT`` and ``PERSISTENT`` apart from
+``TRANSIENT_LOCAL``.
+
+The fourth value in that column, ``keyed``, is not a QoS policy an announcement carries.
+It is read from the ``entityKind`` octet of the endpoint's :term:`Guid`, which RTPS defines as
+stating whether the endpoint was created on a keyed topic, so it is available even with no
+``-idl`` file at all.
+When that octet names no endpoint kind, the data type read from ``-idl`` answers instead, and
+without that file the topic is recorded as unkeyed.
 
 .. note::
 
-    The ``-tcMaxSize`` argument is accepted for compatibility but has no effect in this release.
-    TypeCodes found in the discovery traffic are deserialized regardless of the value given.
+    A topic is announced by its DataWriters and its DataReaders alike, and they may not agree.
+    A DataWriter's QoS wins, because replaying a topic publishes it.
 
 Data types
 ==========
 
-Type resolution depends on the DDS implementation including the TypeCode of the topic in its endpoint announcements.
-Implementations that do not are supported through the ``-idl`` argument, described in
-:ref:`user_manual_usage_idl_naming_policy`.
+|eddsrecorder| reads no data type description from the wire.
+The types come from the file given with the ``-idl`` argument, described in
+:ref:`user_manual_usage_idl_naming_policy`; without it a capture is recorded in full but carries no type description
+and gets no per-topic table.
 
 The mapping of IDL constructs to SQL is described in :ref:`user_manual_data_types`.
 In summary, the current release does not record:
@@ -151,6 +164,15 @@ In summary, the current release does not record:
 * The ``long double``, ``wchar`` and ``wstring`` basic types.
 * Sequences and arrays whose elements are user types.
 * Sequences and arrays of ``string``.
+
+.. note::
+
+    None of the limits in this subsection apply to the default schema; they are limits of the
+    ``-queryable`` schema only.
+    It stores the sample as a raw :term:`CDR` payload, so it needs no data type, accepts any
+    encapsulation, and records the topics listed above as readily as any other.
+    What it does not offer is per-member SQL access to the values.
+    See :ref:`user_manual_monitor_schema`.
 
 Security
 ========
@@ -189,6 +211,10 @@ The database is empty and no RTPS packets were found
 
       ``editcap -T`` only relabels the declared encapsulation, it does not rewrite the frames.
       A file converted that way is accepted but contains no recognizable traffic.
+* **The capture is a** ``pcapng`` **file and the Windows runtime is WinPcap.**
+  *WinPcap* embeds libpcap 1.0, which predates the format, so the file cannot be opened and no packet is processed.
+  Install *Npcap* instead, or convert the file with ``editcap -F pcap``.
+  See :ref:`user_manual_capturing_traffic_formats`.
 * The traffic uses a transport that is not dissected, such as RTPS over TCP or over IPv6.
 * The capture was taken on an interface that does not see the DDS traffic.
   See :ref:`user_manual_capturing_traffic_where`.
@@ -211,21 +237,14 @@ A capture that has already been truncated cannot be repaired.
 The discovery tables are populated but a topic has no table
 ===========================================================
 
-The topic appears in ``_topics`` and ``_endpoints``, yet no table holds its samples.
+The topic appears in ``Topics`` and ``Endpoints``, yet ``DataTables`` names no table for it.
 
-* **The data type could not be resolved.**
-  Check the ``contains_typecode`` column of ``_endpointDiscoveryMessages`` for that topic; the query in
-  :ref:`user_manual_querying_database_entities` lists the affected topics.
-  If it is ``0``, supply the type with ``-idl``.
+* **No IDL file was given, or it does not declare the type.**
+  |eddsrecorder| reads no type description from the wire, so ``-idl`` is the only source.
+  The console says which of the two it was.
 * **The data type uses an unsupported construct.**
   The console reports the unrecognized kind.
   See :ref:`user_manual_data_types_unsupported`.
-* **A member name is not a valid SQL column name.**
-  Member names are used verbatim as column names, so a member named after an SQLite keyword prevents the table from
-  being created.
-  See :ref:`user_manual_usage_idl_naming_policy`.
-* **Two topic names collapsed onto the same table name.**
-  See :ref:`user_manual_database_structure_table_names`.
 * **No sample was captured.**
   Discovery is largely multicast while user samples are often unicast, so a capture point may see the announcements
   of a topic without seeing its data.
@@ -251,10 +270,12 @@ A previous recording disappeared
 the file passed with ``-db`` before processing a capture.
 Use a different file name for each capture you want to keep.
 
-The command reports a non-zero exit status on success
-=====================================================
+The command exits 0 but the database is empty
+=============================================
 
-The exit status of |eddsrecorder| is not meaningful in this release; the same non-zero value is returned after a
-successful run and after a failure.
-Scripts should check the ``Number of processed RTPS packets`` line and the ``ERROR<...>`` lines on the console
-instead.
+A run that processed the capture exits ``0`` even when the capture held no RTPS traffic, because an empty recording
+of an empty capture is a correct result rather than a failure.
+The ``Number of processed RTPS packets`` line is what distinguishes the two, and the causes of a count of zero are
+listed above.
+A capture that could not be read at all is a different matter and exits non-zero; see
+:ref:`user_manual_usage_exit_status`.

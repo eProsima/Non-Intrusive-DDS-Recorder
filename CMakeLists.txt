@@ -1,6 +1,6 @@
 ###
 #
-#	CMAKE Build rules for DDSRecorder
+#	CMAKE Build rules for ni_ddsrecorder
 #
 ####
 cmake_minimum_required(VERSION 3.20)
@@ -14,11 +14,14 @@ else()
         )
 endif()
 
-project(DDSRecorder VERSION 1.1.0 LANGUAGES C CXX)
+project(ni_ddsrecorder VERSION 1.1.0 LANGUAGES C CXX)
 
-set(PROJECT_NAME "DDSRecorder")
-set(PROJECT_NAME_LARGE "DDSRecorder")
-set(PROJECT_NAME_STYLED "DDSRecorder")
+# PROJECT_NAME is deliberately left as project() set it: it names the executable, the colcon
+# package, the CPack package and the -D<name>_SOURCE definition, and an override here is what
+# had the binary installed as NI_DDSRecorder while the documentation, the test scripts and the
+# package all said ni_ddsrecorder. The human readable forms are separate variables below.
+set(PROJECT_NAME_LARGE "Non-Intrusive DDSRecorder")
+set(PROJECT_NAME_STYLED "Non-Intrusive DDS Recorder")
 string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
 set(${PROJECT_NAME}_DESCRIPTION_SUMMARY "Non-intrusive RTPS protocol packet analyzer.")
 set(${PROJECT_NAME}_DESCRIPTION "eProsima ${PROJECT_NAME} non-intrusive RTPS protocol packet analyzer.")
@@ -60,23 +63,14 @@ if(EPROSIMA_INSTALLER)
     set(EPROSIMA_BUILD ON)
 endif()
 
-#Load CMAKE mocules
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
-
 #Check libraries
 include(${PROJECT_SOURCE_DIR}/cmake/dev/boost_libraries.cmake)
-set(BOOST_LIBRARIES_DEFAULT chrono date_time thread system)
+set(BOOST_LIBRARIES_DEFAULT chrono date_time thread)
 check_boost(${BOOST_LIBRARIES_DEFAULT})
 
-#Load external eProsima projects
-option(THIRDPARTY "Activate the use of internal thirdparties" ON)
+find_package(fastcdr REQUIRED)
 
-if(EPROSIMA_BUILD)
-    set(THIRDPARTY ON)
-endif()
-
-include(${PROJECT_SOURCE_DIR}/cmake/dev/eprosima_libraries.cmake)
-find_eprosima_package(fastcdr)
+find_package(fastdds REQUIRED)
 include(${PROJECT_SOURCE_DIR}/cmake/dev/external_dependencies.cmake)
 #Remind the user the need to give the directories to sqlite and winpcap
 if(WIN32)
@@ -101,7 +95,10 @@ else()
     endif()
 endif()
 
-add_compile_options(--std=c++0x)
+# C++17 is what Fast DDS needs. The project was pinned to C++11 by the flex 2.5.35 scanner in
+# src/idlparser, which used the 'register' keyword C++17 removed; that parser is gone.
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #Compile library
 add_subdirectory(src)
@@ -121,7 +118,6 @@ if(BUILD_DOCUMENTATION)
 endif()
 # Packaging
 # Install external eprosima libraries
-install_eprosima_libraries()
 install_boost(${BOOST_LIBRARIES_DEFAULT})
 
 # Install licenses

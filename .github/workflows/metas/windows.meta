@@ -1,0 +1,8 @@
+names:
+    fastdds:
+        cmake-args:
+            - -DTHIRDPARTY_Asio=FORCE
+            - -DTHIRDPARTY_TinyXML2=FORCE
+            - -DTHIRDPARTY_fastcdr=OFF
+            - -DTHIRDPARTY_UPDATE=ON
+            - -DCMAKE_CXX_FLAGS_INIT="/MP"

@@ -32,7 +32,7 @@ The application works in four stages:
    that topic carries.
 
 #. **Type resolution.**
-   The data type schema is taken from the :term:`TypeCode` embedded in the discovery messages.
+   The data type schema is taken from the :term:`IDL` file given with ``-idl``.
    When the DDS implementation under study does not publish that information, an :term:`IDL` file supplied with the
    ``-idl`` argument is used instead.
 
@@ -47,18 +47,26 @@ What you get
 ************
 
 |eddsrecorder| does not store raw network data.
-It builds a message table for each DDS Topic whose columns are the fields of the corresponding data type, next to the
-protocol metadata of each sample, so the recorded session can be queried with plain SQL:
+By default it stores every sample as the raw :term:`CDR` payload that was sent on the wire, in the same schema
+*eProsima DDS Monitor* reads, alongside the topics and data types found in the capture.
+Nothing is decoded, so a topic is recorded even when its data type was never announced:
 
 .. code-block:: sql
 
-    SELECT counter, message FROM Example_HelloWorld ORDER BY message_id;
+    SELECT topic, type, COUNT(*) FROM Messages GROUP BY topic, type;
 
-Alongside those tables, the database holds the discovery information: the topics found in the capture together with a
+Passing ``-queryable`` gives the other shape instead: a table per DDS Topic whose columns are the members of its data
+type, next to the protocol metadata of each sample, so the recorded values can be read with plain SQL:
+
+.. code-block:: sql
+
+    SELECT counter, message FROM Data_Example_HelloWorld_flat ORDER BY log_time;
+
+That one also records the discovery information as tables of its own: the topics found in the capture together with a
 human readable rendering of their data types, the endpoints that were announced, and the raw endpoint discovery
 messages.
-:ref:`user_manual_database_structure` describes the whole schema, and
-:ref:`user_manual_querying_database` collects ready-to-use queries over it.
+:ref:`user_manual_monitor_schema` and :ref:`user_manual_database_structure` describe the two schemas, and
+:ref:`user_manual_querying_database` collects ready-to-use queries over the queryable one.
 
 .. note::
 
@@ -89,7 +97,8 @@ Where to go next
 * :ref:`user_manual_use_cases` — when non-intrusive recording is the right approach.
 * :ref:`user_manual_capturing_traffic` — obtain a capture that |eddsrecorder| can process.
 * :ref:`user_manual_usage` — command line reference and a complete worked example.
-* :ref:`user_manual_database_structure` — the tables and columns that are generated.
-* :ref:`user_manual_data_types` — how each IDL construct is mapped to SQL.
-* :ref:`user_manual_querying_database` — SQL recipes to analyze a recorded session.
+* :ref:`user_manual_monitor_schema` — the default schema, compatible with *DDS Record & Replay*.
+* :ref:`user_manual_database_structure` — the ``-queryable`` schema, a table per DDS Topic.
+* :ref:`user_manual_data_types` — how each IDL construct is mapped to SQL under ``-queryable``.
+* :ref:`user_manual_querying_database` — SQL recipes to analyze a ``-queryable`` recording.
 * :ref:`user_manual_limitations` — supported scenarios and troubleshooting.

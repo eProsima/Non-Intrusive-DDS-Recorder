@@ -26,7 +26,7 @@ import requests
 
 
 PROJECT_NAME = "Non-Intrusive DDS Recorder"
-COMPRESS_PROJECT_NAME = "ddsrecorder"
+COMPRESS_PROJECT_NAME = "ni_ddsrecorder"
 
 
 def get_version_from_cmakelists(cmakelists):
@@ -34,7 +34,7 @@ def get_version_from_cmakelists(cmakelists):
     Get the project version from a CMakeLists.txt file.
 
     The function looks for the VERSION argument of the CMake project() command,
-    e.g. project(DDSRecorder VERSION 1.1.0 LANGUAGES C CXX).
+    e.g. project(ni_ddsrecorder VERSION 1.1.0 LANGUAGES C CXX).
     A version may omit the minor and patch numbers, which default to 0.
 
     :param cmakelists: The file to scan for the version

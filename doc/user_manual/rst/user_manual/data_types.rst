@@ -10,6 +10,12 @@ Supported data types
 This section describes the IDL constructs that |eddsrecorder| supports and how each of them is mapped to the generated
 SQL schema.
 
+.. note::
+
+    All of this applies to the ``-queryable`` schema only, since it is the one that deserializes the
+    samples into columns. The default schema stores every sample as a raw :term:`CDR` payload and is
+    therefore indifferent to the data type; see :ref:`user_manual_monitor_schema`.
+
 .. _user_manual_data_types_basic_types:
 
 ***********
@@ -151,28 +157,27 @@ Consider a ``Foo`` topic with the following data type:
 .. list-table::
     :header-rows: 1
 
-    *   - ``Foo``
-        - ``Foo_myArray``
+    *   - ``Data_Foo``
+        - ``Data_Foo_myArray``
 
-    *   - ``message_id`` |br|
-          MetaData fields |br|
-          ``myId`` |br|
-          ``myArray_id``
-        - ``myArray_id`` |br|
+    *   - ``writer_guid`` |br|
+          ``sequence_number`` |br|
+          ``myId``
+        - ``writer_guid`` |br|
+          ``sequence_number`` |br|
           ``index_0`` |br|
           ``value``
 
-Each ``Foo`` sample produces one row in ``Foo`` and ten rows in ``Foo_myArray``, with ``index_0`` running from ``0`` to
-``9``.
-To get the values of ``myArray`` for a given ``Foo`` sample, in order, the following query can be performed:
+Each ``Foo`` sample produces one row in ``Data_Foo`` and ten rows in ``Data_Foo_myArray``, with ``index_0`` running
+from ``0`` to ``9``.
+Both tables carry the same key, so the values of ``myArray`` for a given sample are read by joining on it:
 
 .. code-block:: sql
 
-    SELECT Foo_myArray.index_0, Foo_myArray.value FROM Foo
-        INNER JOIN Foo_myArray ON Foo.myArray_id = Foo_myArray.myArray_id
-    WHERE
-        Foo.message_id = <a_Valid_Id>
-    ORDER BY Foo_myArray.index_0;
+    SELECT e.index_0, e.value
+      FROM Data_Foo_myArray e
+     WHERE e.writer_guid = :guid AND e.sequence_number = :seq
+     ORDER BY e.index_0;
 
 .. _user_manual_data_types_internal_structures:
 
@@ -191,7 +196,7 @@ structure member name:
 The prefixes accumulate, so a member nested two levels deep yields
 ``<OuterMemberName>_<InnerMemberName>_<FieldName>``.
 A variable length field inside a nested structure follows the same rule: its auxiliary table is named
-``<TopicName>_<InnerStructureName>_<FieldName>``.
+``Data_<TopicName>_<InnerStructureName>_<FieldName>``.
 
 Example
 =======
@@ -218,11 +223,11 @@ Consider the following IDL:
     *   - Table field
         - Field type
 
-    *   - ``message_id``
-        - ``INT``
+    *   - ``writer_guid``
+        - ``TEXT``
 
-    *   - MetaData fields
-        - ...
+    *   - ``sequence_number``
+        - ``INTEGER``
 
     *   - ``id``
         - ``INT``
@@ -283,11 +288,11 @@ Consider the following IDL:
     *   - Table field
         - Field type
 
-    *   - ``message_id``
-        - ``INT``
+    *   - ``writer_guid``
+        - ``TEXT``
 
-    *   - MetaData fields
-        - ...
+    *   - ``sequence_number``
+        - ``INTEGER``
 
     *   - ``id``
         - ``INT``
@@ -307,4 +312,4 @@ Selecting only the samples that used a given branch is therefore a matter of fil
 
 .. code-block:: sql
 
-    SELECT message_id, myU_counter FROM MyTopic WHERE myU_discriminator = 1;
+    SELECT sequence_number, myU_counter FROM Data_MyTopic WHERE myU_discriminator = 1;

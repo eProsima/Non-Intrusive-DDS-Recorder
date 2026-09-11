@@ -17,9 +17,9 @@
 ###############################################################################
 cmake_minimum_required(VERSION 3.20)
 
-set(DDSRECORDER_VERSION "${PROJECT_VERSION}")
+set(NI_DDSRECORDER_VERSION "${PROJECT_VERSION}")
 
-project(DDSRecorder-docs VERSION ${DDSRECORDER_VERSION} LANGUAGES C CXX)
+project(ni_ddsrecorder_docs VERSION ${NI_DDSRECORDER_VERSION} LANGUAGES C CXX)
 
 # In case CMake version less than 3.24, add the option CMAKE_COMPILE_WARNING_AS_ERROR.
 if (${CMAKE_VERSION} VERSION_LESS "3.24")
