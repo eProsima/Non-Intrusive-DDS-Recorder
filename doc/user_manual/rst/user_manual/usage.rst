@@ -11,7 +11,7 @@ Usage
 
 .. code-block:: bash
 
-    ni_ddsrecorder <pcapFile> [-db <database>] [-idl <file>] [-queryable] [-help]
+    ni_ddsrecorder <pcapFile> [-db <database>] [-mcap <file>] [-idl <file>] [-queryable] [-help]
 
 .. _user_manual_usage_application_arguments:
 
@@ -76,6 +76,18 @@ Command-Line Parameters
           See |br|
           :ref:`user_manual_database_structure`.
 
+    *   - MCAP output
+        - ``-mcap``
+        - String
+        -
+        - Write the recording as an :term:`MCAP` |br|
+          file with this name instead of a |br|
+          database. Mutually exclusive with |br|
+          ``-db``. Each sample is stored as its |br|
+          raw CDR payload, so no data type is |br|
+          needed. |br|
+          See :ref:`user_manual_mcap_output`.
+
     *   - Help
         - ``-help``
         -
@@ -91,6 +103,11 @@ Command-Line Parameters
     level tables the capture reveals and the schema has no column for.
     :ref:`user_manual_monitor_schema` describes the former, and
     :ref:`user_manual_database_structure` describes what ``-queryable`` adds.
+
+.. warning::
+
+    ``-db`` and ``-mcap`` name the same thing, the output, so they cannot be combined.
+    Passing both is refused before anything is written.
 
 .. warning::
 
@@ -237,8 +254,13 @@ from the file given with ``-idl``:
     };
 
 Without ``-idl`` the ``Types`` row is still written, with an empty ``idl`` column.
-The ``information`` and ``object`` columns stay empty in every case: they are meant for an XTypes ``TypeIdentifier``
-and ``TypeObject``, and |eddsrecorder| reads no XTypes type information from the wire.
+
+The ``information`` and ``object`` columns hold the XTypes ``TypeIdentifier`` and ``TypeObject`` of the same data
+type, each as the base64 of its CDR.
+The RTPS traffic carries neither: |eddsrecorder| generates them from the type declared in the file given with
+``-idl``, so they are empty whenever the ``idl`` column is.
+A data type built from other types also gets a row per type it is built from, named with a ``__dep__/`` prefix, so
+that a reader has everything it needs to rebuild it.
 
 Messages
 --------

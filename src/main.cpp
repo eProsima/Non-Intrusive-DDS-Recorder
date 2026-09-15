@@ -10,6 +10,7 @@
 #include "DDSRecorder.h"
 #include "TypeStore.h"
 #include "log/eProsimaLog.h"
+#include "writer/McapRecorder.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +40,10 @@ void printHelp()
     printf("                                     [-db <database>]\n");
     printf("                                     [-idl <idlfile>]\n");
     printf("                                     [-queryable]\n");
+    if (McapRecorder::is_supported())
+    {
+        printf("                                     [-mcap <mcapfile>]\n");
+    }
     printf("                                     [-help]\n");
     printf("Options:\n");
     printf("    <pcapFile>: The sniffer file to process (PCAP format required)\n");
@@ -51,6 +56,11 @@ void printHelp()
     printf("              column per data type member. Needs -idl to know the data types; the\n");
     printf("              DDS Record & Replay tables are written either way. DataTables says\n");
     printf("              which table holds which topic.\n");
+    if (McapRecorder::is_supported())
+    {
+        printf("    -mcap <mcapfile>: Write an MCAP file instead of a database. Cannot be used\n");
+        printf("              together with -db. No IDL file is required.\n");
+    }
     printf("    -help: Print help information.\n");
 }
 
@@ -68,6 +78,8 @@ int main(
     string db{"dump.db"};
     string idlfile;
     bool queryable_mode{false};
+    string mcap_file;
+    bool db_given{false};
     eProsimaLog* log{nullptr};
     pcapReader* reader{nullptr};
     RTPSPacketAnalyzer* analyzer{nullptr};
@@ -88,6 +100,7 @@ int main(
             if (i + 1 < argc)
             {
                 db = argv[++i];
+                db_given = true;
             }
             else
             {
@@ -98,6 +111,18 @@ int main(
         else if (strcmp(argv[i], "-queryable") == 0)
         {
             queryable_mode = true;
+        }
+        else if (strcmp(argv[i], "-mcap") == 0)
+        {
+            if (i + 1 < argc)
+            {
+                mcap_file = argv[++i];
+            }
+            else
+            {
+                printHelp();
+                return returnedValue;
+            }
         }
         else if (strcmp(argv[i], "-idl") == 0)
         {
@@ -115,6 +140,20 @@ int main(
         {
             filename = argv[i];
         }
+    }
+
+    if (!mcap_file.empty() && !McapRecorder::is_supported())
+    {
+        printf("Error: -mcap is not available: this build has no MCAP support.\n"
+                "       Rebuild with -DMCAP_SUPPORT=ON.\n");
+        return EXIT_USAGE;
+    }
+
+    /* The MCAP output replaces the database, so asking for both is a contradiction. */
+    if (db_given && !mcap_file.empty())
+    {
+        printf("Error: -db and -mcap cannot be used together. Choose one output.\n");
+        return EXIT_USAGE;
     }
 
     if (!filename.empty())
@@ -155,7 +194,8 @@ int main(
 
                     if (analyzer != NULL)
                     {
-                        rtpsdumper = new DDSRecorder(*log, db, queryable_mode, type_store);
+                        rtpsdumper = new DDSRecorder(*log, db, queryable_mode, type_store,
+                                        mcap_file);
 
                         if (rtpsdumper != NULL)
                         {
