@@ -17,6 +17,7 @@
 #include <sqlite3.h>
 #include "RTPSPacketAnalyzer.h"
 #include "database/Endpoint.h"
+#include "database/TypeDescription.h"
 
 namespace eprosima {
 class eProsimaLog;
@@ -79,11 +80,15 @@ public:
      * overwrites what a DataReader recorded, because a replayed topic is published, so it is the
      * writer's QoS that the replayer has to reproduce.
      *
+     * The data type gets a Types row of its own, and so does every type it is built from. They
+     * are written the first time the type is seen; a later announcement of the same type name
+     * only fills in a column that was left empty.
+     *
      * \param topicName Name of the DDS Topic.
      * \param typeName Name of the DDS Topic data type.
-     * \param idl The data type rendered as IDL, or an empty string when the data type is
-     * not known. Stored in the 'idl' column, rendered from the file given with '-idl'.
-     * It is there for the user to read; nothing in this tool parses it back.
+     * \param type What is known about the data type, all of it read from the file given with
+     * '-idl'. Every member is empty when that file did not declare the type, which is recorded as
+     * a Types row with the type name and nothing else.
      * \param qos The QoS announced for the endpoint this topic was learnt from.
      * \param from_writer True when the announcement came from a DataWriter.
      * \return True value is returned if the topic was added or was already present.
@@ -91,7 +96,7 @@ public:
     bool add_topic(
             const std::string& topicName,
             const std::string& typeName,
-            const std::string& idl,
+            const TypeDescription& type,
             const TopicQos& qos,
             bool from_writer);
 
@@ -231,6 +236,25 @@ private:
     bool execute(
             const char * statement);
 
+    /**
+     * \brief Writes one row of the Types table.
+     *
+     * \param typeName Name of the row, which is the name of the DDS Topic data type, or the
+     * \c TYPE_DEPENDENCY_PREFIX key of a type another one is built from.
+     * \param information The complete TypeIdentifier, base64 of its CDR, for the 'information'
+     * column. Empty when the data type is not known.
+     * \param object The complete TypeObject, base64 of its CDR, for the 'object' column. Empty
+     * when the data type is not known.
+     * \param idl The data type rendered as IDL, for the 'idl' column. Empty for a dependency,
+     * which is a fragment of a type rather than a type the user asked to record.
+     * \return True value is returned if the row was written or was already present.
+     */
+    bool add_type(
+            const std::string& typeName,
+            const std::string& information,
+            const std::string& object,
+            const std::string& idl);
+
     /// The four words of a GUID, in the order format_guid() prints them, so it can key a map.
     typedef std::array<unsigned int, 4> EndpointKey;
 
@@ -261,6 +285,9 @@ private:
      * and repeated announcements cost nothing.
      */
     sqlite3_stmt * updatte_type_stmt_{nullptr};
+
+    /// The same, for the two XTypes columns, which are filled in and guarded together.
+    sqlite3_stmt * update_type_xtypes_stmt_{nullptr};
 
     sqlite3_stmt * add_topic_stmt_{nullptr};
 

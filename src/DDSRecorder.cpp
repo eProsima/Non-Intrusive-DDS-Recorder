@@ -70,6 +70,13 @@ using namespace std;
 static const char* const CLASS_NAME = "DDSRecorder";
 
 /*
+ * What is passed for a data type when there is no '-idl' file at all, so that the topic is still
+ * recorded. A type the file did not declare describes itself the same way, with every member
+ * empty.
+ */
+static const TypeDescription NO_TYPE_DESCRIPTION;
+
+/*
  * How many samples are written before the open transaction is committed and the next one opened.
  *
  * One transaction for the whole capture would be fastest, but it would also mean that a run
@@ -399,7 +406,8 @@ void DDSRecorder::processDataW(
                     : ((type_store_ != nullptr) && type_store_->is_keyed(pubtopic.type_name));
 
             monitor_db_->add_topic(pubtopic.topic_name, pubtopic.type_name,
-                    (type_store_ != nullptr) ? type_store_->idl_for(pubtopic.type_name) : string(),
+                    (type_store_ != nullptr)
+                    ? type_store_->describe(pubtopic.type_name) : NO_TYPE_DESCRIPTION,
                     qos, true);
             monitor_db_->add_endpoint(pubtopic.guid.hostId, pubtopic.guid.appId,
                     pubtopic.guid.instanceId, pubtopic.guid.objectId,
@@ -408,9 +416,10 @@ void DDSRecorder::processDataW(
 
         if (nullptr != mcap_recorder_)
         {
-            // Same reasoning as the monitor schema above: the IDL only describes the type.
+            // Same source as the monitor schema above: the file given with '-idl'.
             mcap_recorder_->add_topic(pubtopic.topic_name, pubtopic.type_name,
-                    (type_store_ != nullptr) ? type_store_->idl_for(pubtopic.type_name) : string());
+                    (type_store_ != nullptr)
+                    ? type_store_->describe(pubtopic.type_name) : NO_TYPE_DESCRIPTION);
             mcap_recorder_->add_endpoint(pubtopic.guid.hostId, pubtopic.guid.appId,
                     pubtopic.guid.instanceId, pubtopic.guid.objectId,
                     pubtopic.topic_name, pubtopic.type_name);
@@ -486,7 +495,8 @@ void DDSRecorder::processDataR(
                     : ((type_store_ != nullptr) && type_store_->is_keyed(subtopic.type_name));
 
             monitor_db_->add_topic(subtopic.topic_name, subtopic.type_name,
-                    (type_store_ != nullptr) ? type_store_->idl_for(subtopic.type_name) : string(),
+                    (type_store_ != nullptr)
+                    ? type_store_->describe(subtopic.type_name) : NO_TYPE_DESCRIPTION,
                     qos, false);
             monitor_db_->add_endpoint(subtopic.guid.hostId, subtopic.guid.appId,
                     subtopic.guid.instanceId, subtopic.guid.objectId,
@@ -495,9 +505,10 @@ void DDSRecorder::processDataR(
 
         if (nullptr != mcap_recorder_)
         {
-            // Same reasoning as the monitor schema above: the IDL only describes the type.
+            // Same source as the monitor schema above: the file given with '-idl'.
             mcap_recorder_->add_topic(subtopic.topic_name, subtopic.type_name,
-                    (type_store_ != nullptr) ? type_store_->idl_for(subtopic.type_name) : string());
+                    (type_store_ != nullptr)
+                    ? type_store_->describe(subtopic.type_name) : NO_TYPE_DESCRIPTION);
             mcap_recorder_->add_endpoint(subtopic.guid.hostId, subtopic.guid.appId,
                     subtopic.guid.instanceId, subtopic.guid.objectId,
                     subtopic.topic_name, subtopic.type_name);

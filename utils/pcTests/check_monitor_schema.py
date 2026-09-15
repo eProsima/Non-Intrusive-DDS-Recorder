@@ -22,7 +22,9 @@ Standard library only.  The dev container has no sqlite3 CLI.
 """
 
 import argparse
+import base64
 import datetime
+import hashlib
 import os
 import re
 import shutil
@@ -52,6 +54,11 @@ REMOVED_TABLES = {'_topics', '_endpoints', '_endpointDiscoveryMessages'}
 GUID_RE = re.compile(r'^([0-9a-f]{2}\.){11}[0-9a-f]{2}\|[0-9a-f]{1,2}(\.[0-9a-f]{1,2}){3}$')
 PREFIX_RE = re.compile(r'^([0-9a-f]{2}\.){11}[0-9a-f]{2}$')
 TIME_RE = re.compile(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{9}$')
+
+# The name a type another type is built from is stored under, and the XTypes discriminator of a
+# complete TypeIdentifier and of a complete TypeObject. Both come from *DDS Record & Replay*.
+DEPENDENCY_PREFIX = '__dep__/'
+EK_COMPLETE = 0xF2
 
 # Encapsulation identifiers a CDR payload may legitimately start with.
 VALID_ENCAPSULATIONS = {0x0000, 0x0001, 0x0002, 0x0003,
@@ -139,6 +146,96 @@ def query(db_path, sql, parameters=()):
 
 def one(db_path, sql, parameters=()):
     return query(db_path, sql, parameters)[0][0]
+
+
+def decoded(column):
+    """What an XTypes column of the Types table holds, or None when it is not valid base64."""
+    try:
+        return base64.b64decode(column or '', validate=True)
+    except Exception:
+        return None
+
+
+def is_complete_identifier(identifier):
+    """A complete TypeIdentifier: the discriminator, the 14 byte hash, and a byte of padding.
+
+    TypeIdentifier is a final type, so it carries no DHEADER, and the recorder pads what it
+    stores up to a multiple of four bytes.
+    """
+    return (identifier is not None and len(identifier) == 16
+            and identifier[0] == EK_COMPLETE)
+
+
+def is_complete_object(type_object):
+    """A complete TypeObject: an XCDRv2 DHEADER, the discriminator, and up to three pad bytes.
+
+    TypeObject is an appendable type, so XCDRv2 puts the length of everything after it in a
+    four byte header. Little endian because the recorder serializes in the endianness of the
+    machine and everything this suite runs on is little endian.
+    """
+    if type_object is None or len(type_object) < 8 or type_object[4] != EK_COMPLETE:
+        return False
+    length = struct.unpack('<I', type_object[:4])[0] + 4
+    return length <= len(type_object) <= length + 3
+
+
+def hashes_to(identifier, type_object):
+    """Whether the TypeIdentifier is the hash of the TypeObject, as XTypes defines it.
+
+    The equivalence hash is the first 14 bytes of the MD5 of the serialized TypeObject, taken
+    before the padding the recorder adds, so the four possible paddings are tried. Nothing but
+    the object the identifier was computed from can satisfy this, which is what makes it worth
+    asserting: it ties the two columns together and pins the serialization down to the byte.
+    """
+    if not is_complete_identifier(identifier) or not type_object:
+        return False
+    return any(hashlib.md5(type_object[:len(type_object) - trim]).digest()[:14] == identifier[1:15]
+               for trim in range(4))
+
+
+def check_xtypes_columns(checker, db, label, described, dependencies=None):
+    """The Types rows hold the XTypes description the replayer and the monitor decode.
+
+    'described' names the types the -idl file declared; every other row is a type the recorder
+    only ever saw announced, and keeps both columns empty. 'dependencies' is how many rows of
+    types another type is built from are expected, or None to leave that unasserted.
+    """
+    rows = query(db, 'SELECT name, information, object FROM Types')
+    deps = [r for r in rows if r[0].startswith(DEPENDENCY_PREFIX)]
+
+    checker.equal('%s: exactly the types the -idl file declares are described' % label,
+                  sorted(r[0] for r in rows
+                         if r[1] and not r[0].startswith(DEPENDENCY_PREFIX)),
+                  sorted(described))
+
+    empty = [r[0] for r in rows if not r[1]]
+    checker.check('%s: a type the -idl file does not declare leaves both columns empty' % label,
+                  all(r[2] == '' for r in rows if not r[1]),
+                  'rows with an object but no information: %s' % empty[:3])
+
+    bad = [r[0] for r in rows if r[1] and not is_complete_identifier(decoded(r[1]))]
+    checker.check('%s: information holds a complete TypeIdentifier' % label, not bad,
+                  'types %s' % bad[:3])
+
+    bad = [r[0] for r in rows if r[2] and not is_complete_object(decoded(r[2]))]
+    checker.check('%s: object holds a complete TypeObject' % label, not bad,
+                  'types %s' % bad[:3])
+
+    bad = [r[0] for r in rows if r[1] and not hashes_to(decoded(r[1]), decoded(r[2]))]
+    checker.check('%s: every TypeIdentifier is the hash of the TypeObject beside it' % label,
+                  not bad, 'types %s' % bad[:3])
+
+    bad = [r[0] for r in deps if r[0] != DEPENDENCY_PREFIX + r[1]]
+    checker.check('%s: every dependency is keyed by its own TypeIdentifier' % label, not bad,
+                  'rows %s' % bad[:3])
+
+    if dependencies is not None:
+        checker.equal('%s: rows for the types the described ones are built from' % label,
+                      len(deps), dependencies)
+
+    checker.equal('%s: no topic names a dependency row as its data type' % label,
+                  one(db, "SELECT COUNT(*) FROM Topics WHERE type LIKE '" + DEPENDENCY_PREFIX
+                      + "%'"), 0)
 
 
 def capture_idl(name):
@@ -253,8 +350,10 @@ def check_helloworld_default(checker, recorder, workdir):
         checker.check('Types.idl holds the IDL read from the -idl file',
                       'struct HelloWorld' in (types[0][4] or ''),
                       'got %r' % (types[0][4],))
-        checker.equal('Types.information stays empty (no XTypes on the wire)', types[0][1], '')
-        checker.equal('Types.object stays empty (no XTypes on the wire)', types[0][2], '')
+
+    # HelloWorld is built from nothing but primitives and a string, so it needs no row but its
+    # own; a type that is not flat is checked by check_type_objects below.
+    check_xtypes_columns(checker, db, 'HelloWorld', {'HelloWorld'}, dependencies=0)
 
     checker.equal('Partitions holds the single empty partition',
                   query(db, 'SELECT name FROM Partitions'), [('',)])
@@ -278,6 +377,10 @@ def check_no_idl(checker, recorder, workdir):
     checker.equal('Messages still has 30 rows', one(db, 'SELECT COUNT(*) FROM Messages'), 30)
     checker.equal('Types.idl is empty without -idl',
                   [r[0] for r in query(db, 'SELECT idl FROM Types')], [''])
+    # The TypeIdentifier and the TypeObject are generated from the data type the -idl file
+    # declares, so without that file there is nothing to generate them from either.
+    checker.equal('the XTypes columns are empty without -idl',
+                  query(db, 'SELECT information, object FROM Types'), [('', '')])
 
     print('\n== HelloWorld.pcap with -queryable but no -idl: no data table ==')
     qdb = os.path.join(workdir, 'hw_q_noidl.db')
@@ -291,6 +394,44 @@ def check_no_idl(checker, recorder, workdir):
                       'found %s' % sorted(tables(qdb) - MONITOR_TABLES - QUERYABLE_TABLES))
     else:
         checker.check('the -queryable schema was produced without -idl', False)
+
+
+def check_type_objects(checker, recorder, workdir):
+    """A type built from other types is stored with every type it needs to be rebuilt.
+
+    A TypeObject names the types of its members by TypeIdentifier rather than describing them, so
+    the row of the topic's own type is not enough on its own: the types it is built from get a row
+    each, keyed by their own TypeIdentifier behind DEPENDENCY_PREFIX, the way *DDS Record &
+    Replay* stores them. The two fixtures below are the ones that are not flat.
+    """
+    print('\n== types built from other types carry the types they need ==')
+
+    # RecursiveStructs -> LevelOne -> LevelTwo, and CompletypeInSequence -> the sequence alias
+    # -> Estructura: two types apiece, since the dependencies are followed all the way down.
+    for name, described, dependencies in (('recursive_structs', 'RecursiveStructs', 2),
+                                          ('complextype_in_sequence', 'CompletypeInSequence', 2)):
+        capture = os.path.join(CAPTURES, name + '.pcap')
+        idl = os.path.join(CAPTURES, name + '.idl')
+
+        if not require_fixture(checker, capture, idl):
+            continue
+
+        db = os.path.join(workdir, name + '_types.db')
+        output = run_recorder(recorder, db, capture, idl=idl)
+
+        if not os.path.exists(db) or not (MONITOR_TABLES <= tables(db)):
+            checker.check('%s: the Record & Replay schema was produced' % name, False)
+            continue
+
+        checker.check('%s: generating the type objects logged no error' % name, not errors(output),
+                      '; '.join(errors(output)[:2]))
+        check_xtypes_columns(checker, db, name, {described}, dependencies=dependencies)
+
+        # The dependencies are extra rows in Types; nothing else in the schema may notice them.
+        checker.equal('%s: the topic still names the type the traffic announced' % name,
+                      [r[0] for r in query(db, 'SELECT type FROM Topics')], [described])
+        checker.equal('%s: every message still names that type' % name,
+                      [r[0] for r in query(db, 'SELECT DISTINCT type FROM Messages')], [described])
 
 
 def check_queryable_integrity(checker, db, name, expected_messages, expected_captures):
@@ -573,9 +714,11 @@ def check_shape_capture(checker, recorder, workdir):
     """The Shapes capture, which is the only fixture that exercises several things at once.
 
     It is the only one with a keyed data type, the only one with more than one topic, and the only
-    one whose topics carry no samples at all. Each of those is a case the schema has to survive:
-    keyedness is read from the entityKind of an endpoint, table names have to stay distinct across
-    topics, and a topic with no sample must still be recorded.
+    one where two topics share a single data type. Each of those is a case the schema has to
+    survive: keyedness is read from the entityKind of an endpoint, table names have to stay
+    distinct across topics, and one described type has to yield a table per topic rather than a
+    table per type. Most of its topics are the Fast DDS statistics ones, announced but never
+    written to, so a topic without a single sample still has to be recorded rather than dropped.
 
     It is also the capture kept for the '-idl' path, since it announces no type of its own.
     """
@@ -591,7 +734,7 @@ def check_shape_capture(checker, recorder, workdir):
     withidl = os.path.join(workdir, 'shape_idl.db')
     output = run_recorder(recorder, withidl, capture, idl=idl)
 
-    checker.equal('processed 220 RTPS packets', packets(output), 220)
+    checker.equal('processed 1350 RTPS packets', packets(output), 1350)
 
     for path in (without, withidl):
         if not os.path.exists(path) or not (MONITOR_TABLES <= tables(path)):
@@ -605,6 +748,9 @@ def check_shape_capture(checker, recorder, workdir):
     checker.equal('Types.idl is empty without -idl',
                   [r[0] for r in query(without, "SELECT idl FROM Types "
                                                 "WHERE name = 'ShapeType'")], [''])
+    checker.equal('the XTypes columns are empty without -idl',
+                  query(without, "SELECT information, object FROM Types "
+                                 "WHERE name = 'ShapeType'"), [('', '')])
 
     info_with = query(withidl, "SELECT idl, information FROM Types WHERE name = 'ShapeType'")
     checker.equal('Types row for ShapeType exists with -idl', len(info_with), 1)
@@ -614,14 +760,17 @@ def check_shape_capture(checker, recorder, workdir):
                       'got %r' % (info_with[0][0],))
         checker.check('the @key annotation survives the round trip',
                       '@key' in (info_with[0][0] or ''), 'got %r' % (info_with[0][0],))
-        checker.equal('Types.information stays empty even with -idl',
-                      info_with[0][1], '')
+        # The same file is the source of the XTypes description, so the column that stayed
+        # empty in the run without -idl above is filled in here.
+        checker.check('Types.information holds the TypeIdentifier the -idl file made',
+                      is_complete_identifier(decoded(info_with[0][1])),
+                      'got %r' % (info_with[0][1],))
 
     checker.equal('the two runs agree on the topic set',
                   one(without, 'SELECT COUNT(*) FROM Topics'),
                   one(withidl, 'SELECT COUNT(*) FROM Topics'))
 
-    print('\n== shape.pcapng, -queryable: keyed types, several topics, no samples ==')
+    print('\n== shape.pcapng, -queryable: keyed types, several topics, one shared type ==')
     qdb = os.path.join(workdir, 'shape_queryable.db')
     qoutput = run_recorder(recorder, qdb, capture, queryable=True, idl=idl)
 
@@ -632,30 +781,47 @@ def check_shape_capture(checker, recorder, workdir):
     checker.check('the queryable run logged no error', not errors(qoutput),
                   '; '.join(errors(qoutput)[:3]))
 
-    # No sample is carried, so no transmission is either. A topic without a sample still has to
-    # be recorded rather than dropped.
-    check_queryable_integrity(checker, qdb, 'shape', 0, 0)
+    # Every sample is transmitted once, so the two counts coincide; what matters here is that
+    # they are counted over twenty topics, eighteen of which carry nothing at all.
+    check_queryable_integrity(checker, qdb, 'shape', 683, 683)
 
     if not (QUERYABLE_TABLES <= tables(qdb)):
         return
 
-    checker.equal('19 topics are recorded although none carries a sample',
-                  one(qdb, 'SELECT COUNT(*) FROM Topics'), 19)
-    checker.equal('38 endpoints announced them',
-                  one(qdb, 'SELECT COUNT(*) FROM Endpoints'), 38)
+    checker.equal('20 topics are recorded, although only two carry a sample',
+                  one(qdb, 'SELECT COUNT(*) FROM Topics'), 20)
+    checker.equal('40 endpoints announced them',
+                  one(qdb, 'SELECT COUNT(*) FROM Endpoints'), 40)
+    checker.equal('the samples are split between the two Shapes topics',
+                  query(qdb, 'SELECT topic, COUNT(*) FROM Messages GROUP BY 1 ORDER BY 1'),
+                  [('Circle', 376), ('Square', 307)])
 
     # The entityKind of an endpoint states keyedness, and every endpoint here is on a keyed
     # topic. No other fixture reaches this path at all.
     checker.equal('every topic is recorded as keyed, from the endpoint entityKind',
-                  one(qdb, "SELECT COUNT(*) FROM Topics WHERE qos LIKE '%keyed: true%'"), 19)
+                  one(qdb, "SELECT COUNT(*) FROM Topics WHERE qos LIKE '%keyed: true%'"), 20)
+    # Square is the one writer announcing volatile durability, so the column is not a constant.
     checker.equal('the durability announced by the writers is recorded',
-                  one(qdb, "SELECT COUNT(*) FROM Topics WHERE qos LIKE '%durability: true%'"), 18)
+                  one(qdb, "SELECT COUNT(*) FROM Topics WHERE qos LIKE '%durability: true%'"), 19)
+    checker.equal('the topic whose writer is volatile is recorded as such',
+                  [r[0] for r in query(qdb, "SELECT name FROM Topics "
+                                            "WHERE qos LIKE '%durability: false%'")], ['Square'])
 
-    # Only ShapeType is described, so only its topic gets a table; the rest keep their samples in
-    # Messages as CDR, which here means none at all.
-    checker.equal('only the described topic gets a data table',
-                  [r[0] for r in query(qdb, "SELECT table_name FROM DataTables "
-                                            "WHERE member_path = ''")], ['Data_Square'])
+    # Nine of the ten types announced here are Fast DDS statistics types that Shape.idl does not
+    # declare, so they are the case that has to keep the XTypes columns empty.
+    check_xtypes_columns(checker, qdb, 'shape', {'ShapeType'}, dependencies=0)
+
+    # Only ShapeType is described, so only its topics get a table; the statistics ones keep their
+    # samples in Messages as CDR, which here means none at all. Circle and Square are the same
+    # type, and each still gets a table of its own: the table follows the topic, not the type.
+    checker.equal('only the described topics get a data table, one each',
+                  sorted(r[0] for r in query(qdb, "SELECT table_name FROM DataTables "
+                                                  "WHERE member_path = ''")),
+                  ['Data_Circle', 'Data_Square'])
+    for table, topic in (('Data_Circle', 'Circle'), ('Data_Square', 'Square')):
+        checker.equal('%s holds exactly the samples Messages has for %s' % (table, topic),
+                      one(qdb, 'SELECT COUNT(*) FROM "%s"' % table),
+                      one(qdb, "SELECT COUNT(*) FROM Messages WHERE topic = '%s'" % topic))
 
 
 # name -> (Messages rows, MessagesCapture rows)
@@ -792,6 +958,7 @@ def main(argv=None):
     try:
         check_helloworld_default(checker, recorder, workdir)
         check_no_idl(checker, recorder, workdir)
+        check_type_objects(checker, recorder, workdir)
         check_helloworld_queryable(checker, recorder, workdir)
         check_complextype_in_sequence(checker, recorder, workdir)
         check_unions(checker, recorder, workdir)

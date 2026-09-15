@@ -28,11 +28,11 @@
  * whole compatibility contract, and every table below is reproduced unchanged.
  *
  * Types is the single exception: it gains an 'idl' column, which holds the data type rendered as
- * IDL. That is the only type description the file given with '-idl' can provide, and neither of
- * the columns the original schema has for it fits, since both expect base64 of a TypeIdentifier
- * or a TypeObject. The column is additive, so a reader that selects the original columns by name
- * is unaffected, and it is declared with a default so that a writer that does not know about it
- * can still insert into Types.
+ * IDL, for a reader of the file to see the type without decoding anything. The two original
+ * columns are written as well, with the base64 of a TypeIdentifier and of a TypeObject they
+ * expect, both generated from the type the '-idl' file declared. The added column is additive, so
+ * a reader that selects the original columns by name is unaffected, and it is declared with a
+ * default so that a writer that does not know about it can still insert into Types.
  */
 static const char* const TABLE_TYPES_CREATE =
         "CREATE TABLE IF NOT EXISTS Types ("
@@ -112,6 +112,8 @@ static const char* const TYPE_ADD =
         "VALUES (?, ?, ?, ?, ?)";
 static const char* const TYPE_UPDATE =
         "UPDATE Types SET idl = ? WHERE name = ? AND idl = ''";
+static const char* const TYPE_XTYPES_UPDATE =
+        "UPDATE Types SET information = ?, object = ? WHERE name = ? AND object = ''";
 static const char* const TOPIC_ADD =
         "INSERT OR IGNORE INTO Topics (name, type, qos, is_ros2_topic) VALUES (?, ?, ?, ?)";
 static const char* const TOPICPARTITION_ADD =
@@ -206,6 +208,8 @@ MonitorDB::MonitorDB(
             &add_type_stmt_, NULL) != SQLITE_OK ||
             SQLITE_PREPARE(database_, TYPE_UPDATE, (int)strlen(TYPE_UPDATE),
             &updatte_type_stmt_, NULL) != SQLITE_OK ||
+            SQLITE_PREPARE(database_, TYPE_XTYPES_UPDATE, (int)strlen(TYPE_XTYPES_UPDATE),
+            &update_type_xtypes_stmt_, NULL) != SQLITE_OK ||
             SQLITE_PREPARE(database_, TOPIC_ADD, (int)strlen(TOPIC_ADD),
             &add_topic_stmt_, NULL) != SQLITE_OK ||
             SQLITE_PREPARE(database_, TOPIC_QOS_UPDATE, (int)strlen(TOPIC_QOS_UPDATE),
@@ -230,6 +234,10 @@ MonitorDB::~MonitorDB()
     if (add_type_stmt_ != NULL)
     {
         sqlite3_finalize(add_type_stmt_);
+    }
+    if (update_type_xtypes_stmt_ != NULL)
+    {
+        sqlite3_finalize(update_type_xtypes_stmt_);
     }
     if (updatte_type_stmt_ != NULL)
     {
@@ -443,26 +451,13 @@ Endpoint* MonitorDB::find_endpoint(
     return it != endpoints_.end() ? &it->second : NULL;
 }
 
-bool MonitorDB::add_topic(
-        const std::string& topicName,
+bool MonitorDB::add_type(
         const std::string& typeName,
-        const std::string& idl,
-        const TopicQos& qos,
-        bool from_writer)
+        const std::string& information,
+        const std::string& object,
+        const std::string& idl)
 {
-    const char* const METHOD_NAME = "addTopic";
-
-    if (!ready_)
-    {
-        logError(log_, "The monitor schema is not ready");
-        return false;
-    }
-
-    if (topicName.empty() || typeName.empty())
-    {
-        logInfo(log_, "Ignoring a discovered topic with no topic name or no type name");
-        return false;
-    }
+    const char* const METHOD_NAME = "add_type";
 
     if (sqlite3_reset(add_type_stmt_) != SQLITE_OK)
     {
@@ -471,14 +466,16 @@ bool MonitorDB::add_topic(
     }
 
     /*
-     * Types.information and Types.object would hold a serialized TypeIdentifier and TypeObject.
-     * The recorder reads no XTypes type information off the wire, so both are always left empty:
-     * the DDS Monitor drops a Types row whose object does not decode. The type description goes
-     * into the 'idl' column instead, rendered from the file given with '-idl'.
+     * Types.information and Types.object hold the CDR of the complete TypeIdentifier and of the
+     * complete TypeObject, base64 encoded, which is what the *DDS Monitor* and the replayer
+     * decode; a row whose object does not decode is dropped by the monitor. Both are generated
+     * from the data type the file given with '-idl' declared, and stay empty when that file did
+     * not declare it. The 'idl' column describes the same type for the user to read.
      */
     sqlite3_bind_text(add_type_stmt_, 1, typeName.c_str(), (int)typeName.length(), SQLITE_STATIC);
-    sqlite3_bind_text(add_type_stmt_, 2, "", 0, SQLITE_STATIC);
-    sqlite3_bind_text(add_type_stmt_, 3, "", 0, SQLITE_STATIC);
+    sqlite3_bind_text(add_type_stmt_, 2, information.c_str(), (int)information.length(),
+            SQLITE_STATIC);
+    sqlite3_bind_text(add_type_stmt_, 3, object.c_str(), (int)object.length(), SQLITE_STATIC);
     sqlite3_bind_text(add_type_stmt_, 4, NOT_ROS2, (int)strlen(NOT_ROS2), SQLITE_STATIC);
     sqlite3_bind_text(add_type_stmt_, 5, idl.c_str(), (int)idl.length(), SQLITE_STATIC);
 
@@ -507,6 +504,74 @@ bool MonitorDB::add_topic(
                     sqlite3_errmsg(database_));
             return false;
         }
+    }
+
+    // Same, for a type registered before its XTypes description could be generated.
+    if (!object.empty())
+    {
+        if (sqlite3_reset(update_type_xtypes_stmt_) != SQLITE_OK)
+        {
+            logError(log_, "Cannot reset the update type XTypes statement");
+            return false;
+        }
+
+        sqlite3_bind_text(update_type_xtypes_stmt_, 1, information.c_str(),
+                (int)information.length(), SQLITE_STATIC);
+        sqlite3_bind_text(update_type_xtypes_stmt_, 2, object.c_str(), (int)object.length(),
+                SQLITE_STATIC);
+        sqlite3_bind_text(update_type_xtypes_stmt_, 3, typeName.c_str(), (int)typeName.length(),
+                SQLITE_STATIC);
+
+        if (sqlite3_step(update_type_xtypes_stmt_) != SQLITE_DONE)
+        {
+            logError(log_, "Cannot step the update type XTypes statement: %s",
+                    sqlite3_errmsg(database_));
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool MonitorDB::add_topic(
+        const std::string& topicName,
+        const std::string& typeName,
+        const TypeDescription& type,
+        const TopicQos& qos,
+        bool from_writer)
+{
+    const char* const METHOD_NAME = "addTopic";
+
+    if (!ready_)
+    {
+        logError(log_, "The monitor schema is not ready");
+        return false;
+    }
+
+    if (topicName.empty() || typeName.empty())
+    {
+        logInfo(log_, "Ignoring a discovered topic with no topic name or no type name");
+        return false;
+    }
+
+    /*
+     * A TypeObject describes the members of its type by TypeIdentifier, so a type built from
+     * other types cannot be rebuilt from its own row alone. Each of them is written first, under
+     * the name TypeStore gave it, exactly as BaseHandler::store_dynamic_type_ writes them.
+     */
+    for (size_t i = 0; i < type.dependencies.size(); ++i)
+    {
+        const TypeRepresentation& dependency = type.dependencies[i];
+
+        if (!add_type(dependency.name, dependency.identifier, dependency.object, string()))
+        {
+            return false;
+        }
+    }
+
+    if (!add_type(typeName, type.identifier, type.object, type.idl))
+    {
+        return false;
     }
 
     if (sqlite3_reset(add_topic_stmt_) != SQLITE_OK)

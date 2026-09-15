@@ -254,8 +254,13 @@ from the file given with ``-idl``:
     };
 
 Without ``-idl`` the ``Types`` row is still written, with an empty ``idl`` column.
-The ``information`` and ``object`` columns stay empty in every case: they are meant for an XTypes ``TypeIdentifier``
-and ``TypeObject``, and |eddsrecorder| reads no XTypes type information from the wire.
+
+The ``information`` and ``object`` columns hold the XTypes ``TypeIdentifier`` and ``TypeObject`` of the same data
+type, each as the base64 of its CDR.
+The RTPS traffic carries neither: |eddsrecorder| generates them from the type declared in the file given with
+``-idl``, so they are empty whenever the ``idl`` column is.
+A data type built from other types also gets a row per type it is built from, named with a ``__dep__/`` prefix, so
+that a reader has everything it needs to rebuild it.
 
 Messages
 --------

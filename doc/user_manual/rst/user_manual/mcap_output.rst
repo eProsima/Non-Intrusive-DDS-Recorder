@@ -105,8 +105,20 @@ What the file holds
           ``messages_guid`` and ``messages_guid_index`` together identify the |br|
           publishing DataWriter of every message; see below.
 
+    *   - Attachment
+        - ``dynamic_types`` holds the XTypes description of every data type |br|
+          the file given with ``-idl`` declared: the ``TypeIdentifier`` and |br|
+          the ``TypeObject`` of each, base64 encoded, in the |br|
+          ``DynamicTypesCollection`` encoding *DDS Record & Replay* uses. |br|
+          Absent when no type was described.
+
 A Channel is written for every topic the discovery traffic announced, including the topics that
 never carried a sample, so the channel list is the full picture of what was on the network.
+
+The attachment describes the types the way the :ref:`SQL schema <user_manual_monitor_schema>` does
+in its ``Types`` table, dependency entries included: a data type built from other types is stored
+together with every type it is built from, each named ``__dep__/`` followed by its own
+``TypeIdentifier``, so that a reader has everything it needs to rebuild it.
 
 .. _user_manual_mcap_output_guid:
 
@@ -158,9 +170,10 @@ What is not in it
 *****************
 
 * **No JSON view of the samples.** The payload is CDR; nothing decodes it while recording.
-* **No serialized type objects.** *DDS Record & Replay* stores a ``DynamicTypesCollection``
-  attachment holding base64 type objects, which the RTPS traffic does not carry. The IDL text in the
-  Schema record is all the type information available.
+* **No type objects for a type that was not described.** The ``dynamic_types`` attachment is
+  generated from the file given with ``-idl``, the only source of data types, since the RTPS
+  traffic carries no XTypes information. A topic whose type that file does not declare is still
+  recorded, but contributes neither a type object nor IDL text.
 * **No QoS and no partitions.** The ``qos`` channel metadata holds the *DDS Record & Replay*
   defaults and ``partitions`` is empty, because |eddsrecorder| extracts neither from the discovery
   traffic.

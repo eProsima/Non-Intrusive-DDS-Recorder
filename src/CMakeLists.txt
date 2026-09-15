@@ -15,6 +15,7 @@ configure_file(
 set(SOURCES
     main.cpp
     DDSRecorder.cpp
+    DynamicTypesCollection.cpp
     RTPSPacketAnalyzer.cpp
     TypeStore.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/version.cpp

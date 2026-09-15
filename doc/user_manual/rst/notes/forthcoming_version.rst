@@ -56,10 +56,28 @@ the structure flattened into columns.
 Member names are emitted as quoted SQL identifiers, so a member named after an SQLite keyword no longer prevents a
 topic from being recorded.
 
+The ``Types`` table now carries the **XTypes description** of each data type.
+Its ``information`` and ``object`` columns, left empty until now, hold the complete ``TypeIdentifier`` and
+``TypeObject``, each as the base64 of its CDR, which is the encoding *eProsima DDS Record & Replay* writes and
+``ddsreplayer`` and the *eProsima DDS Monitor* decode.
+Neither is read off the wire: both are generated from the data type declared in the file given with ``-idl``, so a
+type that file does not declare still leaves them empty.
+A data type built from other types gets a row per type it is built from, so that it can be rebuilt from the recording
+alone.
+See :ref:`user_manual_monitor_schema`.
+
 The recording can also be written as an :term:`MCAP` file, with the new ``-mcap`` argument in place of ``-db``.
 This is the format *eProsima DDS Record & Replay* writes, so the result can be read by the tools that consume its
 recordings.
 See :ref:`user_manual_mcap_output`.
+
+The MCAP output stores the data types as well, in the ``dynamic_types`` attachment, which is
+where *eProsima DDS Record & Replay* keeps the types of an MCAP recording and where ``ddsreplayer``
+looks for them.
+It holds the same ``TypeIdentifier`` and ``TypeObject`` as the ``Types`` table of the SQL schema,
+in the ``DynamicTypesCollection`` encoding that implementation writes, so a recording made with
+``-mcap`` and one made with ``-db`` describe their types alike.
+See :ref:`user_manual_mcap_output_contents`.
 
 LZ4 and Zstandard are new build dependencies, but only for the MCAP output, which the new ``MCAP_SUPPORT`` CMake
 option makes optional: it defaults to ``AUTO``, building the MCAP output when those libraries are available and

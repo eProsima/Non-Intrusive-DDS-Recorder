@@ -26,14 +26,17 @@
 #endif // ifdef MCAP_SUPPORT
 
 #include <database/MonitorDB.h>
+#include <DynamicTypesCollection.h>
 #include <log/eProsimaLog.h>
 #include <writer/McapRecorder.h>
 
+#include <ctime>
 #include <list>
 #include <map>
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 #ifdef EPROSIMA_LINUX
 #include <sys/time.h>
@@ -164,6 +167,23 @@ struct McapRecorder::Impl
     /// Endpoints seen in discovery, used to attribute a sample to a topic.
     list<DiscoveredEndpoint> endpoints_;
 
+    /**
+     * \brief Keeps the XTypes description of a data type for the 'dynamic_types' attachment.
+     *
+     * Dependencies first and the type itself last, as BaseHandler::store_dynamic_type_ appends
+     * them, and each of them only once: the attachment is a sequence keyed by nothing, so a
+     * repeated announcement would otherwise store the same type again.
+     */
+    void store_types(
+            const std::string& typeName,
+            const TypeDescription& type);
+
+    /// The types to write into the attachment, in the order they were first seen.
+    vector<TypeRepresentation> dynamic_types_;
+
+    /// Names already in dynamic_types_, which keeps store_types() idempotent.
+    set<string> stored_types_;
+
     /// (writer Guid, RTPS sequence number) pairs already stored.
     set<pair<string, unsigned long long>> stored_;
 
@@ -197,6 +217,38 @@ static mcap::Timestamp to_nanosec(
         unsigned long long nanos)
 {
     return (mcap::Timestamp)(((unsigned long long)seconds) * 1000000000ULL + nanos);
+}
+
+void McapRecorder::Impl::store_types(
+        const std::string& typeName,
+        const TypeDescription& type)
+{
+    // A type the '-idl' file did not describe has nothing to store, not even a name.
+    if (type.object.empty())
+    {
+        return;
+    }
+
+    for (size_t i = 0; i < type.dependencies.size(); ++i)
+    {
+        const TypeRepresentation& dependency = type.dependencies[i];
+
+        if (stored_types_.insert(dependency.name).second)
+        {
+            dynamic_types_.push_back(dependency);
+        }
+    }
+
+    if (stored_types_.insert(typeName).second)
+    {
+        TypeRepresentation representation;
+
+        representation.name = typeName;
+        representation.identifier = type.identifier;
+        representation.object = type.object;
+
+        dynamic_types_.push_back(representation);
+    }
 }
 
 bool McapRecorder::Impl::materialize_topic(
@@ -295,7 +347,7 @@ bool McapRecorder::is_open()
 bool McapRecorder::add_topic(
         std::string& topicName,
         std::string& typeName,
-        const std::string& idl)
+        const TypeDescription& type)
 {
     const char* const METHOD_NAME = "add_topic";
 
@@ -311,6 +363,10 @@ bool McapRecorder::add_topic(
         return false;
     }
 
+    // The attachment holds every data type the recording knows, whether or not its topic ever
+    // carried a sample, so this is done before the Schema and Channel records are considered.
+    impl_->store_types(typeName, type);
+
     McapTopic& topic = impl_->topics_[topicName];
 
     if (topic.materialized)
@@ -324,7 +380,7 @@ bool McapRecorder::add_topic(
     // The first description wins, so an announcement with no IDL never erases one.
     if (topic.idl.empty())
     {
-        topic.idl = idl;
+        topic.idl = type.idl;
     }
 
     return true;
@@ -489,6 +545,37 @@ void McapRecorder::close()
         impl_->materialize_topic(topic.first, topic.second);
     }
 
+    /*
+     * The data types, as the one attachment *DDS Record & Replay* stores them in. Written only
+     * when there is something to write: an empty attachment would say a recording carries no
+     * type, which is what its absence already says.
+     */
+    if (!impl_->dynamic_types_.empty())
+    {
+        string serialized;
+
+        if (!serialize_dynamic_types_collection(impl_->dynamic_types_, serialized))
+        {
+            logError(impl_->log_, "Cannot serialize the data types of the recording");
+        }
+        else
+        {
+            mcap::Attachment types;
+
+            types.name = DYNAMIC_TYPES_ATTACHMENT_NAME;
+            types.data = reinterpret_cast<std::byte*>(const_cast<char*>(serialized.c_str()));
+            types.dataSize = serialized.length();
+            // When the attachment was written, which is now: nothing in a capture file dates it.
+            types.createTime = to_nanosec((long long)time(NULL), 0);
+
+            if (!impl_->writer_.write(types).ok())
+            {
+                logError(impl_->log_, "Cannot write the MCAP %s attachment",
+                        DYNAMIC_TYPES_ATTACHMENT_NAME);
+            }
+        }
+    }
+
     mcap::Metadata version;
     version.name = METADATA_VERSION;
     version.metadata[METADATA_VERSION_RELEASE] = DDSRECORDER_VERSION_STRING;
@@ -558,11 +645,11 @@ bool McapRecorder::is_open()
 bool McapRecorder::add_topic(
         std::string& topicName,
         std::string& typeName,
-        const std::string& idl)
+        const TypeDescription& type)
 {
     static_cast<void>(topicName);
     static_cast<void>(typeName);
-    static_cast<void>(idl);
+    static_cast<void>(type);
     return false;
 }
 

@@ -13,6 +13,7 @@
 #include <string>
 
 #include "RTPSPacketAnalyzer.h"
+#include "database/TypeDescription.h"
 
 namespace eprosima {
 class eProsimaLog;
@@ -24,9 +25,11 @@ class eProsimaLog;
  * SQLite database entirely: no database file is created.
  *
  * The samples are stored as their untouched CDR payload, exactly as MonitorDB does, so this
- * writer never needs the data type of a topic either. What type information is available,
- * from the file given with '-idl', which is its only source, is written as the
- * IDL text of the MCAP Schema record of the type.
+ * writer never needs the data type of a topic either. What type information is available, from
+ * the file given with '-idl', which is its only source, is written twice: as the IDL text of the
+ * MCAP Schema record of the type, and as the XTypes description of every type in the
+ * 'dynamic_types' attachment, which is where *DDS Record & Replay* keeps the types of an MCAP
+ * recording and where its replayer looks for them.
  *
  * The layout follows what *eProsima DDS Record & Replay* writes, so that the result can be read
  * by the tools that consume its recordings. In particular MCAP has no field for the GUID of the
@@ -91,15 +94,20 @@ public:
      *
      * Repeated announcements of the same topic are harmless.
      *
+     * The XTypes description of the data type is kept for the 'dynamic_types' attachment, which
+     * is written when the file is closed. A type described by no '-idl' file contributes nothing
+     * to it, and one that is built from other types contributes those as well.
+     *
      * \param topicName Name of the DDS Topic.
      * \param typeName Name of the DDS Topic data type.
-     * \param idl The data type rendered as IDL, or an empty string when it is not known.
+     * \param type What is known about the data type, all of it read from the file given with
+     * '-idl'. Every member is empty when that file did not declare it.
      * \return True value is returned if the topic was registered.
      */
     bool add_topic(
             std::string& topicName,
             std::string& typeName,
-            const std::string& idl);
+            const TypeDescription& type);
 
     /**
      * \brief This function registers an endpoint so its samples can be attributed.
@@ -145,7 +153,7 @@ public:
             unsigned int serializedDataLen);
 
     /**
-     * \brief This function writes the metadata records and closes the file.
+     * \brief This function writes the attachment and the metadata records, and closes the file.
      *
      * Calling it more than once is harmless. The destructor calls it, so an interrupted run
      * still leaves a readable file.
