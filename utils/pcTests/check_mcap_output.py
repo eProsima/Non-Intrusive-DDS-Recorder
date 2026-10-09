@@ -467,6 +467,28 @@ def check_idl_metadata(checker, recorder, workdir):
             checker.equal('%s: no schema carries data at all' % label, filled, [])
 
 
+def check_unwritable_output(checker, recorder, workdir):
+    """An MCAP file that cannot be created has to fail the run, not be recorded into nothing.
+
+    The constructor can only log the failure, so the caller has to ask before it walks the
+    capture. The recorder used to process every packet, log 'The MCAP file is not open' once per
+    sample, write no file and still exit 0, which left a script no way to tell a recording from
+    nothing at all.
+    """
+    print('\n== an MCAP file that cannot be created fails the run ==')
+
+    path = os.path.join(workdir, 'no_such_directory', 'out.mcap')
+    done = subprocess.run([recorder, '-mcap', path, HELLOWORLD], capture_output=True, text=True)
+    output = done.stdout + done.stderr
+
+    checker.equal('the run exits non-zero, and not as a usage error', done.returncode, 1)
+    checker.check('no MCAP file is left behind', not os.path.exists(path))
+    # Fail fast: the count is printed once the capture has been walked, so its absence is what
+    # says the run stopped before reading a single packet.
+    checker.check('the capture is not walked at all',
+                  'processed RTPS packets' not in output, 'output was %r' % output[-200:])
+
+
 def check_mutual_exclusion(checker, recorder, workdir):
     print('\n== -db and -mcap together are refused ==')
     db = os.path.join(workdir, 'both.db')
@@ -531,6 +553,7 @@ def main(argv=None):
         check_untyped_and_counts(checker, recorder, workdir)
         check_idl_metadata(checker, recorder, workdir)
         check_dynamic_types(checker, recorder, workdir)
+        check_unwritable_output(checker, recorder, workdir)
         check_mutual_exclusion(checker, recorder, workdir)
     except Failure as failure:
         print('\nABORTED: %s' % failure, file=sys.stderr)

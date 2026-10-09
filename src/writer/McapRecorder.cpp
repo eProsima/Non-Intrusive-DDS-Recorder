@@ -339,7 +339,7 @@ McapRecorder::~McapRecorder()
     }
 }
 
-bool McapRecorder::is_open()
+bool McapRecorder::is_open() const
 {
     return (nullptr != impl_) && impl_->open_;
 }
@@ -637,7 +637,7 @@ McapRecorder::~McapRecorder()
 {
 }
 
-bool McapRecorder::is_open()
+bool McapRecorder::is_open() const
 {
     return false;
 }

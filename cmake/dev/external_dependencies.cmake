@@ -78,9 +78,16 @@ macro (find_lz4)
         PATHS
             "/usr/lib/"
     )
-    if(NOT LZ4_INCLUDE_DIR)
+    # Both halves are required, not just the header: MCAP_SUPPORT=AUTO turns the MCAP output on
+    # from this variable, so a system carrying lz4frame.h without a linkable liblz4 would enable
+    # it and then fail at link time. AUTO promises never to make the build fail over MCAP.
+    if(NOT LZ4_INCLUDE_DIR OR NOT LZ4_LIBRARY)
         set(LZ4_FOUND FALSE)
-        message(STATUS "lz4 not found!")
+        if(LZ4_INCLUDE_DIR)
+            message(STATUS "lz4 not found! (lz4frame.h is present, but the library is not)")
+        else()
+            message(STATUS "lz4 not found!")
+        endif()
     else()
         set(LZ4_FOUND TRUE)
         message(STATUS "Found lz4 @ ${LZ4_INCLUDE_DIR}, libs ${LZ4_LIBRARY}")
@@ -100,9 +107,14 @@ macro (find_zstd)
         PATHS
             "/usr/lib/"
     )
-    if(NOT ZSTD_INCLUDE_DIR)
+    # The library is required as well as the header, for the reason given in find_lz4 above.
+    if(NOT ZSTD_INCLUDE_DIR OR NOT ZSTD_LIBRARY)
         set(ZSTD_FOUND FALSE)
-        message(STATUS "zstd not found!")
+        if(ZSTD_INCLUDE_DIR)
+            message(STATUS "zstd not found! (zstd.h is present, but the library is not)")
+        else()
+            message(STATUS "zstd not found!")
+        endif()
     else()
         set(ZSTD_FOUND TRUE)
         message(STATUS "Found zstd @ ${ZSTD_INCLUDE_DIR}, libs ${ZSTD_LIBRARY}")

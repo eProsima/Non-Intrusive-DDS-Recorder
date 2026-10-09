@@ -909,6 +909,17 @@ def check_exit_status(checker, recorder, workdir):
     checker.equal('an unopenable capture exits non-zero, and not as a usage error',
                   exit_status(recorder, '-db', db, missing), 1)
 
+    # An output file that cannot be created is a failure to carry the run out, not a usage
+    # error. The recorder used to log it, walk the whole capture with no writer behind it and
+    # exit 0 all the same -- and on this path it dereferenced the writer it never built.
+    unwritable = os.path.join(workdir, 'no_such_directory', 'out.db')
+    checker.equal('a database that cannot be created exits non-zero, and not as a usage error',
+                  exit_status(recorder, '-db', unwritable, HELLOWORLD), 1)
+    # Fail fast: the count is printed once the capture has been walked, so packets() finding no
+    # line at all is what says the run stopped before reading a single packet.
+    checker.equal('the capture is not walked when the database could not be created',
+                  packets(run_recorder(recorder, unwritable, HELLOWORLD)), None)
+
     bad_idl = os.path.join(workdir, 'broken.idl')
     with open(bad_idl, 'w') as handle:
         handle.write('struct Broken { this is not IDL;\n')

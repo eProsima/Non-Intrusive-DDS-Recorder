@@ -199,12 +199,28 @@ int main(
 
                         if (rtpsdumper != NULL)
                         {
-                            analyzer->setGetDataCallback((void*)rtpsdumper, DDSRecorder::processDataCallback);
-                            numRTPSPackets = reader->processRTPSPackets((void*)analyzer,
-                                            RTPSPacketAnalyzer::processRTPSPacketCallback);
+                            /*
+                             * A recorder that could not create its output file records nothing,
+                             * so the capture is not walked at all: every sample would log the
+                             * same failure and there would still be no file at the end of it.
+                             * The writer has already logged why it could not be opened.
+                             */
+                            if (!rtpsdumper->is_ready())
+                            {
+                                printf("Error creating the output file %s\n",
+                                        mcap_file.empty() ? db.c_str() : mcap_file.c_str());
+                                returnedValue = EXIT_ERROR;
+                            }
+                            else
+                            {
+                                analyzer->setGetDataCallback((void*)rtpsdumper,
+                                        DDSRecorder::processDataCallback);
+                                numRTPSPackets = reader->processRTPSPackets((void*)analyzer,
+                                                RTPSPacketAnalyzer::processRTPSPacketCallback);
 
-                            printf("Number of processed RTPS packets: %u\n", numRTPSPackets);
-                            returnedValue = EXIT_OK;
+                                printf("Number of processed RTPS packets: %u\n", numRTPSPackets);
+                                returnedValue = EXIT_OK;
+                            }
 
                             delete rtpsdumper;
                         }

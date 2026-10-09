@@ -83,7 +83,7 @@ public:
     /**
      * \brief This function returns whether the file was created successfully.
      */
-    bool is_open();
+    bool is_open() const;
 
     /**
      * \brief This function registers a DDS Topic and its data type.

@@ -52,6 +52,17 @@ public:
 
     ~DDSRecorder();
 
+    /**
+     * \brief Whether the output the recorder was asked for was actually opened.
+     *
+     * False when the MCAP file or the database file could not be created, which a missing or
+     * read-only directory is the usual cause of. The constructor only logs that, because it
+     * cannot report it any other way; the caller has to ask before feeding it any packet.
+     * Recording through a recorder that answers false writes nothing: the writers it would
+     * hand the samples to were never constructed.
+     */
+    bool is_ready() const;
+
     static void processDataCallback(
             void * user,
             const unsigned int npacket,

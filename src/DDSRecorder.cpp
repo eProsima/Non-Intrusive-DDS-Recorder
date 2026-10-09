@@ -191,6 +191,21 @@ DDSRecorder::DDSRecorder(
     }
 }
 
+bool DDSRecorder::is_ready() const
+{
+    /*
+     * '-mcap' and '-db' are exclusive, so the constructor built one sink or the other and the
+     * one it did not build is NULL. A failure to open the MCAP file leaves the object behind
+     * with is_open() false, while a failure to open the database leaves no writer at all.
+     */
+    if (mcap_recorder_ != NULL)
+    {
+        return mcap_recorder_->is_open();
+    }
+
+    return m_databaseH != NULL && monitor_db_ != NULL;
+}
+
 DDSRecorder::~DDSRecorder()
 {
     /*
