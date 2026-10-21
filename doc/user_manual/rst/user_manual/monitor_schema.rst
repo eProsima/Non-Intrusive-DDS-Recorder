@@ -201,11 +201,14 @@ Topics and Types tables
 
     *   - ``Types.information`` |br|
           ``Types.object``
-        - Always empty. These columns would hold a serialized |br|
-          ``TypeIdentifier`` and ``TypeObject``, neither of which |br|
-          the RTPS traffic carries. The *DDS Monitor* discards a |br|
-          type whose ``object`` does not decode, so they are left |br|
-          empty rather than filled with something else.
+        - The complete ``TypeIdentifier`` and ``TypeObject`` of the |br|
+          data type, each the base64 of its CDR, which is what the |br|
+          *DDS Monitor* and ``ddsreplayer`` decode. |br|
+          The RTPS traffic carries neither: both are generated from |br|
+          the data type declared in the file given with ``-idl``, |br|
+          so both are empty when that file did not declare it. |br|
+          A type built from other types also gets one row per type |br|
+          it needs; see the note below.
 
     *   - ``is_ros2_topic`` |br|
           ``is_ros2_type``
@@ -215,12 +218,21 @@ Topics and Types tables
 
     ``Types.idl`` is the one place where this schema departs from the one *DDS Record & Replay*
     writes.
-    The two columns that schema has for type information both expect base64 of a serialized
-    ``TypeIdentifier`` or ``TypeObject``, and the RTPS traffic carries neither, so the IDL text gets
-    a column of its own.
+    The two columns that schema has for type information expect base64 of a serialized
+    ``TypeIdentifier`` or ``TypeObject``, so the IDL text, which is what a reader of the recording
+    wants to see, gets a column of its own.
     The addition is harmless to other tools: a reader that selects the original columns by name
     never sees it, and the column has a default so that a writer unaware of it can still insert a
     type.
+
+.. note::
+
+    A ``TypeObject`` names the types of its members by ``TypeIdentifier`` rather than describing
+    them, so a data type built from other types cannot be rebuilt from its own row alone.
+    Every type it is built from therefore gets a row of its own, named ``__dep__/`` followed by its
+    own ``TypeIdentifier``, exactly as *DDS Record & Replay* names them.
+    Those rows are fragments of a data type rather than data types a DDS Topic uses: no ``Topics``
+    row ever names one, and a tool looking a topic's data type up skips them.
 
 .. _user_manual_monitor_schema_querying:
 

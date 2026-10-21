@@ -64,3 +64,59 @@ macro (find_sqlite3)
         message(STATUS "Found sqlite3 @ ${SQLITE3_INCLUDE_DIR}, libs ${SQLITE3_LIBRARY}")
     endif()
 endmacro(find_sqlite3)
+
+macro (find_lz4)
+    find_path( LZ4_INCLUDE_DIR
+        NAMES
+        lz4frame.h
+        PATHS
+            "/usr/include/"
+    )
+    find_library( LZ4_LIBRARY
+        NAMES
+        lz4
+        PATHS
+            "/usr/lib/"
+    )
+    # Both halves are required, not just the header: MCAP_SUPPORT=AUTO turns the MCAP output on
+    # from this variable, so a system carrying lz4frame.h without a linkable liblz4 would enable
+    # it and then fail at link time. AUTO promises never to make the build fail over MCAP.
+    if(NOT LZ4_INCLUDE_DIR OR NOT LZ4_LIBRARY)
+        set(LZ4_FOUND FALSE)
+        if(LZ4_INCLUDE_DIR)
+            message(STATUS "lz4 not found! (lz4frame.h is present, but the library is not)")
+        else()
+            message(STATUS "lz4 not found!")
+        endif()
+    else()
+        set(LZ4_FOUND TRUE)
+        message(STATUS "Found lz4 @ ${LZ4_INCLUDE_DIR}, libs ${LZ4_LIBRARY}")
+    endif()
+endmacro(find_lz4)
+
+macro (find_zstd)
+    find_path( ZSTD_INCLUDE_DIR
+        NAMES
+        zstd.h
+        PATHS
+            "/usr/include/"
+    )
+    find_library( ZSTD_LIBRARY
+        NAMES
+        zstd
+        PATHS
+            "/usr/lib/"
+    )
+    # The library is required as well as the header, for the reason given in find_lz4 above.
+    if(NOT ZSTD_INCLUDE_DIR OR NOT ZSTD_LIBRARY)
+        set(ZSTD_FOUND FALSE)
+        if(ZSTD_INCLUDE_DIR)
+            message(STATUS "zstd not found! (zstd.h is present, but the library is not)")
+        else()
+            message(STATUS "zstd not found!")
+        endif()
+    else()
+        set(ZSTD_FOUND TRUE)
+        message(STATUS "Found zstd @ ${ZSTD_INCLUDE_DIR}, libs ${ZSTD_LIBRARY}")
+    endif()
+endmacro(find_zstd)
